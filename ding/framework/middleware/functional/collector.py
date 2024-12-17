@@ -159,6 +159,8 @@ def rolloutor(
                     'step': env_info[timestep.env_id.item()]['step'],
                     'train_sample': env_info[timestep.env_id.item()]['train_sample'],
                 }
+                # reset corresponding env info
+                env_info[timestep.env_id.item()] = {'time': 0., 'step': 0, 'train_sample': 0}
 
                 episode_info.append(info)
                 policy.reset([timestep.env_id.item()])

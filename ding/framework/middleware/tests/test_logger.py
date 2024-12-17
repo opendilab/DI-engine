@@ -1,12 +1,10 @@
 from os import path
 import os
-import copy
+from functools import partial
 from easydict import EasyDict
 from collections import deque
 import pytest
-import shutil
 import wandb
-import h5py
 import torch.nn as nn
 from unittest.mock import MagicMock
 from unittest.mock import Mock, patch
@@ -207,7 +205,6 @@ def test_wandb_online_logger():
     env = TheEnvClass()
     ctx = OnlineRLContext()
     ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
-    model = TheModelClass()
     wandb.init(config=cfg, anonymous="must")
 
     def mock_metric_logger(data, step):
@@ -233,15 +230,17 @@ def test_wandb_online_logger():
         ]
         assert set(data.keys()) <= set(metric_list)
 
-    def mock_gradient_logger(input_model, log, log_freq, log_graph):
+    def mock_gradient_logger(input_model, model, log, log_freq, log_graph):
         assert input_model == model
 
     def test_wandb_online_logger_metric():
+        model = TheModelClass()
         with patch.object(wandb, 'log', new=mock_metric_logger):
             wandb_online_logger(record_path, cfg, env=env, model=model, anonymous=True)(ctx)
 
     def test_wandb_online_logger_gradient():
-        with patch.object(wandb, 'watch', new=mock_gradient_logger):
+        model = TheModelClass()
+        with patch.object(wandb, 'watch', new=partial(mock_gradient_logger, model=model)):
             wandb_online_logger(record_path, cfg, env=env, model=model, anonymous=True)(ctx)
 
     test_wandb_online_logger_metric()

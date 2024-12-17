@@ -74,7 +74,6 @@ class TestDingEnvWrapper:
     def test_cartpole_pendulum_gymnasium(self, env_id):
         env = gymnasium.make(env_id)
         ding_env = DingEnvWrapper(env=env)
-        print(ding_env.observation_space, ding_env.action_space, ding_env.reward_space)
         cfg = EasyDict(dict(
             collector_env_num=16,
             evaluator_env_num=3,
@@ -142,7 +141,7 @@ class TestDingEnvWrapper:
         # assert isinstance(action, np.ndarray)
         assert action.shape == (1, )
 
-    @pytest.mark.unittest
+    @pytest.mark.envtest
     @pytest.mark.parametrize('lun_bip_env_id', ['LunarLander-v2', 'LunarLanderContinuous-v2', 'BipedalWalker-v3'])
     def test_lunarlander_bipedalwalker(self, lun_bip_env_id):
         env_cfg = EasyDict(

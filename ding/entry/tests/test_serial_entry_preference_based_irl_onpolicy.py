@@ -17,6 +17,8 @@ from ding.entry.application_entry_trex_collect_data import trex_collecting_data
 def test_serial_pipeline_trex_onpolicy():
     exp_name = 'trex_onpolicy_test_serial_pipeline_trex_onpolicy_expert'
     config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
+    config[0].policy.learn.learner = dict()
+    config[0].policy.learn.learner.hook = dict()
     config[0].policy.learn.learner.hook.save_ckpt_after_iter = 100
     config[0].exp_name = exp_name
     expert_policy = serial_pipeline_onpolicy(config, seed=0)

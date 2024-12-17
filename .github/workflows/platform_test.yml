@@ -11,7 +11,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       matrix:
-        os: [macos-12, windows-latest]
+        os: [macos-13, windows-latest]
         python-version: [3.8, 3.9]
 
     steps:

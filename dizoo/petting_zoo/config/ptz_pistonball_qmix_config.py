@@ -18,7 +18,7 @@ main_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=1e6,
-        manager=dict(shared_memory=False,),
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
@@ -52,9 +52,7 @@ main_config = dict(
                 end=0.05,
                 decay=100000,
             ),
-            replay_buffer=dict(
-                replay_buffer_size=5000,
-            ),
+            replay_buffer=dict(replay_buffer_size=5000, ),
         ),
     ),
 )

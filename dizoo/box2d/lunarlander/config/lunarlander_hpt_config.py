@@ -1,0 +1,78 @@
+from easydict import EasyDict
+
+nstep = 3
+lunarlander_hpt_config = dict(
+    exp_name='lunarlander_hpt_seed0',
+    env=dict(
+        # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
+        # Env number respectively for collector and evaluator.
+        collector_env_num=8,
+        evaluator_env_num=8,
+        env_id='LunarLander-v2',
+        n_evaluator_episode=8,
+        stop_value=200,
+        # The path to save the game replay
+        # replay_path='./lunarlander_hpt_seed0/video',
+    ),
+    policy=dict(
+        # Whether to use cuda for network.
+        cuda=True,
+        load_path="./lunarlander_hpt_seed0/ckpt/ckpt_best.pth.tar",
+        model=dict(
+            obs_shape=8,
+            action_shape=4,
+        ),
+        # Reward's future discount factor, aka. gamma.
+        discount_factor=0.99,
+        # How many steps in td error.
+        nstep=nstep,
+        # learn_mode config
+        learn=dict(
+            update_per_collect=10,
+            batch_size=64,
+            learning_rate=0.0005,
+            # Frequency of target network update.
+            target_update_freq=100,
+        ),
+        # collect_mode config
+        collect=dict(
+            # You can use either "n_sample" or "n_episode" in collector.collect.
+            # Get "n_sample" samples per collect.
+            n_sample=64,
+            # Cut trajectories into pieces with length "unroll_len".
+            unroll_len=1,
+        ),
+        # command_mode config
+        other=dict(
+            # Epsilon greedy with decay.
+            eps=dict(
+                # Decay type. Support ['exp', 'linear'].
+                type='exp',
+                start=0.95,
+                end=0.1,
+                decay=50000,
+            ),
+            replay_buffer=dict(replay_buffer_size=100000, )
+        ),
+    ),
+)
+lunarlander_hpt_config = EasyDict(lunarlander_hpt_config)
+main_config = lunarlander_hpt_config
+
+lunarlander_hpt_create_config = dict(
+    env=dict(
+        type='lunarlander',
+        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
+    ),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='dqn'),
+)
+lunarlander_hpt_create_config = EasyDict(lunarlander_hpt_create_config)
+create_config = lunarlander_hpt_create_config
+"""
+This is a configuration file for LunarLander environment with HPT (Hindsight Policy Transformer).
+To run this config, please use the lunarlander_hpt_example.py script.
+
+Example:
+    python lunarlander_hpt_example.py
+"""

@@ -60,9 +60,9 @@ setup(
         'DI-toolkit>=0.1.0',
         'trueskill',
         'tensorboardX>=2.2',
-        'wandb',
+        'wandb<=0.19.0',
         'matplotlib',
-        'easydict==1.9',
+        'easydict>=1.9',
         'pyyaml',
         'enum_tools',
         'cloudpickle',
@@ -78,6 +78,7 @@ setup(
         'sniffio',  # parallel
         'redis',  # parallel
         'mpire>=2.3.5',  # parallel
+        'einops',
     ],
     extras_require={
         'test': [
@@ -95,8 +96,8 @@ setup(
             'h5py',
             'scipy',
             'scikit-learn',
-            'gym[box2d]==0.25.1',
             'pettingzoo<=1.22.3',
+            'pygame',
             'opencv-python',  # pypy incompatible
             'pyecharts',
         ],
@@ -188,6 +189,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
 )
