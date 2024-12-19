@@ -58,6 +58,6 @@ if __name__ == "__main__":
     Overview:
         This script should be executed with <nproc_per_node> GPUs.
         Run the following command to launch the script:
-        python -m torch.distributed.launch --nproc_per_node=2 --master_port=29501 ./dizoo/atari/example/atari_ppo_ddp.py
+        python -m torch.distributed.launch --nproc_per_node=2 ./dizoo/atari/example/atari_ppo_ddp.py
     """
     main()
