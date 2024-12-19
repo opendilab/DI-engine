@@ -12,3 +12,4 @@ Best Practice
    imitation_learning
    random_seed
    load_ckpt
+   ddp

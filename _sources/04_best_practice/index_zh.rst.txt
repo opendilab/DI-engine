@@ -20,3 +20,4 @@
    registry_zh
    wandb_zh
    load_ckpt_zh
+   ddp_zh
