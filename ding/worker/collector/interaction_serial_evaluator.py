@@ -204,6 +204,8 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         '''
         # evaluator only work on rank0
         stop_flag = False
+        episode_info = None  # Initialize to ensure it's defined in all ranks
+
         if get_rank() == 0:
             if n_episode is None:
                 n_episode = self._default_n_episode
@@ -317,5 +319,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             broadcast_object_list(objects, src=0)
             stop_flag, episode_info = objects
 
-        episode_info = to_item(episode_info)
+        # Ensure episode_info is converted to the correct format
+        episode_info = to_item(episode_info) if episode_info is not None else {}
+
         return stop_flag, episode_info

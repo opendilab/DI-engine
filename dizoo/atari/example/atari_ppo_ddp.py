@@ -9,14 +9,14 @@ from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, \
     gae_estimator, ddp_termination_checker, online_logger
-from ding.utils import set_pkg_seed, DistContext, get_rank, get_world_size
+from ding.utils import set_pkg_seed, DDPContext, get_rank, get_world_size
 from dizoo.atari.envs.atari_env import AtariEnv
-from dizoo.atari.config.serial.pong.pong_onppo_config import main_config, create_config
+from dizoo.atari.config.serial.pong.pong_ppo_config import main_config, create_config
 
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    with DistContext():
+    with DDPContext():
         rank, world_size = get_rank(), get_world_size()
         main_config.example = 'pong_ppo_seed0_ddp_avgsplit'
         main_config.policy.multi_gpu = True
@@ -45,12 +45,19 @@ def main():
                 task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
             task.use(StepCollector(cfg, policy.collect_mode, collector_env))
             task.use(gae_estimator(cfg, policy.collect_mode))
-            task.use(multistep_trainer(cfg, policy.learn_mode))
+            task.use(multistep_trainer(policy.learn_mode))
             if rank == 0:
                 task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
+                task.use(online_logger(record_train_iter=True))
             task.use(ddp_termination_checker(max_env_step=int(1e7), rank=rank))
             task.run()
 
 
 if __name__ == "__main__":
+    """
+    Overview:
+        This script should be executed with <nproc_per_node> GPUs.
+        Run the following command to launch the script:
+        python -m torch.distributed.launch --nproc_per_node=2 ./dizoo/atari/example/atari_ppo_ddp.py
+    """
     main()
