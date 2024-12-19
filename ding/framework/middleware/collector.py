@@ -101,7 +101,7 @@ class PPOFStepCollector:
         """
         Overview:
             An encapsulation of inference and rollout middleware. Stop when completing \
-                the target number of steps.
+            the target number of steps.
         Input of ctx:
             - env_step (:obj:`int`): The env steps which will increase during collection.
         """
@@ -143,7 +143,7 @@ class EpisodeCollector:
     """
     Overview:
         The class of the collector running by episodes, including model inference and transition \
-            process. Use the `__call__` method to execute the whole collection process.
+        process. Use the `__call__` method to execute the whole collection process.
     """
 
     def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager, random_collect_size: int = 0) -> None:
@@ -168,7 +168,7 @@ class EpisodeCollector:
         """
         Overview:
             An encapsulation of inference and rollout middleware. Stop when completing the \
-                target number of episodes.
+            target number of episodes.
         Input of ctx:
             - env_episode (:obj:`int`): The env env_episode which will increase during collection.
         """

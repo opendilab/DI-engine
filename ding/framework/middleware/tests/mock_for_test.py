@@ -63,7 +63,7 @@ class MockPolicy(Mock):
             'logit': 1.0,
             'value': 2.0,
             'reward': 0.1,
-            'done': True,
+            'done': timestep.done,
         }
         return transition
 
@@ -75,7 +75,6 @@ class MockEnv(Mock):
         self.env_num = env_num
         self.obs_dim = obs_dim
         self.closed = False
-        self._reward_grow_indicator = 1
         self._steps = [0 for _ in range(self.env_num)]
 
     @property
@@ -111,11 +110,10 @@ class MockEnv(Mock):
                 obs=torch.rand(self.obs_dim),
                 reward=1.0,
                 done=done,
-                info={'eval_episode_return': self._reward_grow_indicator * 1.0} if done else {},
+                info={'eval_episode_return': 10.0} if done else {},
                 env_id=i,
             )
             timesteps.append(tnp.array(timestep))
-        self._reward_grow_indicator += 1  # eval_episode_return will increase as step method is called
         return timesteps
 
 

@@ -60,9 +60,9 @@ setup(
         'DI-toolkit>=0.1.0',
         'trueskill',
         'tensorboardX>=2.2',
-        'wandb',
+        'wandb<=0.19.0',
         'matplotlib',
-        'easydict==1.9',
+        'easydict>=1.9',
         'pyyaml',
         'enum_tools',
         'cloudpickle',
@@ -78,7 +78,7 @@ setup(
         'sniffio',  # parallel
         'redis',  # parallel
         'mpire>=2.3.5',  # parallel
-        'einops<=0.8.0',
+        'einops',
     ],
     extras_require={
         'test': [
@@ -189,6 +189,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
 )

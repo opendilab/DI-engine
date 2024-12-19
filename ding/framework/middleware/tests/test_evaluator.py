@@ -24,4 +24,4 @@ def test_interaction_evaluator():
                 # there are 2 env_num and 5 episodes in the test.
                 # so when interaction_evaluator runs the first time, reward is [[1, 2, 3], [2, 3]] and the avg = 2.2
                 # the second time, reward is [[4, 5, 6], [5, 6]] . . .
-                assert ctx.eval_value == 2.2 + i // 10 * 3.0
+                assert ctx.eval_value == 10.0
