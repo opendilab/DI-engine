@@ -1,3 +1,26 @@
+2024.12.23 (v0.5.3)
+- env: add pistonball MARL env and its unittest/example (#833)
+- env: update trading env (#831)
+- env: update ppo config for better discrete action space performance (#809)
+- env: remove unused config fields in MuJoCo PPO
+- algo: add AWR algorithm (#828)
+- algo: add encoder in MAVAC (#823)
+- algo: add HPT model architecture (#841)
+- algo: fix multiple model wrappers reset bug (#846)
+- algo: add hybrid action space support to ActionNoiseWrapper (#829)
+- algo: fix mappo adv compute bug (#812)
+- feature: add resume_training option to allow the envstep and train_iter resume seamlessly (#835)
+- feature: polish old/new pipeline DistributedDataParallel (DDP) implementation (#842)
+- feature: adapt DingEnvWrapper to gymnasium (#817)
+- fix: priority buffer delete bug (#844)
+- fix: middleware collector env reset bug (#845)
+- fix: fix many unittest bugs
+- style: downgrade pyecharts log level to warning and polish installation doc (#838)
+- style: polish necessary requirements
+- style: polish api doc details
+- style: polish DI-engine citation authors
+- style: upgrade CI macos version from 12 to 13
+
 2024.06.27(v0.5.2)
 - env: add taxi env (#799) (#807) 
 - env: add ising model env (#782)

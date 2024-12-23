@@ -42,7 +42,7 @@
 </div>
 <br>
 
-Updated on 2024.06.27 DI-engine-v0.5.2
+Updated on 2024.12.23 DI-engine-v0.5.3
 
 ## Introduction to DI-engine
 
