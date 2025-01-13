@@ -1,5 +1,4 @@
 import pytest
-from easydict import EasyDict
 import numpy as np
 import gym
 from copy import deepcopy
@@ -17,6 +16,12 @@ def test_an_implemented_env():
 
 @pytest.mark.unittest
 def test_check_array_space():
+    discrete_space = gym.spaces.Discrete(10)
+    discrete_array = np.array(2, dtype=np.int64)
+    check_array_space(discrete_array, discrete_space, 'test_discrete')
+    discrete_array = np.array(11, dtype=np.int64)
+    with pytest.raises(AssertionError):
+        check_array_space(discrete_array, discrete_space, 'test_discrete')
     seq_array = (np.array([1, 2, 3], dtype=np.int64), np.array([4., 5., 6.], dtype=np.float32))
     seq_space = [gym.spaces.Box(low=0, high=10, shape=(3, ), dtype=np.int64) for _ in range(2)]
     with pytest.raises(AssertionError):
