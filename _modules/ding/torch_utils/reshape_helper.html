@@ -302,12 +302,12 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.torch_utils.reshape_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">Size</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">Size</span>
 
 
-<div class="viewcode-block" id="fold_batch"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.reshape_helper.fold_batch">[docs]</a><span class="k">def</span> <span class="nf">fold_batch</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">nonbatch_ndims</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Size</span><span class="p">]:</span>
+<div class="viewcode-block" id="fold_batch"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.reshape_helper.fold_batch">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">fold_batch</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">nonbatch_ndims</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Size</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        :math:`(T, B, X) \leftarrow (T*B, X)`\</span>
@@ -342,7 +342,7 @@
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">batch_dims</span></div>
 
 
-<div class="viewcode-block" id="unfold_batch"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.reshape_helper.unfold_batch">[docs]</a><span class="k">def</span> <span class="nf">unfold_batch</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">batch_dims</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Size</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="unfold_batch"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.reshape_helper.unfold_batch">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">unfold_batch</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">batch_dims</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Size</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Unfold the batch dimension of a tensor.</span>
@@ -365,7 +365,7 @@
     <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="n">batch_dims</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span></div>
 
 
-<div class="viewcode-block" id="unsqueeze_repeat"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.reshape_helper.unsqueeze_repeat">[docs]</a><span class="k">def</span> <span class="nf">unsqueeze_repeat</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">repeat_times</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">unsqueeze_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="unsqueeze_repeat"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.reshape_helper.unsqueeze_repeat">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">unsqueeze_repeat</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">repeat_times</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">unsqueeze_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Squeeze the tensor on `unsqueeze_dim` and then repeat in this dimension for `repeat_times` times.\</span>

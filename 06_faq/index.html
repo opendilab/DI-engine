@@ -370,7 +370,7 @@
 <p>Add <code class="docutils literal notranslate"><span class="pre">lr_scheduler</span></code> module in the entry file.
 You can adjust the learning rate by calling <code class="docutils literal notranslate"><span class="pre">torch.optim.lr_scheduler</span></code> (refer to <a class="reference external" href="https://pytorch.org/docs/stable/optim.html">https://pytorch.org/docs/stable/optim.html</a>) and apply the <code class="docutils literal notranslate"><span class="pre">scheduler.step()</span></code> to update the learning rate after optimizer’s update.
 The following code provides a simple example. For more detail, see demo: <a class="reference external" href="https://github.com/opendilab/DI-engine/commit/9cad6575e5c00036aba6419f95cdce0e7342630f">https://github.com/opendilab/DI-engine/commit/9cad6575e5c00036aba6419f95cdce0e7342630f</a>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <span class="n">LambdaLR</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.optim.lr_scheduler</span><span class="w"> </span><span class="kn">import</span> <span class="n">LambdaLR</span>
 
 <span class="o">...</span>
 

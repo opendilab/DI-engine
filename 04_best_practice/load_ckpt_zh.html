@@ -317,7 +317,7 @@
 <h3>配置 <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code><a class="headerlink" href="#load-ckpt-before-run" title="Permalink to this heading">¶</a></h3>
 <p>要加载预训练模型，首先需要在配置文件中指定预训练的 <code class="docutils literal notranslate"><span class="pre">ckpt</span></code> 文件路径。该路径通过 <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code> 字段进行配置。</p>
 <p>示例代码:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">cartpole_ppo_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;cartpole_ppo_seed0&#39;</span><span class="p">,</span>

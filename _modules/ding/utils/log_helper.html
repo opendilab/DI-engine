@@ -302,21 +302,21 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.log_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">ditk.logging</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">from</span> <span class="nn">hbutils.system</span> <span class="kn">import</span> <span class="n">touch</span>
-<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ditk.logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hbutils.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">touch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tabulate</span><span class="w"> </span><span class="kn">import</span> <span class="n">tabulate</span>
 
-<span class="kn">from</span> <span class="nn">.log_writer_helper</span> <span class="kn">import</span> <span class="n">DistributedWriter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.log_writer_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">DistributedWriter</span>
 
 
-<div class="viewcode-block" id="build_logger"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.build_logger">[docs]</a><span class="k">def</span> <span class="nf">build_logger</span><span class="p">(</span>
+<div class="viewcode-block" id="build_logger"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.build_logger">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">build_logger</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">need_tb</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -344,7 +344,7 @@
     <span class="k">return</span> <span class="n">logger</span><span class="p">,</span> <span class="n">tb_logger</span></div>
 
 
-<div class="viewcode-block" id="TBLoggerFactory"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.TBLoggerFactory">[docs]</a><span class="k">class</span> <span class="nc">TBLoggerFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="TBLoggerFactory"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.TBLoggerFactory">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TBLoggerFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        TBLoggerFactory is a factory class for ``SummaryWriter``.</span>
@@ -357,7 +357,7 @@
     <span class="n">tb_loggers</span> <span class="o">=</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="TBLoggerFactory.create_logger"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.TBLoggerFactory.create_logger">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">create_logger</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">logdir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributedWriter</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_logger</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">logdir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DistributedWriter</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">logdir</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">tb_loggers</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">tb_loggers</span><span class="p">[</span><span class="n">logdir</span><span class="p">]</span>
         <span class="n">tb_logger</span> <span class="o">=</span> <span class="n">DistributedWriter</span><span class="p">(</span><span class="n">logdir</span><span class="p">)</span>
@@ -365,7 +365,7 @@
         <span class="k">return</span> <span class="n">tb_logger</span></div></div>
 
 
-<div class="viewcode-block" id="LoggerFactory"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.LoggerFactory">[docs]</a><span class="k">class</span> <span class="nc">LoggerFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="LoggerFactory"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.LoggerFactory">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LoggerFactory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        LoggerFactory is a factory class for ``logging.Logger``.</span>
@@ -374,7 +374,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="LoggerFactory.create_logger"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.LoggerFactory.create_logger">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">create_logger</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_logger</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Create logger using logging</span>
@@ -398,7 +398,7 @@
         <span class="k">return</span> <span class="n">logger</span></div>
 
 <div class="viewcode-block" id="LoggerFactory.get_tabulate_vars"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.LoggerFactory.get_tabulate_vars">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_tabulate_vars</span><span class="p">(</span><span class="n">variables</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_tabulate_vars</span><span class="p">(</span><span class="n">variables</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the text description in tabular form of all vars</span>
@@ -415,7 +415,7 @@
         <span class="k">return</span> <span class="n">s</span></div>
 
 <div class="viewcode-block" id="LoggerFactory.get_tabulate_vars_hor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.LoggerFactory.get_tabulate_vars_hor">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_tabulate_vars_hor</span><span class="p">(</span><span class="n">variables</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_tabulate_vars_hor</span><span class="p">(</span><span class="n">variables</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the text description in tabular form of all vars</span>
@@ -456,7 +456,7 @@
         <span class="k">return</span> <span class="n">s</span></div></div>
 
 
-<div class="viewcode-block" id="pretty_print"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.pretty_print">[docs]</a><span class="k">def</span> <span class="nf">pretty_print</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">direct_print</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="pretty_print"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.log_helper.pretty_print">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pretty_print</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">direct_print</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Print a dict ``result`` in a pretty way</span>

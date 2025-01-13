@@ -302,18 +302,18 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.rl_utils.sampler</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">treetensor.torch</span> <span class="k">as</span> <span class="nn">ttorch</span>
-<span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Normal</span><span class="p">,</span> <span class="n">Independent</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">treetensor.torch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ttorch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.distributions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normal</span><span class="p">,</span> <span class="n">Independent</span>
 
 
-<div class="viewcode-block" id="ArgmaxSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.ArgmaxSampler">[docs]</a><span class="k">class</span> <span class="nc">ArgmaxSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="ArgmaxSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.ArgmaxSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ArgmaxSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Argmax sampler, return the index of the maximum value</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="ArgmaxSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.ArgmaxSampler.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="ArgmaxSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.ArgmaxSampler.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the index of the maximum value</span>
@@ -325,13 +325,13 @@
         <span class="k">return</span> <span class="n">logit</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="MultinomialSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.MultinomialSampler">[docs]</a><span class="k">class</span> <span class="nc">MultinomialSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="MultinomialSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.MultinomialSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">MultinomialSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Multinomial sampler, return the index of the sampled value</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="MultinomialSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.MultinomialSampler.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="MultinomialSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.MultinomialSampler.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the index of the sampled value</span>
@@ -344,13 +344,13 @@
         <span class="k">return</span> <span class="n">dist</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="MuSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.MuSampler">[docs]</a><span class="k">class</span> <span class="nc">MuSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="MuSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.MuSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">MuSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Mu sampler, return the mu of the input tensor</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="MuSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.MuSampler.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="MuSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.MuSampler.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the mu of the input tensor</span>
@@ -362,13 +362,13 @@
         <span class="k">return</span> <span class="n">logit</span><span class="o">.</span><span class="n">mu</span></div></div>
 
 
-<div class="viewcode-block" id="ReparameterizationSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.ReparameterizationSampler">[docs]</a><span class="k">class</span> <span class="nc">ReparameterizationSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="ReparameterizationSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.ReparameterizationSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ReparameterizationSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Reparameterization sampler, return the reparameterized value of the input tensor</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="ReparameterizationSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.ReparameterizationSampler.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="ReparameterizationSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.ReparameterizationSampler.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the reparameterized value of the input tensor</span>
@@ -382,13 +382,13 @@
         <span class="k">return</span> <span class="n">dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="HybridStochasticSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.HybridStochasticSampler">[docs]</a><span class="k">class</span> <span class="nc">HybridStochasticSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="HybridStochasticSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.HybridStochasticSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HybridStochasticSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Hybrid stochastic sampler, return the sampled action type and the reparameterized action args</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="HybridStochasticSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.HybridStochasticSampler.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="HybridStochasticSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.HybridStochasticSampler.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the sampled action type and the reparameterized action args</span>
@@ -408,13 +408,13 @@
         <span class="p">})</span></div></div>
 
 
-<div class="viewcode-block" id="HybridDeterminsticSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.HybridDeterminsticSampler">[docs]</a><span class="k">class</span> <span class="nc">HybridDeterminsticSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="HybridDeterminsticSampler"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.HybridDeterminsticSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HybridDeterminsticSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Hybrid deterministic sampler, return the argmax action type and the mu action args</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="HybridDeterminsticSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.HybridDeterminsticSampler.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="HybridDeterminsticSampler.__call__"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.sampler.HybridDeterminsticSampler.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logit</span><span class="p">:</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the argmax action type and the mu action args</span>

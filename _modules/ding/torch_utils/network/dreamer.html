@@ -302,18 +302,18 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.torch_utils.network.dreamer</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">distributions</span> <span class="k">as</span> <span class="n">torchd</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">MLP</span>
-<span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">symlog</span><span class="p">,</span> <span class="n">inv_symlog</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">distributions</span> <span class="k">as</span> <span class="n">torchd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.torch_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.rl_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">symlog</span><span class="p">,</span> <span class="n">inv_symlog</span>
 
 
-<div class="viewcode-block" id="Conv2dSame"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Conv2dSame">[docs]</a><span class="k">class</span> <span class="nc">Conv2dSame</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">):</span>
+<div class="viewcode-block" id="Conv2dSame"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Conv2dSame">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Conv2dSame</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">         Conv2dSame Network for dreamerv3.</span>
@@ -321,7 +321,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Conv2dSame.calc_same_pad"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Conv2dSame.calc_same_pad">[docs]</a>    <span class="k">def</span> <span class="nf">calc_same_pad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="Conv2dSame.calc_same_pad"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Conv2dSame.calc_same_pad">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_same_pad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the same padding size.</span>
@@ -333,7 +333,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">max</span><span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="p">(</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">d</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Conv2dSame.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Conv2dSame.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="Conv2dSame.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Conv2dSame.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            compute the forward of Conv2dSame.</span>
@@ -359,7 +359,7 @@
         <span class="k">return</span> <span class="n">ret</span></div></div>
 
 
-<div class="viewcode-block" id="DreamerLayerNorm"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DreamerLayerNorm">[docs]</a><span class="k">class</span> <span class="nc">DreamerLayerNorm</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="DreamerLayerNorm"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DreamerLayerNorm">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DreamerLayerNorm</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">         DreamerLayerNorm Network for dreamerv3.</span>
@@ -367,7 +367,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DreamerLayerNorm.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DreamerLayerNorm.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-03</span><span class="p">):</span>
+<div class="viewcode-block" id="DreamerLayerNorm.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DreamerLayerNorm.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-03</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the DreamerLayerNorm class.</span>
@@ -379,7 +379,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">DreamerLayerNorm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DreamerLayerNorm.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DreamerLayerNorm.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="DreamerLayerNorm.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DreamerLayerNorm.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            compute the forward of DreamerLayerNorm.</span>
@@ -393,7 +393,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="DenseHead"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DenseHead">[docs]</a><span class="k">class</span> <span class="nc">DenseHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="DenseHead"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DenseHead">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DenseHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       DenseHead Network for value head, reward head, and discount head of dreamerv3.</span>
@@ -401,7 +401,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DenseHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DenseHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="DenseHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DenseHead.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">inp_dim</span><span class="p">,</span>
         <span class="n">shape</span><span class="p">,</span>  <span class="c1"># (255,)</span>
@@ -460,7 +460,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">std_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">std_layer</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">uniform_weight_init</span><span class="p">(</span><span class="n">outscale</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="DenseHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DenseHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
+<div class="viewcode-block" id="DenseHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DenseHead.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            compute the forward of DenseHead.</span>
@@ -486,7 +486,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="ActionHead"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ActionHead">[docs]</a><span class="k">class</span> <span class="nc">ActionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="ActionHead"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ActionHead">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ActionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       ActionHead Network for action head of dreamerv3.</span>
@@ -494,7 +494,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ActionHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ActionHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="ActionHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ActionHead.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">inp_dim</span><span class="p">,</span>
         <span class="n">size</span><span class="p">,</span>
@@ -559,7 +559,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">uniform_weight_init</span><span class="p">(</span><span class="n">outscale</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="ActionHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ActionHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
+<div class="viewcode-block" id="ActionHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ActionHead.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            compute the forward of ActionHead.</span>
@@ -616,7 +616,7 @@
         <span class="k">return</span> <span class="n">dist</span></div></div>
 
 
-<div class="viewcode-block" id="SampleDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist">[docs]</a><span class="k">class</span> <span class="nc">SampleDist</span><span class="p">:</span>
+<div class="viewcode-block" id="SampleDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SampleDist</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       A kind of sample Dist for ActionHead of dreamerv3.</span>
@@ -624,7 +624,7 @@
 <span class="sd">        ``__init__``, ``mean``, ``mode``, ``entropy``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="SampleDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the SampleDist class.</span>
@@ -636,7 +636,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">dist</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_samples</span> <span class="o">=</span> <span class="n">samples</span></div>
 
-<div class="viewcode-block" id="SampleDist.mean"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDist.mean"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.mean">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mean of the distribution.</span>
@@ -645,7 +645,7 @@
         <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SampleDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.mode">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mode of the distribution.</span>
@@ -655,7 +655,7 @@
         <span class="n">logprob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sample</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logprob</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="SampleDist.entropy"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SampleDist.entropy"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.entropy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the entropy of the distribution.</span>
@@ -666,7 +666,7 @@
         <span class="k">return</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">logprob</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="OneHotDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist">[docs]</a><span class="k">class</span> <span class="nc">OneHotDist</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">one_hot_categorical</span><span class="o">.</span><span class="n">OneHotCategorical</span><span class="p">):</span>
+<div class="viewcode-block" id="OneHotDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OneHotDist</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">one_hot_categorical</span><span class="o">.</span><span class="n">OneHotCategorical</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       A kind of onehot Dist for dreamerv3.</span>
@@ -674,7 +674,7 @@
 <span class="sd">        ``__init__``, ``mode``, ``sample``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="OneHotDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">probs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unimix_ratio</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<div class="viewcode-block" id="OneHotDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">probs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unimix_ratio</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the OneHotDist class.</span>
@@ -692,7 +692,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span> <span class="n">probs</span><span class="o">=</span><span class="n">probs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="OneHotDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="OneHotDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist.mode">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mode of the distribution.</span>
@@ -701,7 +701,7 @@
         <span class="n">_mode</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">_mode</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">+</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span> <span class="o">-</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="OneHotDist.sample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="p">(),</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="OneHotDist.sample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="p">(),</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample from the distribution.</span>
@@ -720,7 +720,7 @@
         <span class="k">return</span> <span class="n">sample</span></div></div>
 
 
-<div class="viewcode-block" id="TwoHotDistSymlog"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog">[docs]</a><span class="k">class</span> <span class="nc">TwoHotDistSymlog</span><span class="p">:</span>
+<div class="viewcode-block" id="TwoHotDistSymlog"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TwoHotDistSymlog</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       A kind of twohotsymlog Dist for dreamerv3.</span>
@@ -728,7 +728,7 @@
 <span class="sd">        ``__init__``, ``mode``, ``mean``, ``log_prob``, ``log_prob_target``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="TwoHotDistSymlog.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low</span><span class="o">=-</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="TwoHotDistSymlog.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low</span><span class="o">=-</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the TwoHotDistSymlog class.</span>
@@ -744,7 +744,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">buckets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">255</span></div>
 
-<div class="viewcode-block" id="TwoHotDistSymlog.mean"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TwoHotDistSymlog.mean"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.mean">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mean of the distribution.</span>
@@ -753,7 +753,7 @@
         <span class="n">_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">buckets</span>
         <span class="k">return</span> <span class="n">inv_symlog</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_mean</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="TwoHotDistSymlog.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TwoHotDistSymlog.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.mode">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mode of the distribution.</span>
@@ -763,7 +763,7 @@
         <span class="k">return</span> <span class="n">inv_symlog</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_mode</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
 
     <span class="c1"># Inside OneHotCategorical, log_prob is calculated using only max element in targets</span>
-<div class="viewcode-block" id="TwoHotDistSymlog.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="TwoHotDistSymlog.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.log_prob">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the log probability of the distribution.</span>
@@ -793,7 +793,7 @@
 
         <span class="k">return</span> <span class="p">(</span><span class="n">target</span> <span class="o">*</span> <span class="n">log_pred</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TwoHotDistSymlog.log_prob_target"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.log_prob_target">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+<div class="viewcode-block" id="TwoHotDistSymlog.log_prob_target"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.log_prob_target">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_prob_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the log probability of the target.</span>
@@ -805,7 +805,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">target</span> <span class="o">*</span> <span class="n">log_pred</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="SymlogDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist">[docs]</a><span class="k">class</span> <span class="nc">SymlogDist</span><span class="p">:</span>
+<div class="viewcode-block" id="SymlogDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SymlogDist</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       A kind of Symlog Dist for dreamerv3.</span>
@@ -813,7 +813,7 @@
 <span class="sd">        ``__init__``, ``entropy``, ``mode``, ``mean``, ``log_prob``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="SymlogDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="s1">&#39;mse&#39;</span><span class="p">,</span> <span class="n">aggregation</span><span class="o">=</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">dim_to_reduce</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">]):</span>
+<div class="viewcode-block" id="SymlogDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="s1">&#39;mse&#39;</span><span class="p">,</span> <span class="n">aggregation</span><span class="o">=</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">dim_to_reduce</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the SymlogDist class.</span>
@@ -830,7 +830,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_tol</span> <span class="o">=</span> <span class="n">tol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dim_to_reduce</span> <span class="o">=</span> <span class="n">dim_to_reduce</span></div>
 
-<div class="viewcode-block" id="SymlogDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SymlogDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.mode">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mode of the distribution.</span>
@@ -838,7 +838,7 @@
 
         <span class="k">return</span> <span class="n">inv_symlog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SymlogDist.mean"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SymlogDist.mean"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.mean">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mean of the distribution.</span>
@@ -846,7 +846,7 @@
 
         <span class="k">return</span> <span class="n">inv_symlog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SymlogDist.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="SymlogDist.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.log_prob">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the log probability of the distribution.</span>
@@ -872,7 +872,7 @@
         <span class="k">return</span> <span class="o">-</span><span class="n">loss</span></div></div>
 
 
-<div class="viewcode-block" id="ContDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist">[docs]</a><span class="k">class</span> <span class="nc">ContDist</span><span class="p">:</span>
+<div class="viewcode-block" id="ContDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ContDist</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       A kind of ordinary Dist for dreamerv3.</span>
@@ -880,7 +880,7 @@
 <span class="sd">        ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ContDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="ContDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the ContDist class.</span>
@@ -892,7 +892,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">dist</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">mean</span></div>
 
-    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get attribute.</span>
@@ -902,7 +902,7 @@
 
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ContDist.entropy"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ContDist.entropy"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.entropy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the entropy of the distribution.</span>
@@ -910,7 +910,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="ContDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ContDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.mode">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mode of the distribution.</span>
@@ -918,7 +918,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">mean</span></div>
 
-<div class="viewcode-block" id="ContDist.sample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="p">()):</span>
+<div class="viewcode-block" id="ContDist.sample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample from the distribution.</span>
@@ -928,11 +928,11 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ContDist.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="ContDist.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.log_prob">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="Bernoulli"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli">[docs]</a><span class="k">class</span> <span class="nc">Bernoulli</span><span class="p">:</span>
+<div class="viewcode-block" id="Bernoulli"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Bernoulli</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       A kind of Bernoulli Dist for dreamerv3.</span>
@@ -940,7 +940,7 @@
 <span class="sd">        ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Bernoulli.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Bernoulli.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the Bernoulli distribution.</span>
@@ -952,7 +952,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">dist</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">mean</span></div>
 
-    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get attribute.</span>
@@ -962,14 +962,14 @@
 
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Bernoulli.entropy"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Bernoulli.entropy"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.entropy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the entropy of the distribution.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Bernoulli.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Bernoulli.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.mode">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mode of the distribution.</span>
@@ -978,7 +978,7 @@
         <span class="n">_mode</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_mode</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">mean</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">mean</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Bernoulli.sample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="p">()):</span>
+<div class="viewcode-block" id="Bernoulli.sample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample from the distribution.</span>
@@ -988,7 +988,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Bernoulli.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="Bernoulli.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.log_prob">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the log probability of the distribution.</span>
@@ -1003,7 +1003,7 @@
         <span class="k">return</span> <span class="n">log_probs0</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">log_probs1</span> <span class="o">*</span> <span class="n">x</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">UnnormalizedHuber</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnnormalizedHuber</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       A kind of UnnormalizedHuber Dist for dreamerv3.</span>
@@ -1011,7 +1011,7 @@
 <span class="sd">        ``__init__``, ``mode``, ``log_prob``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the UnnormalizedHuber class.</span>
@@ -1023,7 +1023,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
 
-    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the log probability of the distribution.</span>
@@ -1033,7 +1033,7 @@
 
         <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">event</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the mode of the distribution.</span>
@@ -1042,7 +1042,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span>
 
 
-<span class="k">class</span> <span class="nc">SafeTruncatedNormal</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SafeTruncatedNormal</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       A kind of SafeTruncatedNormal Dist for dreamerv3.</span>
@@ -1050,7 +1050,7 @@
 <span class="sd">        ``__init__``, ``sample``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the SafeTruncatedNormal class.</span>
@@ -1069,7 +1069,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_clip</span> <span class="o">=</span> <span class="n">clip</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mult</span> <span class="o">=</span> <span class="n">mult</span>
 
-    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample from the distribution.</span>
@@ -1086,7 +1086,7 @@
         <span class="k">return</span> <span class="n">event</span>
 
 
-<span class="k">class</span> <span class="nc">TanhBijector</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">Transform</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TanhBijector</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">Transform</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       A kind of TanhBijector Dist for dreamerv3.</span>
@@ -1094,7 +1094,7 @@
 <span class="sd">        ``__init__``, ``_forward``, ``_inverse``, ``_forward_log_det_jacobian``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">validate_args</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tanh&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">validate_args</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tanh&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the TanhBijector class.</span>
@@ -1105,7 +1105,7 @@
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the forward of the distribution.</span>
@@ -1115,7 +1115,7 @@
 
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the inverse of the distribution.</span>
@@ -1127,7 +1127,7 @@
         <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">atanh</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">y</span>
 
-    <span class="k">def</span> <span class="nf">_forward_log_det_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_forward_log_det_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the forward log det jacobian of the distribution.</span>
@@ -1139,7 +1139,7 @@
         <span class="k">return</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">log2</span> <span class="o">-</span> <span class="n">x</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">static_scan</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">static_scan</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">         Static scan function.</span>
@@ -1182,7 +1182,7 @@
     <span class="k">return</span> <span class="n">outputs</span>
 
 
-<span class="k">def</span> <span class="nf">weight_init</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">weight_init</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       weight_init for Linear, Conv2d, ConvTranspose2d, and LayerNorm.</span>
@@ -1215,7 +1215,7 @@
             <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">uniform_weight_init</span><span class="p">(</span><span class="n">given_scale</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">uniform_weight_init</span><span class="p">(</span><span class="n">given_scale</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       weight_init for Linear and LayerNorm.</span>
@@ -1223,7 +1223,7 @@
 <span class="sd">        - given_scale (:obj:`float`): Given scale.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
             <span class="n">in_num</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">in_features</span>
             <span class="n">out_num</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">out_features</span>

@@ -302,14 +302,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.data.collate_fn</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Mapping</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">treetensor.torch</span> <span class="k">as</span> <span class="nn">ttorch</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">collections.abc</span> <span class="k">as</span> <span class="nn">container_abcs</span>
-<span class="kn">from</span> <span class="nn">ding.compatibility</span> <span class="kn">import</span> <span class="n">torch_ge_131</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">treetensor.torch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ttorch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">container_abcs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.compatibility</span><span class="w"> </span><span class="kn">import</span> <span class="n">torch_ge_131</span>
 
 <span class="n">int_classes</span> <span class="o">=</span> <span class="nb">int</span>
 <span class="n">string_classes</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span>
@@ -321,7 +321,7 @@
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="ttorch_collate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.ttorch_collate">[docs]</a><span class="k">def</span> <span class="nf">ttorch_collate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">json</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">cat_1dim</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="ttorch_collate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.ttorch_collate">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">ttorch_collate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">json</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">cat_1dim</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Collates a list of tensors or nested dictionaries of tensors into a single tensor or nested \</span>
@@ -365,7 +365,7 @@
 <span class="sd">        }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">inplace_fn</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inplace_fn</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">t</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># reshape (B, 1) -&gt; (B)</span>
@@ -381,7 +381,7 @@
     <span class="k">return</span> <span class="n">x</span></div>
 
 
-<div class="viewcode-block" id="default_collate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.default_collate">[docs]</a><span class="k">def</span> <span class="nf">default_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span>
+<div class="viewcode-block" id="default_collate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.default_collate">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">default_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span>
                     <span class="n">cat_1dim</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                     <span class="n">ignore_prefix</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;collate_ignore&#39;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -473,7 +473,7 @@
     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">default_collate_err_msg_format</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem_type</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="timestep_collate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.timestep_collate">[docs]</a><span class="k">def</span> <span class="nf">timestep_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
+<div class="viewcode-block" id="timestep_collate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.timestep_collate">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">timestep_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Collates a batch of timestepped data fields into tensors with the outer dimension being the batch size. \</span>
@@ -499,7 +499,7 @@
 <span class="sd">        torch.Size([2, 2, 3])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">stack</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stack</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">container_abcs</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">stack</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="p">}</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">container_abcs</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
@@ -527,7 +527,7 @@
     <span class="k">return</span> <span class="n">batch_data</span></div>
 
 
-<div class="viewcode-block" id="diff_shape_collate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.diff_shape_collate">[docs]</a><span class="k">def</span> <span class="nf">diff_shape_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">]:</span>
+<div class="viewcode-block" id="diff_shape_collate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.diff_shape_collate">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">diff_shape_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Collates a batch of data with different shapes.</span>
@@ -594,7 +594,7 @@
     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;not support element type: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem_type</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="default_decollate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.default_decollate">[docs]</a><span class="k">def</span> <span class="nf">default_decollate</span><span class="p">(</span>
+<div class="viewcode-block" id="default_decollate"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.collate_fn.default_decollate">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">default_decollate</span><span class="p">(</span>
         <span class="n">batch</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">],</span>
         <span class="n">ignore</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_actor_state&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_critic_state&#39;</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>

@@ -302,14 +302,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.torch_utils.lr_scheduler</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">import</span> <span class="nn">math</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 
-<span class="kn">import</span> <span class="nn">torch.optim</span>
-<span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <span class="n">LambdaLR</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.optim.lr_scheduler</span><span class="w"> </span><span class="kn">import</span> <span class="n">LambdaLR</span>
 
 
-<div class="viewcode-block" id="get_lr_ratio"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.lr_scheduler.get_lr_ratio">[docs]</a><span class="k">def</span> <span class="nf">get_lr_ratio</span><span class="p">(</span><span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">warmup_epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lr_decay_epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">min_lr</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="get_lr_ratio"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.lr_scheduler.get_lr_ratio">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_lr_ratio</span><span class="p">(</span><span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">warmup_epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lr_decay_epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">min_lr</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get learning rate ratio for each epoch.</span>
@@ -334,7 +334,7 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">min_lr</span> <span class="o">+</span> <span class="n">coefficient</span> <span class="o">*</span> <span class="p">(</span><span class="n">learning_rate</span> <span class="o">-</span> <span class="n">min_lr</span><span class="p">))</span> <span class="o">/</span> <span class="n">learning_rate</span></div>
 
 
-<div class="viewcode-block" id="cos_lr_scheduler"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.lr_scheduler.cos_lr_scheduler">[docs]</a><span class="k">def</span> <span class="nf">cos_lr_scheduler</span><span class="p">(</span>
+<div class="viewcode-block" id="cos_lr_scheduler"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.lr_scheduler.cos_lr_scheduler">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">cos_lr_scheduler</span><span class="p">(</span>
         <span class="n">optimizer</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">,</span>
         <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="n">warmup_epochs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>

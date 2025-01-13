@@ -302,21 +302,21 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.torch_utils.network.rnn</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span>
-<span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
-<span class="kn">import</span> <span class="nn">treetensor.torch</span> <span class="k">as</span> <span class="nn">ttorch</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">treetensor.torch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ttorch</span>
 
-<span class="kn">import</span> <span class="nn">ding</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils.network.normalization</span> <span class="kn">import</span> <span class="n">build_normalization</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ding</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.torch_utils.network.normalization</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_normalization</span>
 <span class="k">if</span> <span class="n">ding</span><span class="o">.</span><span class="n">enable_hpc_rl</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">hpc_rll.torch_utils.network.rnn</span> <span class="kn">import</span> <span class="n">LSTM</span> <span class="k">as</span> <span class="n">HPCLSTM</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">hpc_rll.torch_utils.network.rnn</span><span class="w"> </span><span class="kn">import</span> <span class="n">LSTM</span> <span class="k">as</span> <span class="n">HPCLSTM</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="n">HPCLSTM</span> <span class="o">=</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="is_sequence"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.is_sequence">[docs]</a><span class="k">def</span> <span class="nf">is_sequence</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<div class="viewcode-block" id="is_sequence"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.is_sequence">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_sequence</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Determines if the input data is of type list or tuple.</span>
@@ -328,7 +328,7 @@
     <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="sequence_mask"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.sequence_mask">[docs]</a><span class="k">def</span> <span class="nf">sequence_mask</span><span class="p">(</span><span class="n">lengths</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">max_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">BoolTensor</span><span class="p">:</span>
+<div class="viewcode-block" id="sequence_mask"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.sequence_mask">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">sequence_mask</span><span class="p">(</span><span class="n">lengths</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">max_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">BoolTensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Generates a boolean mask for a batch of sequences with differing lengths.</span>
@@ -349,7 +349,7 @@
     <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_len</span><span class="p">)</span><span class="o">.</span><span class="n">type_as</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">bz</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">lt</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">lengths</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="LSTMForwardWrapper"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTMForwardWrapper">[docs]</a><span class="k">class</span> <span class="nc">LSTMForwardWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="LSTMForwardWrapper"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTMForwardWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LSTMForwardWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Class providing methods to use before and after the LSTM `forward` method.</span>
@@ -358,7 +358,7 @@
 <span class="sd">        ``_before_forward``, ``_after_forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LSTMForwardWrapper._before_forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTMForwardWrapper._before_forward">[docs]</a>    <span class="k">def</span> <span class="nf">_before_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="LSTMForwardWrapper._before_forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTMForwardWrapper._before_forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_before_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Preprocesses the inputs and previous states before the LSTM `forward` method.</span>
@@ -408,7 +408,7 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;not support prev_state type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">prev_state</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">prev_state</span></div>
 
-<div class="viewcode-block" id="LSTMForwardWrapper._after_forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTMForwardWrapper._after_forward">[docs]</a>    <span class="k">def</span> <span class="nf">_after_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="LSTMForwardWrapper._after_forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTMForwardWrapper._after_forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_after_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                        <span class="n">next_state</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
                        <span class="n">list_next_state</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -432,7 +432,7 @@
         <span class="k">return</span> <span class="n">next_state</span></div></div>
 
 
-<div class="viewcode-block" id="LSTM"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTM">[docs]</a><span class="k">class</span> <span class="nc">LSTM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">LSTMForwardWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="LSTM"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTM">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LSTM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">LSTMForwardWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Implementation of an LSTM cell with Layer Normalization (LN).</span>
@@ -444,7 +444,7 @@
 <span class="sd">        For a primer on LSTM, refer to https://zhuanlan.zhihu.com/p/32085405.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LSTM.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTM.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="LSTM.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTM.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -481,7 +481,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="LSTM._init"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTM._init">[docs]</a>    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="LSTM._init"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTM._init">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the parameters of the LSTM cell.</span>
@@ -494,7 +494,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">[</span><span class="n">l</span><span class="p">],</span> <span class="o">-</span><span class="n">gain</span><span class="p">,</span> <span class="n">gain</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="LSTM.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTM.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="LSTM.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.LSTM.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                 <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                 <span class="n">prev_state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                 <span class="n">list_next_state</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
@@ -543,7 +543,7 @@
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">next_state</span></div></div>
 
 
-<div class="viewcode-block" id="PytorchLSTM"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.PytorchLSTM">[docs]</a><span class="k">class</span> <span class="nc">PytorchLSTM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="p">,</span> <span class="n">LSTMForwardWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="PytorchLSTM"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.PytorchLSTM">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">PytorchLSTM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="p">,</span> <span class="n">LSTMForwardWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Wrapper class for PyTorch&#39;s nn.LSTM, formats the input and output. For more details on nn.LSTM,</span>
@@ -552,7 +552,7 @@
 <span class="sd">        ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="PytorchLSTM.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.PytorchLSTM.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="PytorchLSTM.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.PytorchLSTM.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                 <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                 <span class="n">prev_state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                 <span class="n">list_next_state</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
@@ -574,7 +574,7 @@
         <span class="k">return</span> <span class="n">output</span><span class="p">,</span> <span class="n">next_state</span></div></div>
 
 
-<div class="viewcode-block" id="GRU"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.GRU">[docs]</a><span class="k">class</span> <span class="nc">GRU</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">,</span> <span class="n">LSTMForwardWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="GRU"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.GRU">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">GRU</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">,</span> <span class="n">LSTMForwardWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        This class extends the `torch.nn.GRUCell` and `LSTMForwardWrapper` classes, and formats inputs and outputs</span>
@@ -589,7 +589,7 @@
 <span class="sd">        &lt;https://pytorch.org/docs/stable/generated/torch.nn.GRU.html#torch.nn.GRU&gt;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="GRU.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.GRU.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="GRU.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.GRU.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the GRU class with input size, hidden size, and number of layers.</span>
@@ -602,7 +602,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">=</span> <span class="n">hidden_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">=</span> <span class="n">num_layers</span></div>
 
-<div class="viewcode-block" id="GRU.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.GRU.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="GRU.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.GRU.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                 <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                 <span class="n">prev_state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">list_next_state</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">List</span><span class="p">]]:</span>
@@ -629,7 +629,7 @@
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">next_state</span></div></div>
 
 
-<div class="viewcode-block" id="get_lstm"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.get_lstm">[docs]</a><span class="k">def</span> <span class="nf">get_lstm</span><span class="p">(</span>
+<div class="viewcode-block" id="get_lstm"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.rnn.get_lstm">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_lstm</span><span class="p">(</span>
         <span class="n">lstm_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>

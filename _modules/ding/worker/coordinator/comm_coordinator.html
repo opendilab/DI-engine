@@ -302,21 +302,21 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.worker.coordinator.comm_coordinator</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">traceback</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span>
-<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
 
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">get_operator_server_kwargs</span>
-<span class="kn">from</span> <span class="nn">ding.interaction</span> <span class="kn">import</span> <span class="n">Master</span>
-<span class="kn">from</span> <span class="nn">ding.interaction.master.task</span> <span class="kn">import</span> <span class="n">TaskStatus</span>
-<span class="kn">from</span> <span class="nn">.resource_manager</span> <span class="kn">import</span> <span class="n">NaiveResourceManager</span>
-<span class="kn">from</span> <span class="nn">.operator_server</span> <span class="kn">import</span> <span class="n">OperatorServer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">get_operator_server_kwargs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.interaction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Master</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.interaction.master.task</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskStatus</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.resource_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaiveResourceManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.operator_server</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorServer</span>
 
 
-<div class="viewcode-block" id="CommCoordinator"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator">[docs]</a><span class="k">class</span> <span class="nc">CommCoordinator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="CommCoordinator"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CommCoordinator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        the communication part of coordinator(coordinator intercollector)</span>
@@ -324,7 +324,7 @@
 <span class="sd">        __init__ , start, close, __del__, send_collector_task, send_learner_task</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CommCoordinator.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">callback_fn</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">],</span> <span class="n">logger</span><span class="p">:</span> <span class="s1">&#39;logging.Logger&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
+<div class="viewcode-block" id="CommCoordinator.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">callback_fn</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">],</span> <span class="n">logger</span><span class="p">:</span> <span class="s1">&#39;logging.Logger&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            init the interactor of coordinator</span>
@@ -363,7 +363,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_failed_learner_conn</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_failed_collector_conn</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="CommCoordinator.start"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CommCoordinator.start"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.start">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            start the coordinator interactor and manage resources and connections</span>
@@ -440,7 +440,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;connection max retries failed&quot;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_new_connection_collector</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_new_connection_collector</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">collector_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
             <span class="n">collector_host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -480,7 +480,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fail to connect to collector(</span><span class="si">{</span><span class="n">collector_id</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_failed_collector_conn</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">collector_id</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_new_connection_learner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">learner_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">learner_host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">learner_port</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_new_connection_learner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">learner_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">learner_host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">learner_port</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">while</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry_second</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span><span class="p">:</span>
@@ -512,7 +512,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fail to connect to learner(</span><span class="si">{</span><span class="n">learner_id</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_failed_learner_conn</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">learner_id</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CommCoordinator.close"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CommCoordinator.close"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.close">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            close the coordinator interactor</span>
@@ -540,14 +540,14 @@
             <span class="k">assert</span> <span class="ow">not</span> <span class="n">conn</span><span class="o">.</span><span class="n">is_connected</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_master</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="CommCoordinator.__del__"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.__del__">[docs]</a>    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CommCoordinator.__del__"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.__del__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            __del__ method will close the coordinator interactor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_get_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn</span><span class="p">:</span> <span class="s1">&#39;Connection&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;TaskResult&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn</span><span class="p">:</span> <span class="s1">&#39;Connection&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;TaskResult&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            get the resources according to connection</span>
@@ -558,7 +558,7 @@
         <span class="n">resource_task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">resource_task</span>
 
-<div class="viewcode-block" id="CommCoordinator.send_collector_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.send_collector_task">[docs]</a>    <span class="k">def</span> <span class="nf">send_collector_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collector_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="CommCoordinator.send_collector_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.send_collector_task">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">send_collector_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collector_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            send the collector_task to collector_task threads and execute</span>
@@ -598,7 +598,7 @@
             <span class="n">collector_task_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
             <span class="k">return</span> <span class="kc">True</span></div>
 
-    <span class="k">def</span> <span class="nf">_execute_collector_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collector_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_execute_collector_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collector_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            execute the collector task</span>
@@ -658,7 +658,7 @@
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remain_task_lock</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_remain_collector_task</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CommCoordinator.send_learner_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.send_learner_task">[docs]</a>    <span class="k">def</span> <span class="nf">send_learner_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">learner_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="CommCoordinator.send_learner_task"><a class="viewcode-back" href="../../../../05_api_doc/worker/coordinator/comm_coordinator.html#ding.worker.coordinator.comm_coordinator.CommCoordinator.send_learner_task">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">send_learner_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">learner_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            send the learner_task to learner_task threads and execute</span>
@@ -695,7 +695,7 @@
             <span class="n">learner_task_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
             <span class="k">return</span> <span class="kc">True</span></div>
 
-    <span class="k">def</span> <span class="nf">_execute_learner_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">learner_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_execute_learner_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">learner_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            execute the learner task</span>
@@ -772,7 +772,7 @@
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remain_task_lock</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_remain_learner_task</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_period_sync_with_server</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_period_sync_with_server</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span><span class="p">:</span>
             <span class="c1"># First: send failed list to notify DI-engine server which replicas are failed,</span>
             <span class="c1"># then terminate such replicas.</span>
@@ -814,7 +814,7 @@
 
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_update_connection_collector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_collectors</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_connection_collector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_collectors</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">conn_collectors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_connection_collector</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">new_c</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cur_collectors</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">conn_collectors</span><span class="p">)</span>
         <span class="n">del_c</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">conn_collectors</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cur_collectors</span><span class="p">)</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">_failed_collector_conn</span><span class="p">)</span>
@@ -843,7 +843,7 @@
                     <span class="c1"># just throw the connection</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_connection_collector</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">collector_id</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_update_connection_learner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_learners</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_connection_learner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_learners</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">conn_learners</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_connection_learner</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">new_c</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cur_learners</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">conn_learners</span><span class="p">)</span>
         <span class="n">del_c</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">conn_learners</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cur_learners</span><span class="p">)</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">_failed_learner_conn</span><span class="p">)</span>

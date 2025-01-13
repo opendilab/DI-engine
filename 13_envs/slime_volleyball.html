@@ -328,8 +328,8 @@ pip<span class="w"> </span>install<span class="w"> </span>slimevolleygym
 <section id="installation-check">
 <h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this heading">¶</a></h3>
 <p>After completing installation, you can check whether it is succesful by the following commands:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">import</span> <span class="nn">slimevolleygym</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">slimevolleygym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;SlimeVolley-v0&quot;</span><span class="p">)</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (12, )</span>
@@ -436,7 +436,7 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 <li><p>Transform the reward vector into a one-dimensional np array of size<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>. The data type is<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>values in <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">0,</span> <span class="pre">1]</span></code>.</p></li>
 </ul>
 <p>Using Slime Volleyball in ‘OpenAI Gym’ format:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
 
 <span class="n">obs_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">act_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
@@ -478,8 +478,8 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 <section id="save-the-replay-video">
 <h3>Save the replay video<a class="headerlink" href="#save-the-replay-video" title="Permalink to this heading">¶</a></h3>
 <p>After env is initiated, and before it is reset, call <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method to set where the replay video will be saved. Environment will automatically save the replay video after each episode is completed. (The default call is <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>). The code shown below will run an environment episode and save the replay viedo in a folder <code class="docutils literal notranslate"><span class="pre">./video/</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">dizoo.slime_volley.envs.slime_volley_env</span> <span class="kn">import</span> <span class="n">SlimeVolleyEnv</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.slime_volley.envs.slime_volley_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlimeVolleyEnv</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">SlimeVolleyEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;SlimeVolley-v0&#39;</span><span class="p">,</span> <span class="s1">&#39;agent_vs_agent&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}))</span>
 <span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
@@ -500,25 +500,25 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 <p>Complete training configuration can be found on <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/slime_volley/entry">github
 link</a>.
 For specific configuration file, e.g. <code class="docutils literal notranslate"><span class="pre">slime_volley_selfplay_ppo_main.py</span></code>, you can run the demo as shown below:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorboardX</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryWriter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 
-<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
-<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">BattleSampleSerialCollector</span><span class="p">,</span> <span class="n">NaiveReplayBuffer</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">SyncSubprocessEnvManager</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">PPOPolicy</span>
-<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">VAC</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
-<span class="kn">from</span> <span class="nn">dizoo.slime_volley.envs</span> <span class="kn">import</span> <span class="n">SlimeVolleyEnv</span>
-<span class="kn">from</span> <span class="nn">dizoo.slime_volley.config.slime_volley_ppo_config</span> <span class="kn">import</span> <span class="n">main_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.worker</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">BattleSampleSerialCollector</span><span class="p">,</span> <span class="n">NaiveReplayBuffer</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">SyncSubprocessEnvManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPOPolicy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">VAC</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_pkg_seed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.slime_volley.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlimeVolleyEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.slime_volley.config.slime_volley_ppo_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">main_config</span>
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">)):</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span>
         <span class="n">cfg</span><span class="p">,</span>
         <span class="n">SyncSubprocessEnvManager</span><span class="p">,</span>

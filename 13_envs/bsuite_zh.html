@@ -355,7 +355,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 <section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>一旦安装完毕，你可以通过在 Python 命令行上运行以下命令来验证安装是否成功。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">bsuite</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_from_id</span><span class="p">(</span><span class="s1">&#39;memory_len/0&#39;</span><span class="p">)</span> <span class="c1"># this environment configuration is &#39;memory steps&#39; long</span>
 <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span>
@@ -417,8 +417,8 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 <section id="openai-gym-bsuite">
 <h3>以”OpenAI Gym“ 格式使用 bsuite<a class="headerlink" href="#openai-gym-bsuite" title="Permalink to this heading">¶</a></h3>
 <p>我们的实现使用bsuite Gym包装器来使bsuite代码库在OpenAI Gym接口下运行。因此，需要安装 <code class="docutils literal notranslate"><span class="pre">gym</span></code> 来使bsuite正常工作。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
-<span class="kn">from</span> <span class="nn">bsuite.utils</span> <span class="kn">import</span> <span class="n">gym_wrapper</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">bsuite</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bsuite.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">gym_wrapper</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_and_record_to_csv</span><span class="p">(</span><span class="s1">&#39;memory_len/0&#39;</span><span class="p">,</span> <span class="n">results_dir</span><span class="o">=</span><span class="s1">&#39;/path/to/results&#39;</span><span class="p">)</span>
 <span class="n">gym_env</span> <span class="o">=</span> <span class="n">gym_wrapper</span><span class="o">.</span><span class="n">GymFromDMEnv</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </pre></div>
@@ -427,7 +427,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 <section id="id12">
 <h3>配置<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h3>
 <p>配置的设计是为了提高环境的难度水平。例如，在一个五臂老虎机的环境中，配置被用来调节噪音水平以扰乱奖励。给定一个特定的环境，所有可能的配置都可以通过下面的代码片断进行可视化。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bsuite</span> <span class="kn">import</span> <span class="n">sweep</span>  <span class="c1"># this module contains information about all the environments</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">bsuite</span><span class="w"> </span><span class="kn">import</span> <span class="n">sweep</span>  <span class="c1"># this module contains information about all the environments</span>
 <span class="k">for</span> <span class="n">bsuite_id</span> <span class="ow">in</span> <span class="n">sweep</span><span class="o">.</span><span class="n">BANDIT_NOISE</span><span class="p">:</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_from_id</span><span class="p">(</span><span class="n">bsuite_id</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;bsuite_id=</span><span class="si">{}</span><span class="s1">, settings=</span><span class="si">{}</span><span class="s1">, num_episodes=</span><span class="si">{}</span><span class="s1">&#39;</span> <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bsuite_id</span><span class="p">,</span> <span class="n">sweep</span><span class="o">.</span><span class="n">SETTINGS</span><span class="p">[</span><span class="n">bsuite_id</span><span class="p">],</span> <span class="n">env</span><span class="o">.</span><span class="n">bsuite_num_episodes</span><span class="p">))</span>
@@ -435,8 +435,8 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div>
 <img alt="../_images/bsuite_config.png" class="align-center" src="../_images/bsuite_config.png" />
 <p>使用DI-engine，你可以简单地用你想要的配置的名字来创建一个bsuite环境。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">dizoo.bsuite.envs</span> <span class="kn">import</span> <span class="n">BSuiteEnv</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.bsuite.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSuiteEnv</span>
 <span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;env&#39;</span><span class="p">:</span> <span class="s1">&#39;memory_len/15&#39;</span><span class="p">}</span>
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 <span class="n">memory_len_env</span> <span class="o">=</span> <span class="n">BSuiteEnv</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
@@ -449,7 +449,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 <p>完整的训练配置可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/bsuite/config/serial">github
 链接</a> 中找到。
 在下面的部门，我们展示了一个配置文件的例子，<code class="docutils literal notranslate"><span class="pre">memory_len_0_dqn_config.py</span></code>，你可以用下面的代码来运行这个演示：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">memory_len_0_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;memory_len_0_dqn&#39;</span><span class="p">,</span>
@@ -502,7 +502,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 <span class="n">create_config</span> <span class="o">=</span> <span class="n">memory_len_0_dqn_create_config</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline</span>
     <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>

@@ -324,7 +324,7 @@
 <li><p>改变自旋状态（通常表示为1）。</p></li>
 </ul>
 <p>使用 gym 环境空间定义则可表示为：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">gym</span> <span class="kn">import</span> <span class="n">spaces</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">gym</span><span class="w"> </span><span class="kn">import</span> <span class="n">spaces</span>
 
 <span class="n">action_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
@@ -396,9 +396,9 @@
 <h3>Mean Field MARL 算法在 Ising Model 环境中的简单实现<a class="headerlink" href="#mean-field-marl-ising-model" title="Permalink to this heading">¶</a></h3>
 <p>我们利用了 DQN 的算法流程和网络结构，只在环境返回的 obs 上做出了改动，即将 agent 周围的邻居的上一步动作的 one-hot 编码平均作为 obs 的一部分和原有 obs 拼接作为新的 obs。</p>
 <p>具体来说，我们在 <cite>IsingModelEnv`</cite> 的 <cite>calculate_action_prob`</cite> 方法中计算了每个智能体的邻居的平均动作，并将其与原始观察值拼接在一起。这样，我们就可以将原始观察值和邻居的动作信息一起输入到神经网络中，以估计每个智能体的 Q 值。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">IsingModelEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">IsingModelEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
     <span class="o">...</span>
-    <span class="k">def</span> <span class="nf">calculate_action_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_action_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
         <span class="n">num_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span><span class="o">.</span><span class="n">n</span>
         <span class="n">N</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># agent_num</span>
         <span class="c1"># Convert actions to one_hot encoding</span>
@@ -417,7 +417,7 @@
 
         <span class="k">return</span> <span class="n">action_prob</span>
 
-    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvTimestep</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvTimestep</span><span class="p">:</span>
         <span class="o">...</span>
         <span class="c1"># Calculate the average action of neighbors</span>
         <span class="n">action_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_action_prob</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>

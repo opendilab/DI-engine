@@ -302,17 +302,17 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.loader.string</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">islice</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Pattern</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">islice</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Pattern</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">ILoaderClass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">ILoaderClass</span>
 
 <span class="n">STRING_PROCESSOR</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="enum"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.string.enum">[docs]</a><span class="k">def</span> <span class="nf">enum</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="enum"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.string.enum">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">enum</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create an enum loader.</span>
@@ -321,24 +321,24 @@
 <span class="sd">        - case_sensitive (:obj:`bool`): Whether case sensitive.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_case_sensitive</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">STRING_PROCESSOR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">STRING_PROCESSOR</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_case_sensitive</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">STRING_PROCESSOR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">STRING_PROCESSOR</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">case_sensitive</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">func</span>
         <span class="k">else</span><span class="p">:</span>
 
             <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-            <span class="k">def</span> <span class="nf">_new_func</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">_new_func</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
             <span class="k">return</span> <span class="n">_new_func</span>
 
     <span class="nd">@_case_sensitive</span>
-    <span class="k">def</span> <span class="nf">_item_process</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_item_process</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
     <span class="n">item_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">_item_process</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">real_value</span> <span class="o">=</span> <span class="n">_item_process</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">real_value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">item_set</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unknown enum value </span><span class="si">{value}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
@@ -348,7 +348,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="_to_regexp"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.string._to_regexp">[docs]</a><span class="k">def</span> <span class="nf">_to_regexp</span><span class="p">(</span><span class="n">regexp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pattern</span><span class="p">:</span>
+<div class="viewcode-block" id="_to_regexp"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.string._to_regexp">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">_to_regexp</span><span class="p">(</span><span class="n">regexp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pattern</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Convert regexp to re.Pattern.</span>
@@ -366,7 +366,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="rematch"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.string.rematch">[docs]</a><span class="k">def</span> <span class="nf">rematch</span><span class="p">(</span><span class="n">regexp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="rematch"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.string.rematch">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">rematch</span><span class="p">(</span><span class="n">regexp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a rematch loader.</span>
@@ -376,7 +376,7 @@
 
     <span class="n">regexp</span> <span class="o">=</span> <span class="n">_to_regexp</span><span class="p">(</span><span class="n">regexp</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">regexp</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s1">&#39;fully match with regexp </span><span class="si">{pattern}</span><span class="s1"> expected but </span><span class="si">{actual}</span><span class="s1"> found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -390,7 +390,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="regrep"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.string.regrep">[docs]</a><span class="k">def</span> <span class="nf">regrep</span><span class="p">(</span><span class="n">regexp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">],</span> <span class="n">group</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="regrep"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.string.regrep">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">regrep</span><span class="p">(</span><span class="n">regexp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Pattern</span><span class="p">],</span> <span class="n">group</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a regrep loader.</span>
@@ -401,7 +401,7 @@
 
     <span class="n">regexp</span> <span class="o">=</span> <span class="n">_to_regexp</span><span class="p">(</span><span class="n">regexp</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">islice</span><span class="p">(</span><span class="n">regexp</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">group</span><span class="p">]</span>

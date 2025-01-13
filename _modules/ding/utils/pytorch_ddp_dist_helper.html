@@ -302,20 +302,20 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.pytorch_ddp_dist_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.distributed</span> <span class="k">as</span> <span class="nn">dist</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.distributed</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dist</span>
 
-<span class="kn">from</span> <span class="nn">.default_helper</span> <span class="kn">import</span> <span class="n">error_wrapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.default_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">error_wrapper</span>
 
 <span class="c1"># from .slurm_helper import get_master_addr</span>
 
 
-<div class="viewcode-block" id="get_rank"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.get_rank">[docs]</a><span class="k">def</span> <span class="nf">get_rank</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="get_rank"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.get_rank">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_rank</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the rank of current process in total world_size</span>
@@ -324,7 +324,7 @@
     <span class="k">return</span> <span class="n">error_wrapper</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">get_rank</span><span class="p">,</span> <span class="mi">0</span><span class="p">)()</span></div>
 
 
-<div class="viewcode-block" id="get_world_size"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.get_world_size">[docs]</a><span class="k">def</span> <span class="nf">get_world_size</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="get_world_size"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.get_world_size">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_world_size</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the world_size(total process number in data parallel training)</span>
@@ -338,7 +338,7 @@
 <span class="n">broadcast_object_list</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">broadcast_object_list</span>
 
 
-<div class="viewcode-block" id="allreduce"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.allreduce">[docs]</a><span class="k">def</span> <span class="nf">allreduce</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="allreduce"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.allreduce">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">allreduce</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        All reduce the tensor ``x`` in the world</span>
@@ -350,7 +350,7 @@
     <span class="n">x</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="n">get_world_size</span><span class="p">())</span></div>
 
 
-<div class="viewcode-block" id="allreduce_async"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.allreduce_async">[docs]</a><span class="k">def</span> <span class="nf">allreduce_async</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="allreduce_async"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.allreduce_async">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">allreduce_async</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        All reduce the tensor ``x`` in the world asynchronously</span>
@@ -363,7 +363,7 @@
     <span class="n">dist</span><span class="o">.</span><span class="n">all_reduce</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">async_op</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="reduce_data"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.reduce_data">[docs]</a><span class="k">def</span> <span class="nf">reduce_data</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<div class="viewcode-block" id="reduce_data"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.reduce_data">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">reduce_data</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Reduce the tensor ``x`` to the destination process ``dst``</span>
@@ -383,7 +383,7 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;not supported type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span></div>
 
 
-<div class="viewcode-block" id="allreduce_data"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.allreduce_data">[docs]</a><span class="k">def</span> <span class="nf">allreduce_data</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<div class="viewcode-block" id="allreduce_data"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.allreduce_data">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">allreduce_data</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        All reduce the tensor ``x`` in the world</span>
@@ -411,7 +411,7 @@
 <span class="n">synchronize</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">synchronize</span>
 
 
-<div class="viewcode-block" id="get_group"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.get_group">[docs]</a><span class="k">def</span> <span class="nf">get_group</span><span class="p">(</span><span class="n">group_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<div class="viewcode-block" id="get_group"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.get_group">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_group</span><span class="p">(</span><span class="n">group_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the group segmentation of ``group_size`` each group</span>
@@ -426,7 +426,7 @@
     <span class="k">return</span> <span class="n">simple_group_split</span><span class="p">(</span><span class="n">world_size</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">world_size</span> <span class="o">//</span> <span class="n">group_size</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="dist_mode"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.dist_mode">[docs]</a><span class="k">def</span> <span class="nf">dist_mode</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="dist_mode"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.dist_mode">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dist_mode</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Wrap the function so that in can init and finalize automatically before each call</span>
@@ -434,7 +434,7 @@
 <span class="sd">        - func (:obj:`Callable`): the function to be wrapped</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">dist_init</span><span class="p">()</span>
         <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">dist_finalize</span><span class="p">()</span>
@@ -442,7 +442,7 @@
     <span class="k">return</span> <span class="n">wrapper</span></div>
 
 
-<div class="viewcode-block" id="dist_init"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.dist_init">[docs]</a><span class="k">def</span> <span class="nf">dist_init</span><span class="p">(</span><span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;nccl&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="dist_init"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.dist_init">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dist_init</span><span class="p">(</span><span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;nccl&#39;</span><span class="p">,</span>
               <span class="n">addr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">port</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -484,7 +484,7 @@
     <span class="k">return</span> <span class="n">rank</span><span class="p">,</span> <span class="n">world_size</span></div>
 
 
-<div class="viewcode-block" id="dist_finalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.dist_finalize">[docs]</a><span class="k">def</span> <span class="nf">dist_finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="dist_finalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.dist_finalize">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dist_finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Finalize distributed training resources</span>
@@ -494,7 +494,7 @@
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="DDPContext"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.DDPContext">[docs]</a><span class="k">class</span> <span class="nc">DDPContext</span><span class="p">:</span>
+<div class="viewcode-block" id="DDPContext"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.DDPContext">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DDPContext</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A context manager for ``linklink`` distribution</span>
@@ -502,7 +502,7 @@
 <span class="sd">        ``__init__``, ``__enter__``, ``__exit__``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DDPContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.DDPContext.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DDPContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.DDPContext.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the ``DDPContext``</span>
@@ -510,7 +510,7 @@
 
         <span class="k">pass</span></div>
 
-    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``linklink`` distribution</span>
@@ -518,7 +518,7 @@
 
         <span class="n">dist_init</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Finalize ``linklink`` distribution</span>
@@ -527,7 +527,7 @@
         <span class="n">dist_finalize</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="simple_group_split"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.simple_group_split">[docs]</a><span class="k">def</span> <span class="nf">simple_group_split</span><span class="p">(</span><span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_groups</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<div class="viewcode-block" id="simple_group_split"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.simple_group_split">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">simple_group_split</span><span class="p">(</span><span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_groups</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Split the group according to ``worldsize``, ``rank`` and ``num_groups``</span>
@@ -548,7 +548,7 @@
     <span class="k">return</span> <span class="n">groups</span><span class="p">[</span><span class="n">rank</span> <span class="o">//</span> <span class="n">group_size</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="to_ddp_config"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.to_ddp_config">[docs]</a><span class="k">def</span> <span class="nf">to_ddp_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
+<div class="viewcode-block" id="to_ddp_config"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.to_ddp_config">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">to_ddp_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Convert the config to ddp config</span>

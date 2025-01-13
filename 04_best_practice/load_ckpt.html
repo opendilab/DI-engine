@@ -317,7 +317,7 @@
 <h3>Configure <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code><a class="headerlink" href="#configure-load-ckpt-before-run" title="Permalink to this heading">¶</a></h3>
 <p>To load a pre-trained model, you first need to specify the path to the pre-trained <code class="docutils literal notranslate"><span class="pre">ckpt</span></code> file in the configuration file. This path is configured using the <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code> field.</p>
 <p>Example code:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">cartpole_ppo_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;cartpole_ppo_seed0&#39;</span><span class="p">,</span>

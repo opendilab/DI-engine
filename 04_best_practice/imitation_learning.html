@@ -326,11 +326,11 @@
 <h2><code class="docutils literal notranslate"><span class="pre">Train</span> <span class="pre">an</span> <span class="pre">expert</span> <span class="pre">policy</span></code><a class="headerlink" href="#train-an-expert-policy" title="Permalink to this heading">¶</a></h2>
 <p>In this step, we will train an expert policy, which has no difference with standard RL process. For example, to perform PPO on cartpole, we can use:</p>
 <blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config</span> <span class="kn">import</span> <span class="n">cartpole_ppo_offpolicy_config</span><span class="p">,</span>\
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">cartpole_ppo_offpolicy_config</span><span class="p">,</span>\
 <span class="n">cartpole_ppo_offpolicy_create_config</span>
-<span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline_bc</span><span class="p">,</span> <span class="n">collect_demo_data</span><span class="p">,</span> <span class="n">serial_pipeline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline_bc</span><span class="p">,</span> <span class="n">collect_demo_data</span><span class="p">,</span> <span class="n">serial_pipeline</span>
 
 <span class="n">config</span> <span class="o">=</span> <span class="p">[</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cartpole_ppo_offpolicy_config</span><span class="p">),</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cartpole_ppo_offpolicy_create_config</span><span class="p">)]</span>
 <span class="n">config</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">save_ckpt_after_iter</span> <span class="o">=</span> <span class="mi">100</span>
@@ -361,8 +361,8 @@
 <p>Firstly, we load different expert models to generate various demonstration episodes. Then, the episodes will be sampled into snippets with shorter sequence length, which are sorted according to their total return.</p>
 <p>In our implementation, the process above is included in one function. The method for collecting TREX data is:</p>
 <blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.entry.application_entry_trex_collect_data</span> <span class="kn">import</span> <span class="n">trex_collecting_data</span>
-<span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config</span> <span class="kn">import</span> <span class="n">cartpole_trex_offppo_config</span><span class="p">,</span>\
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry.application_entry_trex_collect_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">trex_collecting_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">cartpole_trex_offppo_config</span><span class="p">,</span>\
 <span class="n">cartpole_trex_offppo_create_config</span>
 <span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;test_serial_pipeline_trex_collect&#39;</span>
 <span class="n">collect_config</span> <span class="o">=</span> <span class="p">[</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cartpole_trex_offppo_config</span><span class="p">),</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cartpole_trex_offppo_create_config</span><span class="p">)]</span>
@@ -380,7 +380,7 @@
 <h2><code class="docutils literal notranslate"><span class="pre">Imitation</span> <span class="pre">Learning</span> <span class="pre">/</span> <span class="pre">Offline</span> <span class="pre">Training</span></code><a class="headerlink" href="#imitation-learning-offline-training" title="Permalink to this heading">¶</a></h2>
 <p>Finally in this step, we will use the generated demonstration data for Imitation Learning / Offline Training. For BC, we can use:</p>
 <blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_bc_config</span> <span class="kn">import</span> <span class="n">cartpole_bc_config</span><span class="p">,</span>\
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.classic_control.cartpole.config.cartpole_bc_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">cartpole_bc_config</span><span class="p">,</span>\
 <span class="n">cartpole_bc_create_config</span>
 <span class="n">il_config</span> <span class="o">=</span> <span class="p">[</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cartpole_bc_config</span><span class="p">),</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cartpole_bc_create_config</span><span class="p">)]</span>
 <span class="n">_</span><span class="p">,</span> <span class="n">converge_stop_flag</span> <span class="o">=</span> <span class="n">serial_pipeline_bc</span><span class="p">(</span><span class="n">il_config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">data_path</span><span class="o">=</span><span class="n">expert_data_path</span><span class="p">)</span>
@@ -390,7 +390,7 @@
 </div></blockquote>
 <p>For TREX, we can use:</p>
 <blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline_preference_based_irl</span>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline_preference_based_irl</span>
 <span class="n">serial_pipeline_preference_based_irl</span><span class="p">(</span><span class="n">collect_config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_train_iter</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -398,7 +398,7 @@
 <p>Notably, we integrate all the algorithm-specific code into each <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code>.</p>
 <p>For BC, this process contains cloning the expert behavior and evaluation for the result. For TREX, a reward model is trained to predict the reward of an observation. Then RL algorithms are applied to maximize the predicted reward and is finally evaluated. The key in this process is to replace the real reward with predicted reward:</p>
 <blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Estimate reward by rewriting the reward key in each row of the data.</span>

@@ -302,13 +302,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.rl_utils.upgo</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">from</span> <span class="nn">ding.hpc_rl</span> <span class="kn">import</span> <span class="n">hpc_wrapper</span>
-<span class="kn">from</span> <span class="nn">.td</span> <span class="kn">import</span> <span class="n">generalized_lambda_returns</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.hpc_rl</span><span class="w"> </span><span class="kn">import</span> <span class="n">hpc_wrapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.td</span><span class="w"> </span><span class="kn">import</span> <span class="n">generalized_lambda_returns</span>
 
 
-<span class="k">def</span> <span class="nf">tb_cross_entropy</span><span class="p">(</span><span class="n">logit</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">tb_cross_entropy</span><span class="p">(</span><span class="n">logit</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Compute the cross entropy loss for label and logit, with mask support</span>
@@ -347,7 +347,7 @@
     <span class="k">return</span> <span class="n">ce</span>
 
 
-<div class="viewcode-block" id="upgo_returns"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.upgo.upgo_returns">[docs]</a><span class="k">def</span> <span class="nf">upgo_returns</span><span class="p">(</span><span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">bootstrap_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="upgo_returns"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.upgo.upgo_returns">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">upgo_returns</span><span class="p">(</span><span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">bootstrap_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Computing UPGO return targets. Also notice there is no special handling for the terminal state.</span>
@@ -378,7 +378,7 @@
     <span class="n">include_args</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
     <span class="n">include_kwargs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;target_output&#39;</span><span class="p">,</span> <span class="s1">&#39;rhos&#39;</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;rewards&#39;</span><span class="p">,</span> <span class="s1">&#39;bootstrap_values&#39;</span><span class="p">]</span>
 <span class="p">)</span>
-<span class="k">def</span> <span class="nf">upgo_loss</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">upgo_loss</span><span class="p">(</span>
         <span class="n">target_output</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">rhos</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>

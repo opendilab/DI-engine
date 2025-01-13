@@ -302,11 +302,11 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.data.structure.lifo_deque</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">LifoQueue</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">LifoQueue</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
 
 
-<div class="viewcode-block" id="LifoDeque"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.LifoDeque">[docs]</a><span class="k">class</span> <span class="nc">LifoDeque</span><span class="p">(</span><span class="n">LifoQueue</span><span class="p">):</span>
+<div class="viewcode-block" id="LifoDeque"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.LifoDeque">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LifoDeque</span><span class="p">(</span><span class="n">LifoQueue</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Like LifoQueue, but automatically replaces the oldest data when the queue is full.</span>
@@ -314,7 +314,7 @@
 <span class="sd">        ``_init``, ``_put``, ``_get``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LifoDeque._init"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.LifoDeque._init">[docs]</a>    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxsize</span><span class="p">):</span>
+<div class="viewcode-block" id="LifoDeque._init"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.LifoDeque._init">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxsize</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maxsize</span> <span class="o">=</span> <span class="n">maxsize</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span></div></div>
 </pre></div>

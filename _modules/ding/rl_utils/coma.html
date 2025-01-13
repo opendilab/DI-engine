@@ -302,16 +302,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.rl_utils.coma</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">from</span> <span class="nn">ding.rl_utils.td</span> <span class="kn">import</span> <span class="n">generalized_lambda_returns</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.rl_utils.td</span><span class="w"> </span><span class="kn">import</span> <span class="n">generalized_lambda_returns</span>
 
 <span class="n">coma_data</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;coma_data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;target_q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">])</span>
 <span class="n">coma_loss</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;coma_loss&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;entropy_loss&#39;</span><span class="p">])</span>
 
 
-<div class="viewcode-block" id="coma_error"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.coma_error">[docs]</a><span class="k">def</span> <span class="nf">coma_error</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">namedtuple</span><span class="p">:</span>
+<div class="viewcode-block" id="coma_error"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.coma_error">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">coma_error</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">namedtuple</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Implementation of COMA</span>

@@ -341,7 +341,7 @@
 <p>Contexts are messengers that pass data between middleware, and different interaction policies determine what type of context they should use.
 For example, <code class="docutils literal notranslate"><span class="pre">OnlineRLContext</span></code> and <code class="docutils literal notranslate"><span class="pre">OfflineRLContext</span></code> are provided in DI-engine.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-<span class="k">class</span> <span class="nc">OnlineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OnlineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
 
     <span class="c1"># common</span>
     <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
@@ -351,7 +351,7 @@ For example, <code class="docutils literal notranslate"><span class="pre">Online
     <span class="n">train_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="o">...</span>
 
-    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;env_step&#39;</span><span class="p">,</span> <span class="s1">&#39;env_episode&#39;</span><span class="p">,</span> <span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -380,7 +380,7 @@ If you need to add a new field to the Context,
 please do it during the <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/framework/context.py">initialization phase</a> .
 Here’s a concrete example of a custom Context:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-<span class="k">class</span> <span class="nc">MyContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
 
     <span class="c1"># common</span>
     <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
@@ -389,7 +389,7 @@ Here’s a concrete example of a custom Context:</p>
     <span class="n">var3</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">var4</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;var1&#39;</span><span class="p">,</span> <span class="s1">&#39;var2&#39;</span><span class="p">)</span>
 </pre></div>
 </div>

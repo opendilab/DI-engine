@@ -558,11 +558,11 @@ clear the log buffer for all learners regardless of rank</p>
 <li><p>hook_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): the register hook_type you implemented that realize LearnerHook</p></li>
 </ul>
 </dd>
-<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">HookToRegister</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">HookToRegister</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="o">...</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="o">...</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="o">...</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="o">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="o">...</span>

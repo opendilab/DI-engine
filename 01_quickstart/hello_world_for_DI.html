@@ -325,17 +325,17 @@ Its model consists of a model structure and a set of model parameters.
 In general, we will write the model into a file for saving, or read the model from that file for deploying.
 Here we provide an agent model trained by the DI-engine framework using the DQN algorithm:
 <a class="reference external" href="https://opendilab.net/download/DI-engine-docs/01_quickstart/final.pth.tar">final.pth.tar</a> Just use the following code to make the agent run, remember to replace the model address in the function (“ckpt_path=’./final.pth.tar’”), with the locally saved model file path, such as “’~/Download/final.pth.tar’”:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span> <span class="c1"># Load the gym library, which is used to standardize the reinforcement learning environment</span>
-<span class="kn">import</span> <span class="nn">torch</span> <span class="c1"># Load the PyTorch library for loading the Tensor model and defining the computing network</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span> <span class="c1"># Load EasyDict for instantiating configuration files</span>
-<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span> <span class="c1"># Load configuration related components in DI-engine config module</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span> <span class="c1"># Load environment related components in DI-engine env module</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span><span class="p">,</span> <span class="n">single_env_forward_wrapper</span> <span class="c1"># Load policy-related components in DI-engine policy module</span>
-<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span> <span class="c1"># Load model related components in DI-engine model module</span>
-<span class="kn">from</span> <span class="nn">dizoo.box2d.lunarlander.config.lunarlander_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span> <span class="c1"># Load DI-zoo lunarlander environment and DQN algorithm related configurations</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span> <span class="c1"># Load the gym library, which is used to standardize the reinforcement learning environment</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span> <span class="c1"># Load the PyTorch library for loading the Tensor model and defining the computing network</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span> <span class="c1"># Load EasyDict for instantiating configuration files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_config</span> <span class="c1"># Load configuration related components in DI-engine config module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DingEnvWrapper</span> <span class="c1"># Load environment related components in DI-engine env module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQNPolicy</span><span class="p">,</span> <span class="n">single_env_forward_wrapper</span> <span class="c1"># Load policy-related components in DI-engine policy module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQN</span> <span class="c1"># Load model related components in DI-engine model module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.box2d.lunarlander.config.lunarlander_dqn_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span> <span class="c1"># Load DI-zoo lunarlander environment and DQN algorithm related configurations</span>
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">main_config</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">create_config</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">main_config</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">create_config</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="n">main_config</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;lunarlander_dqn_deploy&#39;</span> <span class="c1"># Set the name of the experiment to be run in this deployment, which is the name of the project folder to be created</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_cfg</span><span class="o">=</span><span class="n">create_config</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># Compile and generate all configurations</span>
     <span class="n">env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">env_id</span><span class="p">),</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">env_wrapper</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">))</span> <span class="c1"># Add the DI-engine environment decorator upon the gym&#39;s environment instance</span>
@@ -381,30 +381,30 @@ The performance of the agent may fluctuate with different initial states.
 For example, in the environment of “lunarlander”, the lunar surface is different every time.</p>
 <p>Therefore, we need to set up multiple environments and run several more evaluation tests to better score it.
 DI-engine designed the environment manager env_manager to do this, we can do this with the following slightly more complex code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorboardX</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryWriter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
-<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
-<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">SampleSerialCollector</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">AdvancedReplayBuffer</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">DingEnvWrapper</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
-<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
-<span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">get_epsilon_greedy_fn</span>
-<span class="kn">from</span> <span class="nn">dizoo.box2d.lunarlander.config.lunarlander_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.worker</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">SampleSerialCollector</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">AdvancedReplayBuffer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">DingEnvWrapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQNPolicy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQN</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_pkg_seed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.rl_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_epsilon_greedy_fn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.box2d.lunarlander.config.lunarlander_dqn_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
 
 <span class="c1"># Get DI-engine form env class</span>
-<span class="k">def</span> <span class="nf">wrapped_cartpole_env</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wrapped_cartpole_env</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">DingEnvWrapper</span><span class="p">(</span>
         <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">main_config</span><span class="p">[</span><span class="s1">&#39;env&#39;</span><span class="p">][</span><span class="s1">&#39;env_id&#39;</span><span class="p">]),</span>
         <span class="n">EasyDict</span><span class="p">(</span><span class="n">env_wrapper</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">),</span>
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;exp_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;lunarlander_dqn_eval&#39;</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span>
         <span class="n">cfg</span><span class="p">,</span>
@@ -455,21 +455,21 @@ DI-engine designed the environment manager env_manager to do this, we can do thi
 <h2>Training Stronger Agents from Scratch<a class="headerlink" href="#training-stronger-agents-from-scratch" title="Permalink to this heading">¶</a></h2>
 <p>Run the following code using DI-engine to get the agent model in the above test.
 Try generating an agent model yourself, maybe it will be stronger:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
-<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
-<span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
-<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
-<span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span><span class="p">,</span> <span class="n">ding_init</span>
-<span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
-<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> \
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQN</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQNPolicy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DequeBuffer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span><span class="p">,</span> <span class="n">ding_init</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">OnlineRLContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> \
     <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span><span class="p">,</span> <span class="n">online_logger</span><span class="p">,</span> <span class="n">nstep_reward_enhancer</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
-<span class="kn">from</span> <span class="nn">dizoo.box2d.lunarlander.config.lunarlander_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_pkg_seed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.box2d.lunarlander.config.lunarlander_dqn_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_cfg</span><span class="o">=</span><span class="n">create_config</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">ding_init</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>

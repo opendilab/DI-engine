@@ -315,7 +315,7 @@
 <p><strong>Buffer 的基本概念</strong></p>
 <p>在 Off-policy RL 算法中，我们通常会使用经验回放（Experience Replay）机制来提高样本利用效率，并降低样本之间的相关性。
 DI-engine 提供了 <strong>DequeBuffer</strong> 来实现经验回放池的常见功能，例如数据的存入、采样等。用户可以通过以下命令创建 DequeBuffer 对象:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DequeBuffer</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
@@ -341,8 +341,8 @@ Dataclass 是 python3 的一种特性，相比于字典（Dict），它能够明
 <p><strong>使用 Buffer 完成在线训练</strong></p>
 <p>在上一小节中，我们介绍了 buffer 中数据的实际存储结构，以及最基本的存入与采样操作。
 事实上，在大部分任务中，用户并不需要使用这些底层的原子操作。我们<strong>更加推荐</strong>用户通过 DI-engine 封装好的中间件来调用该 buffer 对象来完成训练。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
-<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">OffPolicyLearner</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">OffPolicyLearner</span>
 
 <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer</span><span class="p">))</span>
 <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">buffer</span><span class="p">))</span>
@@ -351,7 +351,7 @@ Dataclass 是 python3 的一种特性，相比于字典（Dict），它能够明
 <p><strong>使用 Buffer 加载专家数据</strong></p>
 <p>在 SQIL、DQFD 这类模仿学习任务中，我们需要使用专家数据参与训练。
 这时，用户可以额外使用一个 buffer 来加载专家数据，以 SQIL 为例（完整版代码可见 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/sqil.py">./ding/example/sqil.py</a>）：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">sqil_data_pusher</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">sqil_data_pusher</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">expert_buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
@@ -368,7 +368,7 @@ Dataclass 是 python3 的一种特性，相比于字典（Dict），它能够明
 <p><strong>优先级采样</strong></p>
 <p>在一些算法中，需要用到优先级采样。在 DI-engine 中，使用 <strong>PriorityExperienceReplay 中间件</strong>，即可赋予 buffer 优先级采样功能。
 如果用户使用了该功能，在存入样本时，用户还必须在 meta 中补充样本的优先级信息，如下所示。<strong>优先级采样会增加采样耗时</strong>。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data.buffer.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">buffer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">PriorityExperienceReplay</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">IS_weight</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
@@ -383,7 +383,7 @@ Dataclass 是 python3 的一种特性，相比于字典（Dict），它能够明
 如果用户后续对该引用的内容进行了修改，可能会导致样本池中的对应内容也发生变化。
 在某些应用场景上，用户可能期望样本池中的数据保持不变，这时就可以通过使用 <strong>clone_object 中间件</strong>，在采样时返回 buffer 中对象的拷贝。
 这样一来，对拷贝内容的修改就不会影响到 buffer 中的原数据。<strong>样本克隆会显著增加采样耗时</strong>。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">clone_object</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data.buffer.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">clone_object</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">buffer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">clone_object</span><span class="p">())</span>
@@ -422,7 +422,7 @@ Dataclass 是 python3 的一种特性，相比于字典（Dict），它能够明
 </ul>
 <p><strong>(可选项)</strong>
 在分组采样的基础上，还可以再使用 <strong>group_sample中间件</strong>实现样本的后处理工作，如：选择是否打乱同组内数据，以及设定每组数据的最大长度。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">group_sample</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data.buffer.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">group_sample</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="c1"># 每组数据的最大长度设为3，保持组内原顺序</span>
@@ -432,7 +432,7 @@ Dataclass 是 python3 的一种特性，相比于字典（Dict），它能够明
 <p><strong>删除多次使用样本</strong></p>
 <p>在默认条件下，buffer 中的样本有可能会被重复多次采集。在训练过程中，如果不加控制地反复使用这些重复样本，可能会导致模型的效果不佳。
 为了避免这个问题，我们可以使用 <strong>use_time_check 中间件</strong>来设置样本的最大使用次数。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">use_time_check</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data.buffer.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">use_time_check</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="c1"># 设置单条样本的最大使用次数为2</span>

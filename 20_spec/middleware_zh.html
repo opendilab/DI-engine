@@ -328,17 +328,17 @@
 <h2>类，函数，参数<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>编写 <code class="docutils literal notranslate"><span class="pre">function</span></code> 时，由于代码简短，建议使用函数式风格代码；编写 <code class="docutils literal notranslate"><span class="pre">module</span></code> 时，建议使用类。例如：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Function 写法</span>
-<span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
         <span class="o">...</span>
     <span class="k">return</span> <span class="n">_train</span>
 
 <span class="c1"># Module 写法</span>
-<span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Trainer</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
         <span class="o">...</span>
 </pre></div>
 </div>
@@ -350,8 +350,8 @@
 <p>而 <code class="docutils literal notranslate"><span class="pre">function</span></code> 的返回函数和 <code class="docutils literal notranslate"><span class="pre">module</span></code> 的 <code class="docutils literal notranslate"><span class="pre">__call__</span></code> 方法，则是运行时循环调用的过程，只支持 <code class="docutils literal notranslate"><span class="pre">ctx</span></code> 一个参数。</p>
 <p>建议在外部实例化对象传递给中间件，而不是在中间件内部实例化，以确保中间件的无状态和过程化：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 正确</span>
-<span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
         <span class="o">...</span>
     <span class="k">return</span> <span class="n">_train</span>
 
@@ -359,9 +359,9 @@
 <span class="n">train</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
 <span class="c1"># 错误</span>
-<span class="k">def</span> <span class="nf">train</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">():</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
         <span class="o">...</span>
     <span class="k">return</span> <span class="n">_train</span>
 
@@ -375,7 +375,7 @@
 <ol class="arabic simple">
 <li><p>如果方法中有死循环，确保判断了 <code class="docutils literal notranslate"><span class="pre">task.finish</span></code> 条件退出：</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">runtime</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">runtime</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">finish</span><span class="p">:</span>  <span class="c1"># 确保判断 task.finish</span>
             <span class="k">break</span>
@@ -385,7 +385,7 @@
 <ol class="arabic simple" start="2">
 <li><p><code class="docutils literal notranslate"><span class="pre">task</span></code> 支持顺序执行和异步执行两种模式， <code class="docutils literal notranslate"><span class="pre">ctx</span></code> 传递的数据在两种模式下产生的时间不一定相同，在中间件中需要注意判断，并最好同时支持两种模式：</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">runtime</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">runtime</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;next_obs&quot;</span><span class="p">):</span>  <span class="c1"># 在异步模式下，采集到的数据可能不在这轮迭代中使用，而会推迟到下一个迭代</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">obs</span> <span class="o">=</span> <span class="n">next_obs</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">next_obs</span> <span class="o">=</span> <span class="n">get_obs</span><span class="p">()</span>
@@ -397,17 +397,17 @@
 <li><p>中间件内部不建议再开多进程，以免因为前面过多的实例化对象，或者进程嵌套多层导致难以预料的问题，如果需要利用多进程并行，可以将逻辑拆分为多个中间件，利用 DI-engine 的并行能力执行：</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 正确</span>
-<span class="k">def</span> <span class="nf">train1</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">train1</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
     <span class="o">...</span>
 
-<span class="k">def</span> <span class="nf">train2</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">train2</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
     <span class="o">...</span>
 
 <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">train1</span><span class="p">)</span>
 <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">train2</span><span class="p">)</span>
 
 <span class="c1"># 错误</span>
-<span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
     <span class="n">p1</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=...</span><span class="p">)</span>
     <span class="n">p1</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
     <span class="n">p2</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=...</span><span class="p">)</span>

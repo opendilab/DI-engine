@@ -351,7 +351,7 @@ pip<span class="w"> </span>install<span class="w"> </span>pettingzoo<span class=
 <section id="id5">
 <h3>验证安装<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <p>安装完成后，运行如下 Python 程序，如果没有报错则证明安装成功。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pettingzoo.mpe</span> <span class="kn">import</span> <span class="n">simple_spread_v2</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pettingzoo.mpe</span><span class="w"> </span><span class="kn">import</span> <span class="n">simple_spread_v2</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">simple_spread_v2</span><span class="o">.</span><span class="n">parallel_env</span><span class="p">()</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>  <span class="c1"># (18,)</span>
@@ -394,7 +394,7 @@ hub</a> 获取更多镜像</p>
 <li><p>离散动作空间：每个智能体的动作空间相同，大小为 <code class="docutils literal notranslate"><span class="pre">(5,)</span></code>，数据类型为 <code class="docutils literal notranslate"><span class="pre">gym.spaces.Discrete(5)</span></code>。每个具体动作的维度为(,)，数据类型为 <code class="docutils literal notranslate"><span class="pre">int</span></code>，具体含义是什么都不做或向四个基本方向进行移动。</p></li>
 <li><p>连续动作空间：每个智能体的动作空间相同，数据类型为 <code class="docutils literal notranslate"><span class="pre">gym.spaces.Box(0.0,</span> <span class="pre">1.0,</span> <span class="pre">(5,))</span></code>。每个具体动作的维度为(5,)，数据类型为 <code class="docutils literal notranslate"><span class="pre">array</span></code>，具体含义是什么都不做或向四个基本方向的每个方向上输入 0.0 到 1.0 之间的速度，且相反方向的速度可以叠加。</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pettingzoo.mpe</span> <span class="kn">import</span> <span class="n">simple_spread_v2</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pettingzoo.mpe</span><span class="w"> </span><span class="kn">import</span> <span class="n">simple_spread_v2</span>
 <span class="c1"># discrete env</span>
 <span class="n">dis_env</span> <span class="o">=</span> <span class="n">simple_spread_v2</span><span class="o">.</span><span class="n">parallel_env</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">continuous_actions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="c1"># continuous env</span>
@@ -502,7 +502,7 @@ hub</a> 获取更多镜像</p>
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/config/">github link</a>
 内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">ptz_simple_spread_mappo_config.py</span></code>，使用如下的 demo 即可运行：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">n_agent</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">n_landmark</span> <span class="o">=</span> <span class="n">n_agent</span>
@@ -585,7 +585,7 @@ hub</a> 获取更多镜像</p>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="c1"># or you can enter `ding -m serial_onpolicy -c ptz_simple_spread_mappo_config.py -s 0`</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
     <span class="n">serial_pipeline_onpolicy</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>

@@ -369,7 +369,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 <section id="api">
 <h2>环境创建API<a class="headerlink" href="#api" title="Permalink to this heading">¶</a></h2>
 <p>在导入并创建环境成功后，可以通过与 openAI gym 相同的代码来与环境交互：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gfootball.env</span> <span class="k">as</span> <span class="nn">football_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gfootball.env</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">football_env</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">football_env</span><span class="o">.</span><span class="n">create_environment</span><span class="p">(</span>
      <span class="n">env_name</span><span class="o">=</span><span class="s1">&#39;11_vs_11_stochastic&#39;</span><span class="p">,</span>
      <span class="n">representation</span><span class="o">=</span><span class="s1">&#39;raw&#39;</span><span class="p">,</span>
@@ -403,11 +403,11 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 </ul>
 <p>也可以使用由 DI-engine 封装的环境：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### 对局内置bot环境</span>
-<span class="kn">from</span> <span class="nn">dizoo.gfootball.envs.gfootball_env</span> <span class="kn">import</span> <span class="n">GfootballEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.gfootball.envs.gfootball_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GfootballEnv</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">GfootballEnv</span><span class="p">({})</span>
 
 <span class="c1">### self play 环境</span>
-<span class="kn">from</span> <span class="nn">dizoo.gfootball.envs.gfootballsp_env</span> <span class="kn">import</span> <span class="n">GfootballEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.gfootball.envs.gfootballsp_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GfootballEnv</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">GfootballEnv</span><span class="p">({})</span>
 </pre></div>
 </div>
@@ -599,10 +599,10 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 <h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练入口见<a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/gfootball/entry">DI-zoo
 gfootball</a>。使用 ppo-lstm 进行self-play 训练的配置文件如下。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">parallel_transform</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">parallel_pipeline</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">parallel_transform</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">parallel_pipeline</span>
 
 <span class="n">gfootball_ppo_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>

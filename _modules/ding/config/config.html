@@ -302,33 +302,33 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.config.config</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">osp</span>
-<span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">import_module</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os.path</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">osp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
 
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">deep_merge_dicts</span><span class="p">,</span> <span class="n">get_rank</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">get_env_cls</span><span class="p">,</span> <span class="n">get_env_manager_cls</span><span class="p">,</span> <span class="n">BaseEnvManager</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">get_policy_cls</span>
-<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">BaseSerialCommander</span><span class="p">,</span> <span class="n">Coordinator</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">deep_merge_dicts</span><span class="p">,</span> <span class="n">get_rank</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_env_cls</span><span class="p">,</span> <span class="n">get_env_manager_cls</span><span class="p">,</span> <span class="n">BaseEnvManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_policy_cls</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.worker</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">BaseSerialCommander</span><span class="p">,</span> <span class="n">Coordinator</span><span class="p">,</span> \
     <span class="n">AdvancedReplayBuffer</span><span class="p">,</span> <span class="n">get_parallel_commander_cls</span><span class="p">,</span> <span class="n">get_parallel_collector_cls</span><span class="p">,</span> <span class="n">get_buffer_cls</span><span class="p">,</span> \
     <span class="n">get_serial_collector_cls</span><span class="p">,</span> <span class="n">MetricSerialEvaluator</span><span class="p">,</span> <span class="n">BattleInteractionSerialEvaluator</span>
-<span class="kn">from</span> <span class="nn">ding.reward_model</span> <span class="kn">import</span> <span class="n">get_reward_model_cls</span>
-<span class="kn">from</span> <span class="nn">ding.world_model</span> <span class="kn">import</span> <span class="n">get_world_model_cls</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">parallel_transform</span><span class="p">,</span> <span class="n">parallel_transform_slurm</span><span class="p">,</span> <span class="n">parallel_transform_k8s</span><span class="p">,</span> <span class="n">save_config_formatted</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.reward_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_reward_model_cls</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.world_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_world_model_cls</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">parallel_transform</span><span class="p">,</span> <span class="n">parallel_transform_slurm</span><span class="p">,</span> <span class="n">parallel_transform_k8s</span><span class="p">,</span> <span class="n">save_config_formatted</span>
 
 
-<div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.Config">[docs]</a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.Config">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Base class for config.</span>
@@ -338,7 +338,7 @@
 <span class="sd">        cfg_dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Config.__init__"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.Config.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="Config.__init__"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.Config.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">cfg_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">cfg_text</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -368,7 +368,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span> <span class="o">=</span> <span class="n">filename</span></div>
 
 <div class="viewcode-block" id="Config.file_to_dict"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.Config.file_to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Config&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Config&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Read config file and create config.</span>
@@ -381,7 +381,7 @@
         <span class="k">return</span> <span class="n">Config</span><span class="p">(</span><span class="n">cfg_dict</span><span class="p">,</span> <span class="n">cfg_text</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Config._file_to_dict"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.Config._file_to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Read config file and convert the config file to dict type config and text type config.</span>
@@ -416,11 +416,11 @@
         <span class="k">return</span> <span class="n">cfg_dict</span><span class="p">,</span> <span class="n">cfg_text</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">cfg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cfg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg_dict</span></div>
 
 
-<span class="k">def</span> <span class="nf">read_config_yaml</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_config_yaml</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        read configuration from path</span>
@@ -435,7 +435,7 @@
     <span class="k">return</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">config_</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">save_config_yaml</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_config_yaml</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        save configuration to path</span>
@@ -448,7 +448,7 @@
         <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config_string</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">save_config_py</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_config_py</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        save configuration to python file</span>
@@ -458,14 +458,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># config_string = json.dumps(config_, indent=4)</span>
     <span class="n">config_string</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config_</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">yapf.yapflib.yapf_api</span> <span class="kn">import</span> <span class="n">FormatCode</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">yapf.yapflib.yapf_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormatCode</span>
     <span class="n">config_string</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">FormatCode</span><span class="p">(</span><span class="n">config_string</span><span class="p">)</span>
     <span class="n">config_string</span> <span class="o">=</span> <span class="n">config_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;inf,&#39;</span><span class="p">,</span> <span class="s1">&#39;float(&quot;inf&quot;),&#39;</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;exp_config = &#39;</span> <span class="o">+</span> <span class="n">config_string</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">read_config_directly</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_config_directly</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read configuration from a file path(now only support python file) and directly return results.</span>
@@ -481,7 +481,7 @@
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid config file suffix: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span>
 
 
-<div class="viewcode-block" id="read_config"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.read_config">[docs]</a><span class="k">def</span> <span class="nf">read_config</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<div class="viewcode-block" id="read_config"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.read_config">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">read_config</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read configuration from a file path(now only support python file). And select some proper parts.</span>
@@ -501,7 +501,7 @@
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid config file suffix: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span></div>
 
 
-<span class="k">def</span> <span class="nf">read_config_with_system</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_config_with_system</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read configuration from a file path(now only support python file). And select some proper parts</span>
@@ -522,7 +522,7 @@
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid config file suffix: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span>
 
 
-<div class="viewcode-block" id="save_config"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.save_config">[docs]</a><span class="k">def</span> <span class="nf">save_config</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="n">save_formatted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="save_config"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.save_config">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">save_config</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="n">save_formatted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        save configuration to python file or yaml file</span>
@@ -544,9 +544,9 @@
             <span class="n">save_config_formatted</span><span class="p">(</span><span class="n">config_</span><span class="p">,</span> <span class="n">formated_path</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">compile_buffer_config</span><span class="p">(</span><span class="n">policy_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">user_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_cls</span><span class="p">:</span> <span class="s1">&#39;IBuffer&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>  <span class="c1"># noqa</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_buffer_config</span><span class="p">(</span><span class="n">policy_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">user_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_cls</span><span class="p">:</span> <span class="s1">&#39;IBuffer&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>  <span class="c1"># noqa</span>
 
-    <span class="k">def</span> <span class="nf">_compile_buffer_config</span><span class="p">(</span><span class="n">policy_buffer_cfg</span><span class="p">,</span> <span class="n">user_buffer_cfg</span><span class="p">,</span> <span class="n">buffer_cls</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compile_buffer_config</span><span class="p">(</span><span class="n">policy_buffer_cfg</span><span class="p">,</span> <span class="n">user_buffer_cfg</span><span class="p">,</span> <span class="n">buffer_cls</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="n">buffer_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">assert</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">policy_buffer_cfg</span><span class="p">,</span> <span class="s2">&quot;please indicate buffer type in create_cfg&quot;</span>
@@ -581,7 +581,7 @@
         <span class="k">return</span> <span class="n">return_cfg</span>
 
 
-<span class="k">def</span> <span class="nf">compile_collector_config</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_collector_config</span><span class="p">(</span>
         <span class="n">policy_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
         <span class="n">user_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
         <span class="n">collector_cls</span><span class="p">:</span> <span class="s1">&#39;ISerialCollector&#39;</span>  <span class="c1"># noqa</span>
@@ -614,9 +614,9 @@
 <span class="n">env_config_template</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">env_config_template</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">save_project_state</span><span class="p">(</span><span class="n">exp_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_project_state</span><span class="p">(</span><span class="n">exp_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="nf">_fn</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fn</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">&quot;git status&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -629,7 +629,7 @@
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="compile_config"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.compile_config">[docs]</a><span class="k">def</span> <span class="nf">compile_config</span><span class="p">(</span>
+<div class="viewcode-block" id="compile_config"><a class="viewcode-back" href="../../../05_api_doc/config.html#ding.config.compile_config">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">compile_config</span><span class="p">(</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
         <span class="n">env_manager</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">policy</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -778,7 +778,7 @@
     <span class="k">return</span> <span class="n">cfg</span></div>
 
 
-<span class="k">def</span> <span class="nf">compile_config_parallel</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_config_parallel</span><span class="p">(</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
         <span class="n">create_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
         <span class="n">system_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>

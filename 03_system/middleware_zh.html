@@ -344,7 +344,7 @@
 <p>Context 是为中间件之间传递数据的信使，不同的交互策略决定了它们该使用什么类型的 context，
 例如 DI-engine 中提供了 <code class="docutils literal notranslate"><span class="pre">OnlineRLContext</span></code> 和 <code class="docutils literal notranslate"><span class="pre">OfflineRLContext</span></code> 两种 context。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-<span class="k">class</span> <span class="nc">OnlineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OnlineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
 
     <span class="c1"># common</span>
     <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
@@ -354,7 +354,7 @@
     <span class="n">train_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="o">...</span>
 
-    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;env_step&#39;</span><span class="p">,</span> <span class="s1">&#39;env_episode&#39;</span><span class="p">,</span> <span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -382,7 +382,7 @@
 请在相关 Context 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/framework/context.py">初始化阶段</a> 添加。
 下面是自定义 Context 的一个具体例子：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
-<span class="k">class</span> <span class="nc">MyContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
 
     <span class="c1"># common</span>
     <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
@@ -391,7 +391,7 @@
     <span class="n">var3</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">var4</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;var1&#39;</span><span class="p">,</span> <span class="s1">&#39;var2&#39;</span><span class="p">)</span>
 </pre></div>
 </div>

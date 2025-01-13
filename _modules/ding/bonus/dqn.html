@@ -302,32 +302,32 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.bonus.dqn</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
-<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">treetensor.torch</span> <span class="k">as</span> <span class="nn">ttorch</span>
-<span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span><span class="p">,</span> <span class="n">OnlineRLContext</span>
-<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">CkptSaver</span><span class="p">,</span> \
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">treetensor.torch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ttorch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span><span class="p">,</span> <span class="n">OnlineRLContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">CkptSaver</span><span class="p">,</span> \
     <span class="n">wandb_online_logger</span><span class="p">,</span> <span class="n">offline_data_saver</span><span class="p">,</span> <span class="n">termination_checker</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> \
     <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">final_ctx_saver</span><span class="p">,</span> <span class="n">nstep_reward_enhancer</span><span class="p">,</span> <span class="n">eps_greedy_handler</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnv</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">setup_ding_env_manager</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">get_env_fps</span><span class="p">,</span> <span class="n">render</span>
-<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">save_config_py</span><span class="p">,</span> <span class="n">compile_config</span>
-<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
-<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">model_wrap</span>
-<span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
-<span class="kn">from</span> <span class="nn">ding.bonus.common</span> <span class="kn">import</span> <span class="n">TrainingReturn</span><span class="p">,</span> <span class="n">EvalReturn</span>
-<span class="kn">from</span> <span class="nn">ding.config.example.DQN</span> <span class="kn">import</span> <span class="n">supported_env_cfg</span>
-<span class="kn">from</span> <span class="nn">ding.config.example.DQN</span> <span class="kn">import</span> <span class="n">supported_env</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_ding_env_manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQNPolicy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_pkg_seed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_env_fps</span><span class="p">,</span> <span class="n">render</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_config_py</span><span class="p">,</span> <span class="n">compile_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQN</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">model_wrap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DequeBuffer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.bonus.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrainingReturn</span><span class="p">,</span> <span class="n">EvalReturn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config.example.DQN</span><span class="w"> </span><span class="kn">import</span> <span class="n">supported_env_cfg</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config.example.DQN</span><span class="w"> </span><span class="kn">import</span> <span class="n">supported_env</span>
 
 
-<div class="viewcode-block" id="DQNAgent"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent">[docs]</a><span class="k">class</span> <span class="nc">DQNAgent</span><span class="p">:</span>
+<div class="viewcode-block" id="DQNAgent"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DQNAgent</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Class of agent for training, evaluation and deployment of Reinforcement learning algorithm Deep Q-Learning(DQN).</span>
@@ -345,7 +345,7 @@
 <span class="sd">        &gt;&gt;&gt; print(DQNAgent.supported_env_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DQNAgent.__init__"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="DQNAgent.__init__"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">env_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnv</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -447,7 +447,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">policy_state_dict</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_save_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="s2">&quot;ckpt&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DQNAgent.train"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span>
+<div class="viewcode-block" id="DQNAgent.train"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.train">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">),</span>
         <span class="n">collector_env_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -531,7 +531,7 @@
 
         <span class="k">return</span> <span class="n">TrainingReturn</span><span class="p">(</span><span class="n">wandb_url</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">wandb_url</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DQNAgent.deploy"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.deploy">[docs]</a>    <span class="k">def</span> <span class="nf">deploy</span><span class="p">(</span>
+<div class="viewcode-block" id="DQNAgent.deploy"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.deploy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">deploy</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">enable_save_replay</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">concatenate_all_replay</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -587,11 +587,11 @@
                 <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;concatenate_all_replay is set to False because enable_save_replay is False.&#39;</span><span class="p">)</span>
                 <span class="n">concatenate_all_replay</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">def</span> <span class="nf">single_env_forward_wrapper</span><span class="p">(</span><span class="n">forward_fn</span><span class="p">,</span> <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">single_env_forward_wrapper</span><span class="p">(</span><span class="n">forward_fn</span><span class="p">,</span> <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 
             <span class="n">forward_fn</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="n">forward_fn</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;argmax_sample&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">forward</span>
 
-            <span class="k">def</span> <span class="nf">_forward</span><span class="p">(</span><span class="n">obs</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">_forward</span><span class="p">(</span><span class="n">obs</span><span class="p">):</span>
                 <span class="c1"># unsqueeze means add batch dim, i.e. (O, ) -&gt; (1, O)</span>
                 <span class="n">obs</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">cuda</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
@@ -630,12 +630,12 @@
 
         <span class="k">if</span> <span class="n">concatenate_all_replay</span><span class="p">:</span>
             <span class="n">images</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="kn">import</span> <span class="nn">imageio</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">imageio</span>
             <span class="n">imageio</span><span class="o">.</span><span class="n">mimwrite</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">replay_save_path</span><span class="p">,</span> <span class="s1">&#39;deploy.mp4&#39;</span><span class="p">),</span> <span class="n">images</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">get_env_fps</span><span class="p">(</span><span class="n">env</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">EvalReturn</span><span class="p">(</span><span class="n">eval_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">returns</span><span class="p">),</span> <span class="n">eval_value_std</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">returns</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="DQNAgent.collect_data"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span>
+<div class="viewcode-block" id="DQNAgent.collect_data"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.collect_data">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">collect_data</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">env_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
             <span class="n">save_data_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -688,7 +688,7 @@
             <span class="sa">f</span><span class="s1">&#39;DQN collecting is finished, more than </span><span class="si">{</span><span class="n">n_sample</span><span class="si">}</span><span class="s1"> samples are collected and saved in `</span><span class="si">{</span><span class="n">save_data_path</span><span class="si">}</span><span class="s1">`&#39;</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="DQNAgent.batch_evaluate"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.batch_evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">batch_evaluate</span><span class="p">(</span>
+<div class="viewcode-block" id="DQNAgent.batch_evaluate"><a class="viewcode-back" href="../../../05_api_doc/agent.html#ding.bonus.dqn.DQNAgent.batch_evaluate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">batch_evaluate</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">env_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
             <span class="n">n_evaluator_episode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
@@ -738,7 +738,7 @@
         <span class="k">return</span> <span class="n">EvalReturn</span><span class="p">(</span><span class="n">eval_value</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span><span class="p">,</span> <span class="n">eval_value_std</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">eval_value_std</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">best</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DQNAgent&#39;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">best</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DQNAgent&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the best model from the checkpoint directory, \</span>

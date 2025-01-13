@@ -302,17 +302,17 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.loader.collection</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">ILoaderClass</span><span class="p">,</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">CAPTURE_EXCEPTIONS</span>
-<span class="kn">from</span> <span class="nn">.exception</span> <span class="kn">import</span> <span class="n">CompositeStructureError</span>
-<span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">method</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">ILoaderClass</span><span class="p">,</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">CAPTURE_EXCEPTIONS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.exception</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositeStructureError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">method</span>
 
 <span class="n">COLLECTION_ERROR_ITEM</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">]</span>
 <span class="n">COLLECTION_ERRORS</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">COLLECTION_ERROR_ITEM</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="CollectionError"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.CollectionError">[docs]</a><span class="k">class</span> <span class="nc">CollectionError</span><span class="p">(</span><span class="n">CompositeStructureError</span><span class="p">):</span>
+<div class="viewcode-block" id="CollectionError"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.CollectionError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CollectionError</span><span class="p">(</span><span class="n">CompositeStructureError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Collection error.</span>
@@ -322,7 +322,7 @@
 <span class="sd">        ``errors``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CollectionError.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.CollectionError.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="p">:</span> <span class="n">COLLECTION_ERRORS</span><span class="p">):</span>
+<div class="viewcode-block" id="CollectionError.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.CollectionError.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errors</span><span class="p">:</span> <span class="n">COLLECTION_ERRORS</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the CollectionError.</span>
@@ -336,7 +336,7 @@
         <span class="p">)</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">COLLECTION_ERRORS</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">COLLECTION_ERRORS</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the errors.</span>
@@ -345,7 +345,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__errors</span></div>
 
 
-<div class="viewcode-block" id="collection"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.collection">[docs]</a><span class="k">def</span> <span class="nf">collection</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">type_back</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="collection"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.collection">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">collection</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">type_back</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a collection loader.</span>
@@ -356,7 +356,7 @@
 
     <span class="n">loader</span> <span class="o">=</span> <span class="n">Loader</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="n">_result</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">_errors</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -378,7 +378,7 @@
     <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="tuple_"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.tuple_">[docs]</a><span class="k">def</span> <span class="nf">tuple_</span><span class="p">(</span><span class="o">*</span><span class="n">loaders</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="tuple_"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.tuple_">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">tuple_</span><span class="p">(</span><span class="o">*</span><span class="n">loaders</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a tuple loader.</span>
@@ -388,13 +388,13 @@
 
     <span class="n">loaders</span> <span class="o">=</span> <span class="p">[</span><span class="n">Loader</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="k">for</span> <span class="n">loader</span> <span class="ow">in</span> <span class="n">loaders</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">loader</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">loader</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">loaders</span><span class="p">,</span> <span class="n">value</span><span class="p">)])</span>
 
     <span class="k">return</span> <span class="nb">tuple</span> <span class="o">&amp;</span> <span class="n">length_is</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">loaders</span><span class="p">))</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="length"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.length">[docs]</a><span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="n">min_length</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="length"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.length">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">min_length</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a length loader.</span>
@@ -403,7 +403,7 @@
 <span class="sd">        - max_length (:obj:`int`): The maximum length.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="n">_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">min_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_length</span> <span class="o">&lt;</span> <span class="n">min_length</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -419,7 +419,7 @@
     <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;__len__&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="length_is"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.length_is">[docs]</a><span class="k">def</span> <span class="nf">length_is</span><span class="p">(</span><span class="n">length_</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="length_is"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.length_is">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">length_is</span><span class="p">(</span><span class="n">length_</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a length loader.</span>
@@ -430,7 +430,7 @@
     <span class="k">return</span> <span class="n">length</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="n">length_</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="n">length_</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="contains"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.contains">[docs]</a><span class="k">def</span> <span class="nf">contains</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="contains"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.contains">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a contains loader.</span>
@@ -438,7 +438,7 @@
 <span class="sd">        - content (:obj:`Any`): The content.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">content</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{content}</span><span class="s1"> not found in value&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">content</span><span class="p">)))</span>
 
@@ -447,7 +447,7 @@
     <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;__contains__&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="cofilter"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.cofilter">[docs]</a><span class="k">def</span> <span class="nf">cofilter</span><span class="p">(</span><span class="n">checker</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">],</span> <span class="n">type_back</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="cofilter"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.cofilter">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">cofilter</span><span class="p">(</span><span class="n">checker</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">],</span> <span class="n">type_back</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a cofilter loader.</span>
@@ -456,7 +456,7 @@
 <span class="sd">        - type_back (:obj:`bool`): Whether to convert the type back.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="n">_result</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span> <span class="k">if</span> <span class="n">checker</span><span class="p">(</span><span class="n">item</span><span class="p">)]</span>
         <span class="k">if</span> <span class="n">type_back</span><span class="p">:</span>
             <span class="n">_result</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)(</span><span class="n">_result</span><span class="p">)</span>
@@ -465,7 +465,7 @@
     <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="tpselector"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.tpselector">[docs]</a><span class="k">def</span> <span class="nf">tpselector</span><span class="p">(</span><span class="o">*</span><span class="n">indices</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="tpselector"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.collection.tpselector">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">tpselector</span><span class="p">(</span><span class="o">*</span><span class="n">indices</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a tuple selector loader.</span>
@@ -473,7 +473,7 @@
 <span class="sd">        - indices (:obj:`tuple`): The indices.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">value</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="nb">tuple</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>

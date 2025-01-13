@@ -401,11 +401,11 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 <section id="id15">
 <h3>存储录像<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h3>
 <p>在环境创建之后，重置之前调用 <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> 方法，指定游戏录像保存的路径。环境将在每个 episode 结束后自动保存本地视频文件。(默认调用 <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code> 实现)，下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在一个文件夹 <code class="docutils literal notranslate"><span class="pre">./video/</span></code>里。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">from</span> <span class="nn">evogym</span> <span class="kn">import</span> <span class="n">sample_robot</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evogym</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample_robot</span>
 <span class="c1"># import envs from the envs folder and register them</span>
-<span class="kn">import</span> <span class="nn">evogym.envs</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">evogym.envs</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="c1"># create a random robot</span>
@@ -441,7 +441,7 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/evogym/config/">github
 link</a>
 里面, 对于具体的配置文件，例如 <code class="docutils literal notranslate"><span class="pre">walker_ppo_config.py</span></code> , 使用如下的 demo 即可运行:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="n">walker_ppo_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;evogym_walker_ppo_seed0&#39;</span><span class="p">,</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -503,7 +503,7 @@ link</a>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="c1"># or you can enter `ding -m serial -c evogym_walker_ppo_config.py -s 0 --env-step 1e7`</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
     <span class="n">serial_pipeline_onpolicy</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>

@@ -302,13 +302,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.loader.types</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">ILoaderClass</span><span class="p">,</span> <span class="n">_reset_exception</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">check_only</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">ILoaderClass</span><span class="p">,</span> <span class="n">_reset_exception</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_only</span>
 
 
-<div class="viewcode-block" id="is_type"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.is_type">[docs]</a><span class="k">def</span> <span class="nf">is_type</span><span class="p">(</span><span class="n">type_</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="is_type"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.is_type">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_type</span><span class="p">(</span><span class="n">type_</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a type loader.</span>
@@ -322,7 +322,7 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Type variable expected but </span><span class="si">{actual}</span><span class="s1"> found.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">actual</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)))</span></div>
 
 
-<div class="viewcode-block" id="to_type"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.to_type">[docs]</a><span class="k">def</span> <span class="nf">to_type</span><span class="p">(</span><span class="n">type_</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="to_type"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.to_type">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">to_type</span><span class="p">(</span><span class="n">type_</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a type loader.</span>
@@ -333,7 +333,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">type_</span><span class="p">(</span><span class="n">v</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="is_callable"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.is_callable">[docs]</a><span class="k">def</span> <span class="nf">is_callable</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="is_callable"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.is_callable">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_callable</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a callable loader.</span>
@@ -345,7 +345,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="prop"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.prop">[docs]</a><span class="k">def</span> <span class="nf">prop</span><span class="p">(</span><span class="n">attr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="prop"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.prop">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">prop</span><span class="p">(</span><span class="n">attr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a attribute loader.</span>
@@ -361,7 +361,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="method"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.method">[docs]</a><span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="n">method_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="method"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.method">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">method</span><span class="p">(</span><span class="n">method_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a method loader.</span>
@@ -375,7 +375,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="fcall"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.fcall">[docs]</a><span class="k">def</span> <span class="nf">fcall</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="fcall"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.fcall">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">fcall</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a function loader.</span>
@@ -387,7 +387,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">v</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="fpartial"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.fpartial">[docs]</a><span class="k">def</span> <span class="nf">fpartial</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="fpartial"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.types.fpartial">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">fpartial</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a partial function loader.</span>

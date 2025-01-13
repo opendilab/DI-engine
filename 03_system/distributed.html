@@ -325,16 +325,16 @@
 </pre></div>
 </div>
 <p>The above is a simple example of the event system, registering a callback method for the <code class="docutils literal notranslate"><span class="pre">greeting</span></code> event via <code class="docutils literal notranslate"><span class="pre">task.on</span></code>, triggering the event via <code class="docutils literal notranslate"><span class="pre">task.emit</span></code> and sending the <code class="docutils literal notranslate"><span class="pre">msg</span></code> parameter. The number of parameters is variable, as long as the <code class="docutils literal notranslate"><span class="pre">emit</span></code> and <code class="docutils literal notranslate"><span class="pre">on</span></code> callback function parameters correspond. Next, we split the two lines of code into separate code snippets (written in middleware form), which also work as follows.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">receiver</span><span class="p">():</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">receiver</span><span class="p">():</span>
     <span class="c1"># Since `on` is a permanent callback, we only need to register it once.</span>
     <span class="c1"># If you only want to call back once, you can use `once`.</span>
     <span class="n">task</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s2">&quot;greeting&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Get msg: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">))</span>
-    <span class="k">def</span> <span class="nf">_receiver</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_receiver</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
         <span class="k">pass</span>
     <span class="k">return</span> <span class="n">_receiver</span>
 
-<span class="k">def</span> <span class="nf">sender</span><span class="p">():</span>
-    <span class="k">def</span> <span class="nf">_sender</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sender</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sender</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
         <span class="n">task</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;greeting&quot;</span><span class="p">,</span> <span class="s2">&quot;Hi </span><span class="si">%s</span><span class="s2"> times&quot;</span> <span class="o">%</span> <span class="n">ctx</span><span class="o">.</span><span class="n">total_step</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_sender</span>
 
@@ -351,7 +351,7 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">Parallel</span></code> module is a parallel module in DI-engine that will allow your main function to run in multiple processes. It integrates a message middleware internally, which, together with task’s event system, allows you to pass information between processes without sensing it.</p>
 <a class="reference internal image-reference" href="../_images/event_system.png"><img alt="../_images/event_system.png" class="align-center" src="../_images/event_system.png" style="width: 600px;" /></a>
 <p>When executing code with <code class="docutils literal notranslate"><span class="pre">Parallel</span></code>, the task’s internal event system will automatically route messages to connected processes. This allows you to use events and data from other processes as if you were using the event system locally.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
         <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">node_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># 1</span>
             <span class="n">task</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s2">&quot;greeting&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Get msg: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">))</span>
@@ -419,7 +419,7 @@
 <section id="worker-job-pod-task-node">
 <h2>Worker &amp; Job &amp; Pod &amp; Task &amp; Node &amp; …<a class="headerlink" href="#worker-job-pod-task-node" title="Permalink to this heading">¶</a></h2>
 <p>Since DI-engine supports standalone, k8s and slurm deployment, and k8s and slurm itself have similar concepts like node and task, here are some explanations to avoid confusion.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
         <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span> <span class="c1"># In distributed mode</span>
             <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">node_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>

@@ -302,14 +302,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.compression_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ByteString</span><span class="p">,</span> <span class="n">Callable</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">cloudpickle</span>
-<span class="kn">import</span> <span class="nn">zlib</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ByteString</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cloudpickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 
-<div class="viewcode-block" id="CloudPickleWrapper"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.CloudPickleWrapper">[docs]</a><span class="k">class</span> <span class="nc">CloudPickleWrapper</span><span class="p">:</span>
+<div class="viewcode-block" id="CloudPickleWrapper"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.CloudPickleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CloudPickleWrapper</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression).</span>
@@ -317,7 +317,7 @@
 <span class="sd">        ``__init__``, ``__getstate__``, ``__setstate__``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CloudPickleWrapper.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.CloudPickleWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CloudPickleWrapper.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.CloudPickleWrapper.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the CloudPickleWrapper using the given arguments.</span>
@@ -326,7 +326,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span></div>
 
-    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the state of the CloudPickleWrapper.</span>
@@ -336,7 +336,7 @@
 
         <span class="k">return</span> <span class="n">cloudpickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set the state of the CloudPickleWrapper.</span>
@@ -350,7 +350,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">cloudpickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="dummy_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.dummy_compressor">[docs]</a><span class="k">def</span> <span class="nf">dummy_compressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="viewcode-block" id="dummy_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.dummy_compressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dummy_compressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Return the raw input data.</span>
@@ -362,7 +362,7 @@
     <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="zlib_data_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.zlib_data_compressor">[docs]</a><span class="k">def</span> <span class="nf">zlib_data_compressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<div class="viewcode-block" id="zlib_data_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.zlib_data_compressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">zlib_data_compressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Takes the input compressed data and return the compressed original data (zlib compressor) in binary format.</span>
@@ -376,7 +376,7 @@
     <span class="k">return</span> <span class="n">zlib</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="lz4_data_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.lz4_data_compressor">[docs]</a><span class="k">def</span> <span class="nf">lz4_data_compressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<div class="viewcode-block" id="lz4_data_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.lz4_data_compressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">lz4_data_compressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Return the compressed original data (lz4 compressor).The compressor outputs in binary format.</span>
@@ -389,16 +389,16 @@
 <span class="sd">        b&#39;\x14\x00\x00\x00R\x80\x04\x95\t\x00\x01\x00\x90\x8c\x05Hello\x94.&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">lz4.block</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">lz4.block</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
-        <span class="kn">import</span> <span class="nn">sys</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please install lz4 first, such as `pip3 install lz4`&quot;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">lz4</span><span class="o">.</span><span class="n">block</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="jpeg_data_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.jpeg_data_compressor">[docs]</a><span class="k">def</span> <span class="nf">jpeg_data_compressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<div class="viewcode-block" id="jpeg_data_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.jpeg_data_compressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">jpeg_data_compressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        To reduce memory usage, we can choose to store the jpeg strings of image instead of the numpy array in \</span>
@@ -409,10 +409,10 @@
 <span class="sd">        - img_str (:obj:`bytes`): The compressed byte-like result.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">cv2</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
-        <span class="kn">import</span> <span class="nn">sys</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please install opencv-python first.&quot;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">img_str</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imencode</span><span class="p">(</span><span class="s1">&#39;.jpg&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
@@ -428,7 +428,7 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="get_data_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.get_data_compressor">[docs]</a><span class="k">def</span> <span class="nf">get_data_compressor</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="get_data_compressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.get_data_compressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_data_compressor</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the data compressor according to the input name.</span>
@@ -443,7 +443,7 @@
     <span class="k">return</span> <span class="n">_COMPRESSORS_MAP</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="dummy_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.dummy_decompressor">[docs]</a><span class="k">def</span> <span class="nf">dummy_decompressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="viewcode-block" id="dummy_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.dummy_decompressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dummy_decompressor</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Return the input data.</span>
@@ -455,7 +455,7 @@
     <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="lz4_data_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.lz4_data_decompressor">[docs]</a><span class="k">def</span> <span class="nf">lz4_data_decompressor</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="viewcode-block" id="lz4_data_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.lz4_data_decompressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">lz4_data_decompressor</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Return the decompressed original data (lz4 compressor).</span>
@@ -465,16 +465,16 @@
 <span class="sd">        - output (:obj:`Any`): The decompressed object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">lz4.block</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">lz4.block</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
-        <span class="kn">import</span> <span class="nn">sys</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please install lz4 first, such as `pip3 install lz4`&quot;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">lz4</span><span class="o">.</span><span class="n">block</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="zlib_data_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.zlib_data_decompressor">[docs]</a><span class="k">def</span> <span class="nf">zlib_data_decompressor</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="viewcode-block" id="zlib_data_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.zlib_data_decompressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">zlib_data_decompressor</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Return the decompressed original data (zlib compressor).</span>
@@ -486,7 +486,7 @@
     <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">zlib</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="jpeg_data_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.jpeg_data_decompressor">[docs]</a><span class="k">def</span> <span class="nf">jpeg_data_decompressor</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">gray_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="jpeg_data_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.jpeg_data_decompressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">jpeg_data_decompressor</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">gray_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        To reduce memory usage, we can choose to store the jpeg strings of image instead of the numpy array in the \</span>
@@ -499,10 +499,10 @@
 <span class="sd">        - arr (:obj:`np.ndarray`): The decompressed numpy array.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">cv2</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
-        <span class="kn">import</span> <span class="nn">sys</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please install opencv-python first.&quot;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">nparr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">compressed_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
@@ -523,7 +523,7 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="get_data_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.get_data_decompressor">[docs]</a><span class="k">def</span> <span class="nf">get_data_decompressor</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="get_data_decompressor"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.compression_helper.get_data_decompressor">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_data_decompressor</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the data decompressor according to the input name.</span>

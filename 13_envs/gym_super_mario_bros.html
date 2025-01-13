@@ -327,9 +327,9 @@ Here is the screeshot of game:</p>
 <section id="verify-installation">
 <h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>Run the following Python program, and if no errors are reported, the installation is successful.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
-<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
-<span class="kn">from</span> <span class="nn">gym_super_mario_bros.actions</span> <span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">nes_py.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">JoypadSpace</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gym_super_mario_bros.actions</span><span class="w"> </span><span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">SIMPLE_MOVEMENT</span><span class="p">)</span>
 
@@ -587,11 +587,11 @@ In addition, Super Mario Bros. also allows you to select specific levels to brea
 <section id="video-store">
 <h3>Video Store<a class="headerlink" href="#video-store" title="Permalink to this heading">¶</a></h3>
 <p>gym.wrappers.RecordVideo class is used to store video:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
-<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
-<span class="kn">from</span> <span class="nn">gym_super_mario_bros.actions</span> <span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nes_py.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">JoypadSpace</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gym_super_mario_bros.actions</span><span class="w"> </span><span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
 
 <span class="n">video_dir_path</span> <span class="o">=</span> <span class="s1">&#39;mario_videos&#39;</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
@@ -622,7 +622,7 @@ In addition, Super Mario Bros. also allows you to select specific levels to brea
 <section id="di-zoo-runnable-code-example">
 <h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>Offers a complete gym-super-mario-bros environment config, use DQN as baseline. Please run <code class="docutils literal notranslate"><span class="pre">mario_dqn_main.py</span></code> doc under <code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/mario</span></code> catalogue.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">mario_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;mario_dqn_seed0&#39;</span><span class="p">,</span>

@@ -302,23 +302,23 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.framework.middleware.functional.data_processor</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">tqdm</span>
-<span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">offline_data_save_type</span>
-<span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
-<span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">get_rank</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tqdm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">offline_data_save_type</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.data.buffer.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_rank</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span><span class="p">,</span> <span class="n">OfflineRLContext</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">OnlineRLContext</span><span class="p">,</span> <span class="n">OfflineRLContext</span>
 
 
-<div class="viewcode-block" id="data_pusher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.data_pusher">[docs]</a><span class="k">def</span> <span class="nf">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">group_by_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="data_pusher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.data_pusher">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">group_by_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Push episodes or trajectories into the buffer.</span>
@@ -329,7 +329,7 @@
     <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">LEARNER</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_push</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_push</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            In ctx, either `ctx.trajectories` or `ctx.episodes` should not be None.</span>
@@ -356,7 +356,7 @@
     <span class="k">return</span> <span class="n">_push</span></div>
 
 
-<span class="k">def</span> <span class="nf">buffer_saver</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">every_envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">buffer_saver</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">every_envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Save current buffer data.</span>
@@ -369,7 +369,7 @@
 
     <span class="n">buffer_saver_env_counter</span> <span class="o">=</span> <span class="o">-</span><span class="n">every_envstep</span>
 
-    <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            In ctx, `ctx.env_step` should not be None.</span>
@@ -392,7 +392,7 @@
     <span class="k">return</span> <span class="n">_save</span>
 
 
-<div class="viewcode-block" id="offpolicy_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offpolicy_data_fetcher">[docs]</a><span class="k">def</span> <span class="nf">offpolicy_data_fetcher</span><span class="p">(</span>
+<div class="viewcode-block" id="offpolicy_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offpolicy_data_fetcher">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">offpolicy_data_fetcher</span><span class="p">(</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
         <span class="n">buffer_</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Buffer</span><span class="p">]],</span>
         <span class="n">data_shortage_warning</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -415,7 +415,7 @@
 <span class="sd">        - data_shortage_warning (:obj:`bool`): Whether to output warning when data shortage occurs in fetching.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - train_output (:obj:`Union[Dict, Deque[Dict]]`): This attribute should exist \</span>
@@ -487,14 +487,14 @@
     <span class="k">return</span> <span class="n">_fetch</span></div>
 
 
-<span class="k">def</span> <span class="nf">offline_data_fetcher_from_mem</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">offline_data_fetcher_from_mem</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 
-    <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
-    <span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Queue</span>
-    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
     <span class="n">stream</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">producer</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">producer</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
         <span class="k">nonlocal</span> <span class="n">stream</span>
         <span class="n">idx_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="o">-</span> <span class="n">batch_size</span><span class="p">))</span>
@@ -523,7 +523,7 @@
         <span class="n">target</span><span class="o">=</span><span class="n">producer</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cuda_fetcher_producer&#39;</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
         <span class="k">nonlocal</span> <span class="n">queue</span><span class="p">,</span> <span class="n">producer_thread</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">producer_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
@@ -535,7 +535,7 @@
     <span class="k">return</span> <span class="n">_fetch</span>
 
 
-<div class="viewcode-block" id="offline_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_fetcher">[docs]</a><span class="k">def</span> <span class="nf">offline_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="offline_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_fetcher">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">offline_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The outer function transforms a Pytorch `Dataset` to `DataLoader`. \</span>
@@ -550,7 +550,7 @@
     <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="n">collate_fn</span><span class="p">)</span>
     <span class="n">dataloader</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Every time this generator is iterated, the fetched data will be assigned to ctx.train_data. \</span>
@@ -577,7 +577,7 @@
     <span class="k">return</span> <span class="n">_fetch</span></div>
 
 
-<div class="viewcode-block" id="offline_data_saver"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_saver">[docs]</a><span class="k">def</span> <span class="nf">offline_data_saver</span><span class="p">(</span><span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="offline_data_saver"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_saver">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">offline_data_saver</span><span class="p">(</span><span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Save the expert data of offline RL in a directory.</span>
@@ -588,7 +588,7 @@
 <span class="sd">            The type of saved data is hdf5 if `data_type == &#39;hdf5&#39;`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - trajectories (:obj:`List[Tensor]`): The expert data to be saved.</span>
@@ -600,7 +600,7 @@
     <span class="k">return</span> <span class="n">_save</span></div>
 
 
-<div class="viewcode-block" id="sqil_data_pusher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.sqil_data_pusher">[docs]</a><span class="k">def</span> <span class="nf">sqil_data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">expert</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="sqil_data_pusher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.sqil_data_pusher">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">sqil_data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">expert</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Push trajectories into the buffer in sqil learning pipeline.</span>
@@ -611,7 +611,7 @@
 <span class="sd">            In each element of the pushed data, the reward will be set to 1 if this attribute is `True`, otherwise 0.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_pusher</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pusher</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Input of ctx:</span>
 <span class="sd">            - trajectories (:obj:`List[Dict]`): The trajectories to be pushed.</span>
@@ -627,7 +627,7 @@
     <span class="k">return</span> <span class="n">_pusher</span></div>
 
 
-<span class="k">def</span> <span class="nf">qgpo_support_data_generator</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">policy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">qgpo_support_data_generator</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">policy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 
     <span class="n">behavior_policy_stop_training_iter</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">behavior_policy_stop_training_iter</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span>
         <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="p">,</span> <span class="s1">&#39;behavior_policy_stop_training_iter&#39;</span>
@@ -637,7 +637,7 @@
     <span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="n">actions_generated</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">generate_fake_actions</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_fake_actions</span><span class="p">():</span>
         <span class="n">allstates</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">states</span><span class="p">[:]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
         <span class="n">actions_sampled</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">states</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">allstates</span><span class="p">,</span> <span class="n">allstates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">4096</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)):</span>
@@ -665,7 +665,7 @@
         <span class="n">actions_next_states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">actions_next_states_sampled</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">actions</span><span class="p">,</span> <span class="n">actions_next_states</span>
 
-    <span class="k">def</span> <span class="nf">_data_generator</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_data_generator</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
         <span class="k">nonlocal</span> <span class="n">actions_generated</span>
 
         <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">&gt;=</span> <span class="n">energy_guided_policy_begin_training_iter</span><span class="p">:</span>
@@ -693,7 +693,7 @@
     <span class="k">return</span> <span class="n">_data_generator</span>
 
 
-<span class="k">def</span> <span class="nf">qgpo_offline_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">qgpo_offline_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The outer function transforms a Pytorch `Dataset` to `DataLoader`. \</span>
@@ -715,19 +715,19 @@
         <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="p">,</span> <span class="s1">&#39;energy_guided_policy_begin_training_iter&#39;</span>
     <span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">get_behavior_policy_training_data</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_behavior_policy_training_data</span><span class="p">():</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="k">yield from</span> <span class="n">dataloader</span>
 
     <span class="n">data</span> <span class="o">=</span> <span class="n">get_behavior_policy_training_data</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">get_q_training_data</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_q_training_data</span><span class="p">():</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="k">yield from</span> <span class="n">dataloader_q</span>
 
     <span class="n">data_q</span> <span class="o">=</span> <span class="n">get_q_training_data</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Every time this generator is iterated, the fetched data will be assigned to ctx.train_data. \</span>

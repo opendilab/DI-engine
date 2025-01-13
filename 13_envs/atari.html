@@ -335,7 +335,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 <section id="installation-check">
 <h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this heading">¶</a></h3>
 <p>After completing installation, you can check whether it is succesful by the following commands:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Breakout-v0&#39;</span><span class="p">)</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (210, 160, 3)</span>
@@ -416,7 +416,7 @@ hub</a>.</p>
 <li><p>Result: 1-dim <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code>. Shape is <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>. Data type is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>. Data range is <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>.</p></li>
 </ul>
 <p>The RL environment can be described in <code class="docutils literal notranslate"><span class="pre">gym</span></code> as:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
 
 
 <span class="n">obs_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">84</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -460,8 +460,8 @@ hub</a>.</p>
 <section id="save-the-replay-video">
 <h3>Save the Replay Video<a class="headerlink" href="#save-the-replay-video" title="Permalink to this heading">¶</a></h3>
 <p>After env is initiated, and before it is reset, call <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method to set where the replay video will be saved. Environment will automatically save the replay video after each episode is completed. (The default call is <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>). The code shown below will run an environment episode and save the replay viedo in folder <code class="docutils literal notranslate"><span class="pre">./video/</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">dizoo.atari.envs</span> <span class="kn">import</span> <span class="n">AtariEnv</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.atari.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtariEnv</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">AtariEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;Breakout-v0&#39;</span><span class="p">,</span> <span class="s1">&#39;is_train&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}))</span>
 <span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
@@ -482,7 +482,7 @@ hub</a>.</p>
 <p>Complete training configuration is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial">github
 link</a>.
 For specific configuration file, e.g. <code class="docutils literal notranslate"><span class="pre">pong_dqn_config.py</span></code>, you can run the demo as shown below:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">pong_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -536,7 +536,7 @@ For specific configuration file, e.g. <code class="docutils literal notranslate"
 <span class="n">create_config</span> <span class="o">=</span> <span class="n">pong_dqn_create_config</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline</span>
     <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>

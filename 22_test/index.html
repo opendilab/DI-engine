@@ -349,10 +349,10 @@
 <p>In the test cases, we use <code class="docutils literal notranslate"><span class="pre">assert</span></code> (assertion) to check the prototype results. If the assertion is not true, very detailed information will be displayed, as shown in the following figure</p>
 <a class="reference internal image-reference" href="../_images/pytest_assert.png"><img alt="../_images/pytest_assert.png" class="align-center" src="../_images/pytest_assert.png" style="width: 787.6px; height: 502.70000000000005px;" /></a>
 <p>In addition, `` pytest`` also supports assertion of thrown exceptions, as shown below</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pytest</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">unittest</span>
-<span class="k">def</span> <span class="nf">test_zero_division</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_zero_division</span><span class="p">():</span>
     <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ZeroDivisionError</span><span class="p">):</span>
         <span class="mi">1</span> <span class="o">/</span> <span class="mi">0</span>
 </pre></div>

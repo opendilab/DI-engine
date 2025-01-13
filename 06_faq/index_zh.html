@@ -366,7 +366,7 @@
 <p><strong>A5:</strong></p>
 <p>在相应算法的入口添加 <code class="docutils literal notranslate"><span class="pre">lr_scheduler</span></code> 代码，可以通过调用 <code class="docutils literal notranslate"><span class="pre">torch.optim.lr_scheduler</span></code> （参考： <a class="reference external" href="https://pytorch.org/docs/stable/optim.html">https://pytorch.org/docs/stable/optim.html</a>）模块来调整学习率，并且在模型优化更新之后使用 <code class="docutils literal notranslate"><span class="pre">scheduler.step()</span></code> 对学习率进行更新。
 下面代码提供一个简单的案例，具体可参考demo: <a class="reference external" href="https://github.com/opendilab/DI-engine/commit/9cad6575e5c00036aba6419f95cdce0e7342630f">https://github.com/opendilab/DI-engine/commit/9cad6575e5c00036aba6419f95cdce0e7342630f</a>。</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <span class="n">LambdaLR</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.optim.lr_scheduler</span><span class="w"> </span><span class="kn">import</span> <span class="n">LambdaLR</span>
 
 <span class="o">...</span>
 

@@ -317,8 +317,8 @@
 <section id="id3">
 <h2>使用配置文件<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine 使用全局配置文件来控制环境和策略的所有变量，每个变量都有对应的默认配置可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mario/mario_dqn_config.py">mario_dqn_config</a> 中找到，在本次教程中我们直接使用默认配置：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.mario.mario_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
-<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.mario.mario_dqn_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_config</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_cfg</span><span class="o">=</span><span class="n">create_config</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
@@ -342,14 +342,14 @@
 <p>如果找不到合适的 Env Wrapper， 您可以按照 <code class="docutils literal notranslate"><span class="pre">gym.Wrapper</span></code> 格式定义自己的 Wrapper ，也可以根据 <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/04_best_practice/ding_env.html">Customized Env doc</a> 实现符合 DI-engine 的环境格式</p>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># use subprocess env manager to speed up collecting</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
-<span class="kn">from</span> <span class="nn">ding.envs.env_wrappers</span> <span class="kn">import</span> <span class="n">MaxAndSkipWrapper</span><span class="p">,</span> <span class="n">WarpFrameWrapper</span><span class="p">,</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">,</span> <span class="n">FrameStackWrapper</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs.env_wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaxAndSkipWrapper</span><span class="p">,</span> <span class="n">WarpFrameWrapper</span><span class="p">,</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">,</span> <span class="n">FrameStackWrapper</span><span class="p">,</span> \
    <span class="n">EvalEpisodeReturnWrapper</span>
-<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
-<span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nes_py.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">JoypadSpace</span>
 
 
-<span class="k">def</span> <span class="nf">wrapped_mario_env</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wrapped_mario_env</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">DingEnvWrapper</span><span class="p">(</span>
         <span class="c1"># Limit the action-space to 2 dim: 0. walk right, 1. jump right</span>
         <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;SuperMarioBros-1-1-v0&quot;</span><span class="p">),</span> <span class="p">[[</span><span class="s2">&quot;right&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">]]),</span>
@@ -381,9 +381,9 @@
 <section id="id6">
 <h2>选择策略<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine 涵盖了大部分强化学习策略，使用它们只需要选择正确的策略和模型。由于 DQN 是 Off-Policy 类型算法，我们还需要实例化一个缓冲区模块。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
-<span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQN</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQNPolicy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DequeBuffer</span>
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 <span class="n">buffer_</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">replay_buffer_size</span><span class="p">)</span>
@@ -394,9 +394,9 @@
 <section id="id7">
 <h2>构建管线<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <p>借助 DI-engine 提供的各种中间件，我们可以轻松构建整个训练管线：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
-<span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
-<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span><span class="p">,</span> <span class="n">nstep_reward_enhancer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">OnlineRLContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span><span class="p">,</span> <span class="n">nstep_reward_enhancer</span>
 
 <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
     <span class="c1"># Evaluating, we place it on the first place to get the score of the random model as a benchmark value</span>

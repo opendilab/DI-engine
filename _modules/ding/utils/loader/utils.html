@@ -302,10 +302,10 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.loader.utils</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">ILoaderClass</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">ILoaderClass</span>
 
 
-<div class="viewcode-block" id="keep"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.keep">[docs]</a><span class="k">def</span> <span class="nf">keep</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="keep"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.keep">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">keep</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a keep loader.</span>
@@ -314,7 +314,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">v</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="raw"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.raw">[docs]</a><span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="raw"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.raw">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">raw</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a raw loader.</span>
@@ -323,7 +323,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">value</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="optional"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.optional">[docs]</a><span class="k">def</span> <span class="nf">optional</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="optional"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.optional">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">optional</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a optional loader.</span>
@@ -334,7 +334,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="o">|</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="check_only"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.check_only">[docs]</a><span class="k">def</span> <span class="nf">check_only</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="check_only"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.check_only">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">check_only</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a check only loader.</span>
@@ -345,7 +345,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">keep</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="check"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.check">[docs]</a><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="check"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.utils.check">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a check loader.</span>

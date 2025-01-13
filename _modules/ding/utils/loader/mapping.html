@@ -302,18 +302,18 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.loader.mapping</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">ILoaderClass</span><span class="p">,</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">CAPTURE_EXCEPTIONS</span>
-<span class="kn">from</span> <span class="nn">.exception</span> <span class="kn">import</span> <span class="n">CompositeStructureError</span>
-<span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">method</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">raw</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">ILoaderClass</span><span class="p">,</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">CAPTURE_EXCEPTIONS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.exception</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositeStructureError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">method</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">raw</span>
 
 <span class="n">MAPPING_ERROR_ITEM</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">]</span>
 <span class="n">MAPPING_ERRORS</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">MAPPING_ERROR_ITEM</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="MappingError"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError">[docs]</a><span class="k">class</span> <span class="nc">MappingError</span><span class="p">(</span><span class="n">CompositeStructureError</span><span class="p">):</span>
+<div class="viewcode-block" id="MappingError"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">MappingError</span><span class="p">(</span><span class="n">CompositeStructureError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Mapping error.</span>
@@ -321,7 +321,7 @@
 <span class="sd">        ``__init__``, ``errors``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="MappingError.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_errors</span><span class="p">:</span> <span class="n">MAPPING_ERRORS</span><span class="p">,</span> <span class="n">value_errors</span><span class="p">:</span> <span class="n">MAPPING_ERRORS</span><span class="p">):</span>
+<div class="viewcode-block" id="MappingError.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_errors</span><span class="p">:</span> <span class="n">MAPPING_ERRORS</span><span class="p">,</span> <span class="n">value_errors</span><span class="p">:</span> <span class="n">MAPPING_ERRORS</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the MappingError.</span>
@@ -334,7 +334,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__value_errors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">value_errors</span> <span class="ow">or</span> <span class="p">[])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__key_errors</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__value_errors</span></div>
 
-<div class="viewcode-block" id="MappingError.key_errors"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError.key_errors">[docs]</a>    <span class="k">def</span> <span class="nf">key_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MAPPING_ERRORS</span><span class="p">:</span>
+<div class="viewcode-block" id="MappingError.key_errors"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError.key_errors">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">key_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MAPPING_ERRORS</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the key errors.</span>
@@ -342,7 +342,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__key_errors</span></div>
 
-<div class="viewcode-block" id="MappingError.value_errors"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError.value_errors">[docs]</a>    <span class="k">def</span> <span class="nf">value_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MAPPING_ERRORS</span><span class="p">:</span>
+<div class="viewcode-block" id="MappingError.value_errors"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError.value_errors">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">value_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MAPPING_ERRORS</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the value errors.</span>
@@ -350,7 +350,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__value_errors</span></div>
 
-<div class="viewcode-block" id="MappingError.errors"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError.errors">[docs]</a>    <span class="k">def</span> <span class="nf">errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MAPPING_ERRORS</span><span class="p">:</span>
+<div class="viewcode-block" id="MappingError.errors"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.MappingError.errors">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MAPPING_ERRORS</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the errors.</span>
@@ -359,7 +359,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__errors</span></div></div>
 
 
-<div class="viewcode-block" id="mapping"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mapping">[docs]</a><span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="n">key_loader</span><span class="p">,</span> <span class="n">value_loader</span><span class="p">,</span> <span class="n">type_back</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="mapping"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mapping">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mapping</span><span class="p">(</span><span class="n">key_loader</span><span class="p">,</span> <span class="n">value_loader</span><span class="p">,</span> <span class="n">type_back</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a mapping loader.</span>
@@ -372,7 +372,7 @@
     <span class="n">key_loader</span> <span class="o">=</span> <span class="n">Loader</span><span class="p">(</span><span class="n">key_loader</span><span class="p">)</span>
     <span class="n">value_loader</span> <span class="o">=</span> <span class="n">Loader</span><span class="p">(</span><span class="n">value_loader</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="n">_key_errors</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">_value_errors</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">_result</span> <span class="o">=</span> <span class="p">{}</span>
@@ -408,7 +408,7 @@
     <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;items&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mpfilter"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mpfilter">[docs]</a><span class="k">def</span> <span class="nf">mpfilter</span><span class="p">(</span><span class="n">check</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">],</span> <span class="n">type_back</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="mpfilter"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mpfilter">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mpfilter</span><span class="p">(</span><span class="n">check</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">],</span> <span class="n">type_back</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a mapping filter loader.</span>
@@ -417,7 +417,7 @@
 <span class="sd">        - type_back (:obj:`bool`): Whether to convert the type back.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="n">_result</span> <span class="o">=</span> <span class="p">{</span><span class="n">key_</span><span class="p">:</span> <span class="n">value_</span> <span class="k">for</span> <span class="n">key_</span><span class="p">,</span> <span class="n">value_</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">check</span><span class="p">(</span><span class="n">key_</span><span class="p">,</span> <span class="n">value_</span><span class="p">)}</span>
 
         <span class="k">if</span> <span class="n">type_back</span><span class="p">:</span>
@@ -427,7 +427,7 @@
     <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;items&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mpkeys"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mpkeys">[docs]</a><span class="k">def</span> <span class="nf">mpkeys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="mpkeys"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mpkeys">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mpkeys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a mapping keys loader.</span>
@@ -436,7 +436,7 @@
     <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;items&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;keys&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
 
 
-<div class="viewcode-block" id="mpvalues"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mpvalues">[docs]</a><span class="k">def</span> <span class="nf">mpvalues</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="mpvalues"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mpvalues">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mpvalues</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a mapping values loader.</span>
@@ -445,7 +445,7 @@
     <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;items&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;values&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Loader</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span></div>
 
 
-<div class="viewcode-block" id="mpitems"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mpitems">[docs]</a><span class="k">def</span> <span class="nf">mpitems</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="mpitems"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.mpitems">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mpitems</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a mapping items loader.</span>
@@ -457,7 +457,7 @@
 <span class="n">_INDEX_PRECHECK</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="s1">&#39;__getitem__&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="item"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.item">[docs]</a><span class="k">def</span> <span class="nf">item</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="item"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.item">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">item</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a item loader.</span>
@@ -470,7 +470,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="item_or"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.item_or">[docs]</a><span class="k">def</span> <span class="nf">item_or</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="item_or"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.mapping.item_or">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">item_or</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a item or loader.</span>

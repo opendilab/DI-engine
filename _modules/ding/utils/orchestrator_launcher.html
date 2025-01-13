@@ -302,13 +302,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.orchestrator_launcher</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">K8sLauncher</span>
-<span class="kn">from</span> <span class="nn">.default_helper</span> <span class="kn">import</span> <span class="n">one_time_warning</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">K8sLauncher</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.default_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">one_time_warning</span>
 
 
-<div class="viewcode-block" id="OrchestratorLauncher"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher">[docs]</a><span class="k">class</span> <span class="nc">OrchestratorLauncher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="OrchestratorLauncher"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OrchestratorLauncher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Object to manage di-orchestrator in existing k8s cluster</span>
@@ -316,7 +316,7 @@
 <span class="sd">        ``__init__``, ``create_orchestrator``, ``delete_orchestrator``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="OrchestratorLauncher.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="OrchestratorLauncher.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
             <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;di-orchestrator&#39;</span><span class="p">,</span>
@@ -365,7 +365,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_kubectl_tools</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="OrchestratorLauncher._check_kubectl_tools"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher._check_kubectl_tools">[docs]</a>    <span class="k">def</span> <span class="nf">_check_kubectl_tools</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="OrchestratorLauncher._check_kubectl_tools"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher._check_kubectl_tools">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_check_kubectl_tools</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Check if kubectl tools is installed.</span>
@@ -379,7 +379,7 @@
                 <span class="s2">&quot;No kubectl tools found, please install by executing ./ding/scripts/install-k8s-tools.sh&quot;</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="OrchestratorLauncher.create_orchestrator"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher.create_orchestrator">[docs]</a>    <span class="k">def</span> <span class="nf">create_orchestrator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="OrchestratorLauncher.create_orchestrator"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher.create_orchestrator">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create_orchestrator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Create di-orchestrator in k8s cluster.</span>
@@ -397,7 +397,7 @@
         <span class="n">create_components_from_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">installer</span><span class="p">)</span>
         <span class="n">wait_to_be_ready</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_namespace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_webhook</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="OrchestratorLauncher.delete_orchestrator"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher.delete_orchestrator">[docs]</a>    <span class="k">def</span> <span class="nf">delete_orchestrator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="OrchestratorLauncher.delete_orchestrator"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.OrchestratorLauncher.delete_orchestrator">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete_orchestrator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Delete di-orchestrator in k8s cluster.</span>
@@ -414,7 +414,7 @@
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to delete di-orchestrator: </span><span class="si">{</span><span class="n">err_str</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="create_components_from_config"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.create_components_from_config">[docs]</a><span class="k">def</span> <span class="nf">create_components_from_config</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="create_components_from_config"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.create_components_from_config">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">create_components_from_config</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create components from config file.</span>
@@ -433,7 +433,7 @@
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to launch components: </span><span class="si">{</span><span class="n">err_str</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="wait_to_be_ready"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.wait_to_be_ready">[docs]</a><span class="k">def</span> <span class="nf">wait_to_be_ready</span><span class="p">(</span><span class="n">namespace</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="wait_to_be_ready"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.orchestrator_launcher.wait_to_be_ready">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">wait_to_be_ready</span><span class="p">(</span><span class="n">namespace</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Wait for the component to be ready.</span>
@@ -444,7 +444,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">kubernetes</span> <span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">watch</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">kubernetes</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">watch</span>
     <span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
         <span class="n">one_time_warning</span><span class="p">(</span><span class="s2">&quot;You have not installed kubernetes package! Please try &#39;pip install DI-engine[k8s]&#39;.&quot;</span><span class="p">)</span>
         <span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>

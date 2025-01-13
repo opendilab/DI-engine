@@ -302,33 +302,33 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.framework.middleware.learner</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
 
-<span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
-<span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">Buffer</span>
-<span class="kn">from</span> <span class="nn">.functional</span> <span class="kn">import</span> <span class="n">trainer</span><span class="p">,</span> <span class="n">offpolicy_data_fetcher</span><span class="p">,</span> <span class="n">reward_estimator</span><span class="p">,</span> <span class="n">her_data_enhancer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Buffer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">trainer</span><span class="p">,</span> <span class="n">offpolicy_data_fetcher</span><span class="p">,</span> <span class="n">reward_estimator</span><span class="p">,</span> <span class="n">her_data_enhancer</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">OnlineRLContext</span>
-    <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">Policy</span>
-    <span class="kn">from</span> <span class="nn">ding.reward_model</span> <span class="kn">import</span> <span class="n">BaseRewardModel</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">OnlineRLContext</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Policy</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.reward_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRewardModel</span>
 
 
-<div class="viewcode-block" id="OffPolicyLearner"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner">[docs]</a><span class="k">class</span> <span class="nc">OffPolicyLearner</span><span class="p">:</span>
+<div class="viewcode-block" id="OffPolicyLearner"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OffPolicyLearner</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The class of the off-policy learner, including data fetching and model training. Use \</span>
 <span class="sd">            the `__call__` method to execute the whole learning process.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">LEARNER</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
 
-<div class="viewcode-block" id="OffPolicyLearner.__init__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="OffPolicyLearner.__init__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
             <span class="n">policy</span><span class="p">:</span> <span class="s1">&#39;Policy&#39;</span><span class="p">,</span>
@@ -353,7 +353,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_reward_estimator</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="OffPolicyLearner.__call__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="OffPolicyLearner.__call__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Output of ctx:</span>
 <span class="sd">            - train_output (:obj:`Deque`): The training output in deque.</span>
@@ -370,7 +370,7 @@
         <span class="n">ctx</span><span class="o">.</span><span class="n">train_output</span> <span class="o">=</span> <span class="n">train_output_queue</span></div></div>
 
 
-<div class="viewcode-block" id="HERLearner"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.HERLearner">[docs]</a><span class="k">class</span> <span class="nc">HERLearner</span><span class="p">:</span>
+<div class="viewcode-block" id="HERLearner"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.HERLearner">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HERLearner</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The class of the learner with the Hindsight Experience Replay (HER). \</span>
@@ -378,7 +378,7 @@
 <span class="sd">            process.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="HERLearner.__init__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.HERLearner.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="HERLearner.__init__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.HERLearner.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
             <span class="n">policy</span><span class="p">,</span>
@@ -396,7 +396,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_fetcher</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">her_data_enhancer</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">,</span> <span class="n">her_reward_model</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trainer</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">trainer</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="HERLearner.__call__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.HERLearner.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="HERLearner.__call__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.HERLearner.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Output of ctx:</span>
 <span class="sd">            - train_output (:obj:`Deque`): The deque of training output.</span>

@@ -302,18 +302,18 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.loader.number</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">import</span> <span class="nn">operator</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">operator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">ILoaderClass</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">keep</span><span class="p">,</span> <span class="n">check_only</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loader</span><span class="p">,</span> <span class="n">ILoaderClass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">keep</span><span class="p">,</span> <span class="n">check_only</span>
 
 <span class="n">NUMBER_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
 <span class="n">NUMBER_TYPING</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="numeric"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.numeric">[docs]</a><span class="k">def</span> <span class="nf">numeric</span><span class="p">(</span><span class="n">int_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">float_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">inf_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="numeric"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.numeric">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">numeric</span><span class="p">(</span><span class="n">int_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">float_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">inf_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a numeric loader.</span>
@@ -326,7 +326,7 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">int_ok</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">float_ok</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Either int or float should be allowed.&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NUMBER_TYPING</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NUMBER_TYPING</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">NUMBER_TYPES</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;nan is not numeric value&#39;</span><span class="p">)</span>
@@ -348,7 +348,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="interval"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.interval">[docs]</a><span class="k">def</span> <span class="nf">interval</span><span class="p">(</span>
+<div class="viewcode-block" id="interval"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.interval">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">interval</span><span class="p">(</span>
         <span class="n">left</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">NUMBER_TYPING</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">right</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">NUMBER_TYPING</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">left_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -378,7 +378,7 @@
         <span class="p">)</span>
     <span class="n">eps</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_value_compare_with_eps</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_value_compare_with_eps</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">eps</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="k">elif</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">:</span>
@@ -386,7 +386,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">1</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NUMBER_TYPING</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NUMBER_TYPING</span><span class="p">:</span>
         <span class="n">_left_check</span> <span class="o">=</span> <span class="n">_value_compare_with_eps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">left</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">_left_check</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -416,7 +416,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="is_negative"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.is_negative">[docs]</a><span class="k">def</span> <span class="nf">is_negative</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="is_negative"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.is_negative">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_negative</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a negative loader.</span>
@@ -425,7 +425,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">((</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;negative required but </span><span class="si">{value}</span><span class="s1"> found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">x</span><span class="p">)))))</span></div>
 
 
-<div class="viewcode-block" id="is_positive"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.is_positive">[docs]</a><span class="k">def</span> <span class="nf">is_positive</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="is_positive"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.is_positive">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_positive</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a positive loader.</span>
@@ -434,7 +434,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">((</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;positive required but </span><span class="si">{value}</span><span class="s1"> found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">x</span><span class="p">)))))</span></div>
 
 
-<div class="viewcode-block" id="non_negative"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.non_negative">[docs]</a><span class="k">def</span> <span class="nf">non_negative</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="non_negative"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.non_negative">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">non_negative</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a non-negative loader.</span>
@@ -445,7 +445,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="non_positive"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.non_positive">[docs]</a><span class="k">def</span> <span class="nf">non_positive</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="non_positive"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.non_positive">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">non_positive</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a non-positive loader.</span>
@@ -456,7 +456,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="negative"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.negative">[docs]</a><span class="k">def</span> <span class="nf">negative</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="negative"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.negative">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">negative</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a negative loader.</span>
@@ -465,7 +465,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="n">x</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="positive"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.positive">[docs]</a><span class="k">def</span> <span class="nf">positive</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="positive"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.positive">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">positive</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a positive loader.</span>
@@ -474,7 +474,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">+</span><span class="n">x</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="_math_binary"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number._math_binary">[docs]</a><span class="k">def</span> <span class="nf">_math_binary</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span> <span class="n">attachment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="_math_binary"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number._math_binary">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">_math_binary</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span> <span class="n">attachment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a math binary loader.</span>
@@ -486,7 +486,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Loader</span><span class="p">(</span><span class="n">attachment</span><span class="p">)(</span><span class="n">x</span><span class="p">)))</span></div>
 
 
-<div class="viewcode-block" id="plus"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.plus">[docs]</a><span class="k">def</span> <span class="nf">plus</span><span class="p">(</span><span class="n">addend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="plus"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.plus">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">plus</span><span class="p">(</span><span class="n">addend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a plus loader.</span>
@@ -497,7 +497,7 @@
     <span class="k">return</span> <span class="n">_math_binary</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">,</span> <span class="n">addend</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="minus"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.minus">[docs]</a><span class="k">def</span> <span class="nf">minus</span><span class="p">(</span><span class="n">subtrahend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="minus"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.minus">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">minus</span><span class="p">(</span><span class="n">subtrahend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a minus loader.</span>
@@ -508,7 +508,7 @@
     <span class="k">return</span> <span class="n">_math_binary</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">,</span> <span class="n">subtrahend</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="minus_with"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.minus_with">[docs]</a><span class="k">def</span> <span class="nf">minus_with</span><span class="p">(</span><span class="n">minuend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="minus_with"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.minus_with">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">minus_with</span><span class="p">(</span><span class="n">minuend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a minus loader.</span>
@@ -519,7 +519,7 @@
     <span class="k">return</span> <span class="n">_math_binary</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">-</span> <span class="n">x</span><span class="p">,</span> <span class="n">minuend</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="multi"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.multi">[docs]</a><span class="k">def</span> <span class="nf">multi</span><span class="p">(</span><span class="n">multiplier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="multi"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.multi">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">multi</span><span class="p">(</span><span class="n">multiplier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a multi loader.</span>
@@ -530,7 +530,7 @@
     <span class="k">return</span> <span class="n">_math_binary</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">,</span> <span class="n">multiplier</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="divide"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.divide">[docs]</a><span class="k">def</span> <span class="nf">divide</span><span class="p">(</span><span class="n">divisor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="divide"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.divide">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">divide</span><span class="p">(</span><span class="n">divisor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a divide loader.</span>
@@ -541,7 +541,7 @@
     <span class="k">return</span> <span class="n">_math_binary</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">/</span> <span class="n">y</span><span class="p">,</span> <span class="n">divisor</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="divide_with"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.divide_with">[docs]</a><span class="k">def</span> <span class="nf">divide_with</span><span class="p">(</span><span class="n">dividend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="divide_with"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.divide_with">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">divide_with</span><span class="p">(</span><span class="n">dividend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a divide loader.</span>
@@ -552,7 +552,7 @@
     <span class="k">return</span> <span class="n">_math_binary</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">/</span> <span class="n">x</span><span class="p">,</span> <span class="n">dividend</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="power"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.power">[docs]</a><span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="power"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.power">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">power</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a power loader.</span>
@@ -563,7 +563,7 @@
     <span class="k">return</span> <span class="n">_math_binary</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">**</span> <span class="n">y</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="power_with"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.power_with">[docs]</a><span class="k">def</span> <span class="nf">power_with</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="power_with"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.power_with">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">power_with</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a power loader.</span>
@@ -574,7 +574,7 @@
     <span class="k">return</span> <span class="n">_math_binary</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">**</span> <span class="n">x</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="msum"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.msum">[docs]</a><span class="k">def</span> <span class="nf">msum</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="msum"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.msum">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">msum</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a sum loader.</span>
@@ -582,13 +582,13 @@
 <span class="sd">        - items (:obj:`tuple`): The items.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">item</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mmulti"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.mmulti">[docs]</a><span class="k">def</span> <span class="nf">mmulti</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="mmulti"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.mmulti">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mmulti</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a multi loader.</span>
@@ -596,7 +596,7 @@
 <span class="sd">        - items (:obj:`tuple`): The items.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="n">_result</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
             <span class="n">_result</span> <span class="o">*=</span> <span class="n">item</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -615,7 +615,7 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="_msinglecmp"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number._msinglecmp">[docs]</a><span class="k">def</span> <span class="nf">_msinglecmp</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">second</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="_msinglecmp"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number._msinglecmp">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">_msinglecmp</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">second</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a single compare loader.</span>
@@ -644,7 +644,7 @@
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Invalid compare operator - </span><span class="si">{op}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">op</span><span class="p">)))</span></div>
 
 
-<div class="viewcode-block" id="mcmp"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.mcmp">[docs]</a><span class="k">def</span> <span class="nf">mcmp</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="o">*</span><span class="n">items</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="mcmp"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.number.mcmp">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mcmp</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="o">*</span><span class="n">items</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a multi compare loader.</span>

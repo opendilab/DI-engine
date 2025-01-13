@@ -302,16 +302,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.rl_utils.ppg</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
 
 <span class="n">ppg_data</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ppg_data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;logit_new&#39;</span><span class="p">,</span> <span class="s1">&#39;logit_old&#39;</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;value_new&#39;</span><span class="p">,</span> <span class="s1">&#39;value_old&#39;</span><span class="p">,</span> <span class="s1">&#39;return_&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">])</span>
 <span class="n">ppg_joint_loss</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ppg_joint_loss&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;auxiliary_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;behavioral_cloning_loss&#39;</span><span class="p">])</span>
 
 
-<div class="viewcode-block" id="ppg_joint_error"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.ppg.ppg_joint_error">[docs]</a><span class="k">def</span> <span class="nf">ppg_joint_error</span><span class="p">(</span>
+<div class="viewcode-block" id="ppg_joint_error"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.ppg.ppg_joint_error">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">ppg_joint_error</span><span class="p">(</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
         <span class="n">clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
         <span class="n">use_value_clip</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>

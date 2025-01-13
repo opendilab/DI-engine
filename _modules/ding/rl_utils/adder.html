@@ -302,16 +302,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.rl_utils.adder</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">torch</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">list_split</span><span class="p">,</span> <span class="n">lists_to_dicts</span>
-<span class="kn">from</span> <span class="nn">ding.rl_utils.gae</span> <span class="kn">import</span> <span class="n">gae</span><span class="p">,</span> <span class="n">gae_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">list_split</span><span class="p">,</span> <span class="n">lists_to_dicts</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.rl_utils.gae</span><span class="w"> </span><span class="kn">import</span> <span class="n">gae</span><span class="p">,</span> <span class="n">gae_data</span>
 
 
-<div class="viewcode-block" id="Adder"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.adder.Adder">[docs]</a><span class="k">class</span> <span class="nc">Adder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Adder"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.adder.Adder">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Adder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Adder is a component that handles different transformations and calculations for transitions</span>
@@ -321,7 +321,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Adder.get_gae"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.adder.Adder.get_gae">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_gae</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">last_value</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">gae_lambda</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_gae</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">last_value</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">gae_lambda</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                 <span class="n">cuda</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -362,7 +362,7 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="Adder.get_gae_with_default_last_value"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.adder.Adder.get_gae_with_default_last_value">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_gae_with_default_last_value</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">deque</span><span class="p">,</span> <span class="n">done</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">gae_lambda</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_gae_with_default_last_value</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">deque</span><span class="p">,</span> <span class="n">done</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">gae_lambda</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                                         <span class="n">cuda</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -398,7 +398,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_gae</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">last_value</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">gae_lambda</span><span class="p">,</span> <span class="n">cuda</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Adder.get_nstep_return_data"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.adder.Adder.get_nstep_return_data">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_nstep_return_data</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_nstep_return_data</span><span class="p">(</span>
             <span class="bp">cls</span><span class="p">,</span>
             <span class="n">data</span><span class="p">:</span> <span class="n">deque</span><span class="p">,</span>
             <span class="n">nstep</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -459,7 +459,7 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="Adder.get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.adder.Adder.get_train_sample">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_train_sample</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_train_sample</span><span class="p">(</span>
             <span class="bp">cls</span><span class="p">,</span>
             <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
             <span class="n">unroll_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -487,7 +487,7 @@
             <span class="c1"># cut data into pieces whose length is unroll_len</span>
             <span class="n">split_data</span><span class="p">,</span> <span class="n">residual</span> <span class="o">=</span> <span class="n">list_split</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">unroll_len</span><span class="p">)</span>
 
-            <span class="k">def</span> <span class="nf">null_padding</span><span class="p">():</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">null_padding</span><span class="p">():</span>
                 <span class="n">template</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">residual</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="n">template</span><span class="p">[</span><span class="s1">&#39;null&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
@@ -527,7 +527,7 @@
             <span class="k">return</span> <span class="n">split_data</span></div>
 
 <div class="viewcode-block" id="Adder._get_null_transition"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.adder.Adder._get_null_transition">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_get_null_transition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">template</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">null_transition</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_null_transition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">template</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">null_transition</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get null transition for padding. If ``cls._null_transition`` is None, return input ``template`` instead.</span>

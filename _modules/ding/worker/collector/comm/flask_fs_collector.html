@@ -302,19 +302,19 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.worker.collector.comm.flask_fs_collector</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span>
-<span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Queue</span>
-<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
 
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">read_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">COMM_COLLECTOR_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">ding.utils.file_helper</span> <span class="kn">import</span> <span class="n">save_to_di_store</span>
-<span class="kn">from</span> <span class="nn">ding.interaction</span> <span class="kn">import</span> <span class="n">Slave</span><span class="p">,</span> <span class="n">TaskFail</span>
-<span class="kn">from</span> <span class="nn">.base_comm_collector</span> <span class="kn">import</span> <span class="n">BaseCommCollector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">COMM_COLLECTOR_REGISTRY</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.file_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_to_di_store</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.interaction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Slave</span><span class="p">,</span> <span class="n">TaskFail</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base_comm_collector</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCommCollector</span>
 
 
-<div class="viewcode-block" id="CollectorSlave"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.CollectorSlave">[docs]</a><span class="k">class</span> <span class="nc">CollectorSlave</span><span class="p">(</span><span class="n">Slave</span><span class="p">):</span>
+<div class="viewcode-block" id="CollectorSlave"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.CollectorSlave">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CollectorSlave</span><span class="p">(</span><span class="n">Slave</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A slave, whose master is coordinator.</span>
@@ -324,7 +324,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="CollectorSlave.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.CollectorSlave.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">callback_fn</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CollectorSlave.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.CollectorSlave.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">callback_fn</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init callback functions additionally. Callback functions are methods in comm collector.</span>
@@ -333,7 +333,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_callback_fn</span> <span class="o">=</span> <span class="n">callback_fn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_task_info</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="CollectorSlave._process_task"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.CollectorSlave._process_task">[docs]</a>    <span class="k">def</span> <span class="nf">_process_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">TaskFail</span><span class="p">]:</span>
+<div class="viewcode-block" id="CollectorSlave._process_task"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.CollectorSlave._process_task">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_process_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">TaskFail</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Process a task according to input task info dict, which is passed in by master coordinator.</span>
@@ -366,7 +366,7 @@
 
 
 <div class="viewcode-block" id="FlaskFileSystemCollector"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector">[docs]</a><span class="nd">@COMM_COLLECTOR_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;flask_fs&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">FlaskFileSystemCollector</span><span class="p">(</span><span class="n">BaseCommCollector</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FlaskFileSystemCollector</span><span class="p">(</span><span class="n">BaseCommCollector</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        An implementation of CommLearner, using flask and the file system.</span>
@@ -376,7 +376,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="FlaskFileSystemCollector.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="FlaskFileSystemCollector.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">       Overview:</span>
 <span class="sd">            Initialization method.</span>
@@ -404,7 +404,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector_close_flag</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="FlaskFileSystemCollector.deal_with_resource"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.deal_with_resource">[docs]</a>    <span class="k">def</span> <span class="nf">deal_with_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="FlaskFileSystemCollector.deal_with_resource"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.deal_with_resource">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">deal_with_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Callback function in ``CollectorSlave``. Return how many resources are needed to start current collector.</span>
@@ -413,7 +413,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;gpu&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">}</span></div>
 
-<div class="viewcode-block" id="FlaskFileSystemCollector.deal_with_collector_start"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.deal_with_collector_start">[docs]</a>    <span class="k">def</span> <span class="nf">deal_with_collector_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="FlaskFileSystemCollector.deal_with_collector_start"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.deal_with_collector_start">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">deal_with_collector_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Callback function in ``CollectorSlave``.</span>
@@ -430,7 +430,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_collector</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;collector_start&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="FlaskFileSystemCollector.deal_with_collector_data"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.deal_with_collector_data">[docs]</a>    <span class="k">def</span> <span class="nf">deal_with_collector_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="FlaskFileSystemCollector.deal_with_collector_data"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.deal_with_collector_data">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">deal_with_collector_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Callback function in ``CollectorSlave``. Get data sample dict from ``_metadata_queue``,</span>
@@ -446,7 +446,7 @@
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-    <span class="k">def</span> <span class="nf">deal_with_collector_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deal_with_collector_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector_close_flag</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">finish_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collector</span><span class="o">.</span><span class="n">get_finish_info</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collector</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -456,7 +456,7 @@
         <span class="k">return</span> <span class="n">finish_info</span>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="FlaskFileSystemCollector.get_policy_update_info"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.get_policy_update_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_policy_update_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="FlaskFileSystemCollector.get_policy_update_info"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.get_policy_update_info">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_policy_update_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get policy information in corresponding path.</span>
@@ -470,7 +470,7 @@
         <span class="k">return</span> <span class="n">read_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">use_lock</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="FlaskFileSystemCollector.send_stepdata"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.send_stepdata">[docs]</a>    <span class="k">def</span> <span class="nf">send_stepdata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">stepdata</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="FlaskFileSystemCollector.send_stepdata"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.send_stepdata">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">send_stepdata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">stepdata</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Save collector&#39;s step data in corresponding path.</span>
@@ -491,7 +491,7 @@
         <span class="n">save_file</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">stepdata</span><span class="p">,</span> <span class="n">use_lock</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="FlaskFileSystemCollector.send_metadata"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.send_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">send_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="FlaskFileSystemCollector.send_metadata"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.send_metadata">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">send_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Store learn info dict in queue, which will be retrieved by callback function &quot;deal_with_collector_learn&quot;</span>
@@ -512,7 +512,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="FlaskFileSystemCollector.start"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="FlaskFileSystemCollector.start"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.start">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Start comm collector itself and the collector slave.</span>
@@ -520,7 +520,7 @@
         <span class="n">BaseCommCollector</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_slave</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="FlaskFileSystemCollector.close"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="FlaskFileSystemCollector.close"><a class="viewcode-back" href="../../../../../05_api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector.close">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Close comm collector itself and the collector slave.</span>
@@ -535,7 +535,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_slave</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">BaseCommCollector</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 </pre></div>
 

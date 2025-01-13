@@ -321,8 +321,8 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 <p>DI-engine 使用一个全局的配置文件来控制环境和策略的所有变量，每个环境和策略都有对应的默认配置，这个样例使用的完整配置可以在
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py">cartpole_dqn_config</a>
 看到，在教程中我们直接调用即可：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
-<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.classic_control.cartpole.config.cartpole_dqn_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_config</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_cfg</span><span class="o">=</span><span class="n">create_config</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
@@ -332,7 +332,7 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 <h2>初始化采集环境和评估环境<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>在强化学习中，训练阶段和评估阶段和环境交互的策略可能有区别，例如训练阶段往往是采集 n 个步骤就训练一次，且需要一些额外信息帮助训练
 而评估阶段则需要完成整局游戏才能得到评分，且只考虑性能评价指标本身。我们推荐将采集和评估环境分开初始化：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span>
 
 <span class="n">collector_env</span> <span class="o">=</span> <span class="n">BaseEnvManagerV2</span><span class="p">(</span>
     <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span><span class="p">:</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;CartPole-v0&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">collector_env_num</span><span class="p">)],</span>
@@ -354,9 +354,9 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 <h2>选择策略<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine 集成了大部分强化学习策略，使用它们只需要选择相应的模型和策略即可（完整的策略列表可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine#algorithm-versatility">Policy Zoo</a> ）。
 由于 DQN 是一个 off-policy 策略，所以我们还需要实例化一个 buffer 模块。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
-<span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQN</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQNPolicy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DequeBuffer</span>
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 <span class="n">buffer_</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">replay_buffer_size</span><span class="p">)</span>
@@ -367,9 +367,9 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 <section id="id5">
 <h2>构建训练管线<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>利用 DI-engine 提供的各类中间件，我们可以很容易的构建整个训练管线，各个中间件的功能和使用方法可以参考 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/03_system/middleware_zh.html#id1">中间件入门</a> ：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
-<span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
-<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">OnlineRLContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">OffPolicyLearner</span><span class="p">,</span> <span class="n">StepCollector</span><span class="p">,</span> <span class="n">interaction_evaluator</span><span class="p">,</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">eps_greedy_handler</span><span class="p">,</span> <span class="n">CkptSaver</span>
 
 <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
     <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">interaction_evaluator</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">))</span>  <span class="c1"># 评估流程，放在第一个是为了获得随机模型的评分作为基准值</span>

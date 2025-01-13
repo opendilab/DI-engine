@@ -302,23 +302,23 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.envs.env.ding_env_wrapper</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">import</span> <span class="nn">gymnasium</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">treetensor.numpy</span> <span class="k">as</span> <span class="nn">tnp</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">treetensor.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tnp</span>
 
-<span class="kn">from</span> <span class="nn">ding.envs.common.common_function</span> <span class="kn">import</span> <span class="n">affine_transform</span>
-<span class="kn">from</span> <span class="nn">ding.envs.env_wrappers</span> <span class="kn">import</span> <span class="n">create_env_wrapper</span><span class="p">,</span> <span class="n">GymToGymnasiumWrapper</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_ndarray</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">CloudPickleWrapper</span>
-<span class="kn">from</span> <span class="nn">.base_env</span> <span class="kn">import</span> <span class="n">BaseEnv</span><span class="p">,</span> <span class="n">BaseEnvTimestep</span>
-<span class="kn">from</span> <span class="nn">.default_wrapper</span> <span class="kn">import</span> <span class="n">get_default_wrappers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs.common.common_function</span><span class="w"> </span><span class="kn">import</span> <span class="n">affine_transform</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs.env_wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_env_wrapper</span><span class="p">,</span> <span class="n">GymToGymnasiumWrapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.torch_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_ndarray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPickleWrapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEnv</span><span class="p">,</span> <span class="n">BaseEnvTimestep</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.default_wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_default_wrappers</span>
 
 
-<div class="viewcode-block" id="DingEnvWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper">[docs]</a><span class="k">class</span> <span class="nc">DingEnvWrapper</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+<div class="viewcode-block" id="DingEnvWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DingEnvWrapper</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">     Overview:</span>
 <span class="sd">         This is a wrapper for the BaseEnv class, used to provide a consistent environment interface.</span>
@@ -327,7 +327,7 @@
 <span class="sd">         create_evaluator_env_cfg, enable_save_replay, observation_space, action_space, reward_space, clone</span>
 <span class="sd">     &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DingEnvWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="DingEnvWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">env</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">,</span> <span class="n">gymnasium</span><span class="o">.</span><span class="n">Env</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -392,7 +392,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_replay_path</span> <span class="o">=</span> <span class="kc">None</span></div>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="DingEnvWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="DingEnvWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.reset">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment. If the environment is not initialized, it will be created first.</span>
@@ -434,7 +434,7 @@
         <span class="k">return</span> <span class="n">obs</span></div>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="DingEnvWrapper.close"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DingEnvWrapper.close"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.close">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Clean up the environment by closing and deleting it.</span>
@@ -448,7 +448,7 @@
             <span class="k">pass</span></div>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="DingEnvWrapper.seed"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.seed">[docs]</a>    <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DingEnvWrapper.seed"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.seed">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set the seed for the environment.</span>
@@ -461,7 +461,7 @@
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seed</span><span class="p">)</span></div>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="DingEnvWrapper.step"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BaseEnvTimestep</span><span class="p">:</span>
+<div class="viewcode-block" id="DingEnvWrapper.step"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.step">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BaseEnvTimestep</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Execute the given action in the environment, and return the timestep (observation, reward, done, info).</span>
@@ -484,7 +484,7 @@
         <span class="n">rew</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">([</span><span class="n">rew</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">BaseEnvTimestep</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">rew</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_judge_action_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_judge_action_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Ensure the action taken by the agent is of the correct type.</span>
@@ -517,7 +517,7 @@
                 <span class="p">)</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="DingEnvWrapper.random_action"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.random_action">[docs]</a>    <span class="k">def</span> <span class="nf">random_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="DingEnvWrapper.random_action"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.random_action">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">random_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return a random action from the action space of the environment.</span>
@@ -539,7 +539,7 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">random_action</span></div>
 
-    <span class="k">def</span> <span class="nf">_wrap_env</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caller</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;collector&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_wrap_env</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caller</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;collector&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Wrap the environment according to the configuration.</span>
@@ -562,7 +562,7 @@
             <span class="k">else</span><span class="p">:</span>  <span class="c1"># Callable, such as lambda anonymous function</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_env</span> <span class="o">=</span> <span class="n">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the string representation of the instance.</span>
@@ -572,7 +572,7 @@
         <span class="k">return</span> <span class="s2">&quot;DI-engine Env(</span><span class="si">{}</span><span class="s2">), generated by DingEnvWrapper&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DingEnvWrapper.create_collector_env_cfg"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.create_collector_env_cfg">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">create_collector_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_collector_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Create a list of environment configuration for collectors based on the input configuration.</span>
@@ -587,7 +587,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">cfg</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">actor_env_num</span><span class="p">)]</span></div>
 
 <div class="viewcode-block" id="DingEnvWrapper.create_evaluator_env_cfg"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.create_evaluator_env_cfg">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">create_evaluator_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_evaluator_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Create a list of environment configuration for evaluators based on the input configuration.</span>
@@ -601,7 +601,7 @@
         <span class="n">cfg</span><span class="o">.</span><span class="n">is_train</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">cfg</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)]</span></div>
 
-<div class="viewcode-block" id="DingEnvWrapper.enable_save_replay"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.enable_save_replay">[docs]</a>    <span class="k">def</span> <span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DingEnvWrapper.enable_save_replay"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.enable_save_replay">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Enable the save replay functionality. The replay will be saved at the specified path.</span>
@@ -613,7 +613,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_replay_path</span> <span class="o">=</span> <span class="n">replay_path</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">observation_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">observation_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the observation space of the wrapped environment.</span>
@@ -630,7 +630,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">action_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">action_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the action space of the wrapped environment.</span>
@@ -642,7 +642,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">reward_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reward_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the reward space of the wrapped environment.</span>
@@ -653,7 +653,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span>
 
-<div class="viewcode-block" id="DingEnvWrapper.clone"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.clone">[docs]</a>    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caller</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;collector&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnv</span><span class="p">:</span>
+<div class="viewcode-block" id="DingEnvWrapper.clone"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.clone">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caller</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;collector&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnv</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Clone the current environment wrapper, creating a new environment with the same settings.</span>

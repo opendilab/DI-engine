@@ -302,28 +302,28 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.linklink_dist_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">.default_helper</span> <span class="kn">import</span> <span class="n">error_wrapper</span>
-<span class="kn">from</span> <span class="nn">.fake_linklink</span> <span class="kn">import</span> <span class="n">FakeLink</span>
-<span class="kn">from</span> <span class="nn">.import_helper</span> <span class="kn">import</span> <span class="n">try_import_link</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.default_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">error_wrapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.fake_linklink</span><span class="w"> </span><span class="kn">import</span> <span class="n">FakeLink</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.import_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">try_import_link</span>
 
 
 <span class="nd">@lru_cache</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_link</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_link</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">try_import_link</span><span class="p">()</span>
 
 
 <span class="nd">@lru_cache</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">is_fake_link</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_fake_link</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">get_link</span><span class="p">(),</span> <span class="n">FakeLink</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="get_rank"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.get_rank">[docs]</a><span class="k">def</span> <span class="nf">get_rank</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="get_rank"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.get_rank">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_rank</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the rank of ``linklink`` model, return 0 if use ``FakeLink``.</span>
@@ -336,7 +336,7 @@
     <span class="k">return</span> <span class="n">error_wrapper</span><span class="p">(</span><span class="n">get_link</span><span class="p">()</span><span class="o">.</span><span class="n">get_rank</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;[WARNING]: call linklink error, return default_ret.&quot;</span><span class="p">)()</span></div>
 
 
-<div class="viewcode-block" id="get_world_size"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.get_world_size">[docs]</a><span class="k">def</span> <span class="nf">get_world_size</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="get_world_size"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.get_world_size">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_world_size</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the ``world_size`` of ``linklink model``, return 0 if use ``FakeLink``.</span>
@@ -349,7 +349,7 @@
     <span class="k">return</span> <span class="n">error_wrapper</span><span class="p">(</span><span class="n">get_link</span><span class="p">()</span><span class="o">.</span><span class="n">get_world_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;[WARNING]: call linklink error, return default_ret.&quot;</span><span class="p">)()</span></div>
 
 
-<div class="viewcode-block" id="broadcast"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.broadcast">[docs]</a><span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="broadcast"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.broadcast">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">broadcast</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Use ``linklink.broadcast`` and raise error when using ``FakeLink``</span>
@@ -362,7 +362,7 @@
     <span class="n">get_link</span><span class="p">()</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="allreduce"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.allreduce">[docs]</a><span class="k">def</span> <span class="nf">allreduce</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="allreduce"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.allreduce">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">allreduce</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Call ``linklink.allreduce`` on the data</span>
@@ -382,7 +382,7 @@
         <span class="n">data</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="n">get_world_size</span><span class="p">())</span></div>
 
 
-<div class="viewcode-block" id="allreduce_async"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.allreduce_async">[docs]</a><span class="k">def</span> <span class="nf">allreduce_async</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="allreduce_async"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.allreduce_async">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">allreduce_async</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Call ``linklink.allreduce_async`` on the data</span>
@@ -402,7 +402,7 @@
     <span class="n">get_link</span><span class="p">()</span><span class="o">.</span><span class="n">allreduce_async</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">reduce_op</span><span class="o">=</span><span class="n">link_op</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_group"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.get_group">[docs]</a><span class="k">def</span> <span class="nf">get_group</span><span class="p">(</span><span class="n">group_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<div class="viewcode-block" id="get_group"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.get_group">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_group</span><span class="p">(</span><span class="n">group_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the group segmentation of ``group_size`` each group</span>
@@ -417,7 +417,7 @@
     <span class="k">return</span> <span class="n">simple_group_split</span><span class="p">(</span><span class="n">world_size</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">world_size</span> <span class="o">//</span> <span class="n">group_size</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="dist_mode"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.dist_mode">[docs]</a><span class="k">def</span> <span class="nf">dist_mode</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="dist_mode"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.dist_mode">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dist_mode</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Wrap the function so that in can init and finalize automatically before each call</span>
@@ -425,7 +425,7 @@
 <span class="sd">        - func (:obj:`Callable`): the function to wrap</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">dist_init</span><span class="p">()</span>
         <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">dist_finalize</span><span class="p">()</span>
@@ -433,7 +433,7 @@
     <span class="k">return</span> <span class="n">wrapper</span></div>
 
 
-<div class="viewcode-block" id="dist_init"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.dist_init">[docs]</a><span class="k">def</span> <span class="nf">dist_init</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;slurm&#39;</span><span class="p">,</span> <span class="n">device_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<div class="viewcode-block" id="dist_init"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.dist_init">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dist_init</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;slurm&#39;</span><span class="p">,</span> <span class="n">device_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Init the distribution</span>
@@ -457,7 +457,7 @@
     <span class="k">return</span> <span class="n">rank</span><span class="p">,</span> <span class="n">world_size</span></div>
 
 
-<div class="viewcode-block" id="dist_finalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.dist_finalize">[docs]</a><span class="k">def</span> <span class="nf">dist_finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="dist_finalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.dist_finalize">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dist_finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Finalize ``linklink``, see ``linklink.finalize()``</span>
@@ -465,7 +465,7 @@
     <span class="n">get_link</span><span class="p">()</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="DistContext"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.DistContext">[docs]</a><span class="k">class</span> <span class="nc">DistContext</span><span class="p">:</span>
+<div class="viewcode-block" id="DistContext"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.DistContext">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DistContext</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A context manager for ``linklink`` distribution</span>
@@ -473,7 +473,7 @@
 <span class="sd">        ``__init__``, ``__enter__``, ``__exit__``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DistContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.DistContext.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DistContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.DistContext.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the ``DistContext``</span>
@@ -481,7 +481,7 @@
 
         <span class="k">pass</span></div>
 
-    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``linklink`` distribution</span>
@@ -489,7 +489,7 @@
 
         <span class="n">dist_init</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Finalize ``linklink`` distribution</span>
@@ -501,7 +501,7 @@
         <span class="n">dist_finalize</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="simple_group_split"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.simple_group_split">[docs]</a><span class="k">def</span> <span class="nf">simple_group_split</span><span class="p">(</span><span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_groups</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<div class="viewcode-block" id="simple_group_split"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.simple_group_split">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">simple_group_split</span><span class="p">(</span><span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_groups</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Split the group according to ``worldsize``, ``rank`` and ``num_groups``</span>
@@ -523,7 +523,7 @@
     <span class="k">return</span> <span class="n">groups</span><span class="p">[</span><span class="n">rank</span> <span class="o">//</span> <span class="n">group_size</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="synchronize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.synchronize">[docs]</a><span class="k">def</span> <span class="nf">synchronize</span><span class="p">():</span>
+<div class="viewcode-block" id="synchronize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.linklink_dist_helper.synchronize">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">synchronize</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Synchronize the process</span>

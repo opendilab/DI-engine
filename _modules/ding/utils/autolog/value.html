@@ -302,13 +302,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.autolog.value</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Type</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Type</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_LOGGED_VALUE__PROPERTY_NAME</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTY_ATTR_PREFIX</span><span class="p">,</span> <span class="n">_ValueType</span>
-<span class="kn">from</span> <span class="nn">.data</span> <span class="kn">import</span> <span class="n">TimeRangedData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_LOGGED_VALUE__PROPERTY_NAME</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTY_ATTR_PREFIX</span><span class="p">,</span> <span class="n">_ValueType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeRangedData</span>
 
 
-<div class="viewcode-block" id="LoggedValue"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedValue">[docs]</a><span class="k">class</span> <span class="nc">LoggedValue</span><span class="p">:</span>
+<div class="viewcode-block" id="LoggedValue"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedValue">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LoggedValue</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        LoggedValue can be used as property in LoggedModel, for it has __get__ and __set__ method.</span>
@@ -321,7 +321,7 @@
 <span class="sd">        - __property_name (:obj:`str`): The name of the property.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LoggedValue.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedValue.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">_ValueType</span><span class="p">]</span> <span class="o">=</span> <span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="LoggedValue.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedValue.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">_ValueType</span><span class="p">]</span> <span class="o">=</span> <span class="nb">object</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the LoggedValue object.</span>
@@ -332,7 +332,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__type</span> <span class="o">=</span> <span class="n">type_</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">__property_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__property_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the name of the property.</span>
@@ -340,7 +340,7 @@
 
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_LOGGED_VALUE__PROPERTY_NAME</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__get_ranged_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeRangedData</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_ranged_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeRangedData</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the ranged data.</span>
@@ -350,7 +350,7 @@
 
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTY_ATTR_PREFIX</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__property_name</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the value.</span>
@@ -361,7 +361,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_ranged_data</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set the value.</span>

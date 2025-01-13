@@ -302,13 +302,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.rl_utils.retrace</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="kn">from</span> <span class="nn">ding.rl_utils.isw</span> <span class="kn">import</span> <span class="n">compute_importance_weights</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.rl_utils.isw</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_importance_weights</span>
 
 
-<div class="viewcode-block" id="compute_q_retraces"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.retrace.compute_q_retraces">[docs]</a><span class="k">def</span> <span class="nf">compute_q_retraces</span><span class="p">(</span>
+<div class="viewcode-block" id="compute_q_retraces"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.retrace.compute_q_retraces">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">compute_q_retraces</span><span class="p">(</span>
         <span class="n">q_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">v_pred</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>

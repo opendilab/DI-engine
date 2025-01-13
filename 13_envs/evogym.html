@@ -402,11 +402,11 @@ and to the official <a class="reference external" href="https://evolutiongym.git
 <section id="store-video">
 <h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method, specifying the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code> implementation ), the code shown below will run an environment episode and save the result of this episode in a folder<code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">from</span> <span class="nn">evogym</span> <span class="kn">import</span> <span class="n">sample_robot</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evogym</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample_robot</span>
 <span class="c1"># import envs from the envs folder and register them</span>
-<span class="kn">import</span> <span class="nn">evogym.envs</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">evogym.envs</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="c1"># create a random robot</span>
@@ -442,7 +442,7 @@ and to the official <a class="reference external" href="https://evolutiongym.git
 <p>The full training configuration files are at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/evogym/config/">github
 link</a>
 Inside, for specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">walker_ppo_config.py</span></code> , use the following demo to run:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="n">walker_ppo_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;evogym_walker_ppo_seed0&#39;</span><span class="p">,</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -504,7 +504,7 @@ Inside, for specific configuration files, such as <code class="docutils literal 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="c1"># or you can enter `ding -m serial -c evogym_walker_ppo_config.py -s 0 --env-step 1e7`</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
     <span class="n">serial_pipeline_onpolicy</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>

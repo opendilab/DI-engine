@@ -306,18 +306,18 @@
 <span class="c1"># This QGPO model is a modification implementation from https://github.com/ChenDRAG/CEP-energy-guided-diffusion</span>
 <span class="c1">#############################################################</span>
 
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">MLP</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils.diffusion_SDE.dpm_solver_pytorch</span> <span class="kn">import</span> <span class="n">DPM_Solver</span><span class="p">,</span> <span class="n">NoiseScheduleVP</span>
-<span class="kn">from</span> <span class="nn">ding.model.common.encoder</span> <span class="kn">import</span> <span class="n">GaussianFourierProjectionTimeEncoder</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils.network.res_block</span> <span class="kn">import</span> <span class="n">TemporalSpatialResBlock</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.torch_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.torch_utils.diffusion_SDE.dpm_solver_pytorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">DPM_Solver</span><span class="p">,</span> <span class="n">NoiseScheduleVP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.model.common.encoder</span><span class="w"> </span><span class="kn">import</span> <span class="n">GaussianFourierProjectionTimeEncoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.torch_utils.network.res_block</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemporalSpatialResBlock</span>
 
 
-<span class="k">def</span> <span class="nf">marginal_prob_std</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">marginal_prob_std</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Compute the mean and standard deviation of $p_{0t}(x(t) | x(0))$.</span>
@@ -335,7 +335,7 @@
     <span class="k">return</span> <span class="n">alpha_t</span><span class="p">,</span> <span class="n">std</span>
 
 
-<span class="k">class</span> <span class="nc">TwinQ</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TwinQ</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Twin Q network for QGPO, which has two Q networks.</span>
@@ -343,7 +343,7 @@
 <span class="sd">        ``__init__``, ``forward``, ``both``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization of Twin Q.</span>
@@ -369,7 +369,7 @@
             <span class="n">output_activation</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">both</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">both</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the output of two Q networks.</span>
@@ -380,7 +380,7 @@
         <span class="n">as_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">action</span><span class="p">,</span> <span class="n">condition</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">action</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">q1</span><span class="p">(</span><span class="n">as_</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">q2</span><span class="p">(</span><span class="n">as_</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the minimum output of two Q networks.</span>
@@ -391,7 +391,7 @@
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">both</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">condition</span><span class="p">))</span>
 
 
-<span class="k">class</span> <span class="nc">GuidanceQt</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GuidanceQt</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Energy Guidance Qt network for QGPO. \</span>
@@ -400,7 +400,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">,</span> <span class="n">time_embed_dim</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">,</span> <span class="n">time_embed_dim</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization of Guidance Qt.</span>
@@ -423,7 +423,7 @@
             <span class="n">GaussianFourierProjectionTimeEncoder</span><span class="p">(</span><span class="n">embed_dim</span><span class="o">=</span><span class="n">time_embed_dim</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">time_embed_dim</span><span class="p">,</span> <span class="n">time_embed_dim</span><span class="p">)</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the output of Guidance Qt.</span>
@@ -437,7 +437,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qt</span><span class="p">(</span><span class="n">ats</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">QGPOCritic</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">QGPOCritic</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        QGPO critic network.</span>
@@ -445,7 +445,7 @@
 <span class="sd">        ``__init__``, ``forward``, ``calculateQ``, ``calculate_guidance``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization of QGPO critic.</span>
@@ -468,7 +468,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">alpha</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">q_alpha</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">q_alpha</span>
 
-    <span class="k">def</span> <span class="nf">calculate_guidance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_guidance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the guidance for conditional sampling.</span>
@@ -485,7 +485,7 @@
             <span class="n">guidance</span> <span class="o">=</span> <span class="n">guidance_scale</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Q_t</span><span class="p">),</span> <span class="n">a</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">guidance</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the output of QGPO critic.</span>
@@ -496,7 +496,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">q0</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">condition</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">calculateQ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculateQ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the output of QGPO critic.</span>
@@ -508,7 +508,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">condition</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">ScoreNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ScoreNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Score-based generative model for QGPO.</span>
@@ -516,7 +516,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">,</span> <span class="n">embed_dim</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">,</span> <span class="n">embed_dim</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization of ScoreNet.</span>
@@ -551,7 +551,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">up_block2</span> <span class="o">=</span> <span class="n">TemporalSpatialResBlock</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">condition</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">condition</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the output of ScoreNet.</span>
@@ -577,7 +577,7 @@
         <span class="k">return</span> <span class="n">h</span> <span class="o">/</span> <span class="n">marginal_prob_std</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="QGPO"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO">[docs]</a><span class="k">class</span> <span class="nc">QGPO</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="QGPO"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QGPO</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Model of QGPO algorithm.</span>
@@ -586,7 +586,7 @@
 <span class="sd">            ``qt_loss_fn``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="QGPO.__init__"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="QGPO.__init__"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization of QGPO.</span>
@@ -609,7 +609,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">QGPOCritic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">qgpo_critic</span><span class="p">,</span> <span class="n">action_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">,</span> <span class="n">state_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QGPO.calculateQ"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.calculateQ">[docs]</a>    <span class="k">def</span> <span class="nf">calculateQ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+<div class="viewcode-block" id="QGPO.calculateQ"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.calculateQ">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculateQ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate the Q value.</span>
@@ -620,7 +620,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QGPO.select_actions"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.select_actions">[docs]</a>    <span class="k">def</span> <span class="nf">select_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">diffusion_steps</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<div class="viewcode-block" id="QGPO.select_actions"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.select_actions">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">select_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">diffusion_steps</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Select actions for conditional sampling.</span>
@@ -630,7 +630,7 @@
 <span class="sd">            - guidance_scale (:obj:`float`): The scale of guidance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">forward_dpm_wrapper_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">forward_dpm_wrapper_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
             <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="n">states</span><span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">score</span> <span class="o">+</span>
                        <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">calculate_guidance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="n">guidance_scale</span><span class="p">))</span> <span class="o">*</span> <span class="n">marginal_prob_std</span><span class="p">(</span>
@@ -660,7 +660,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out_actions</span></div>
 
-<div class="viewcode-block" id="QGPO.sample"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">sample_per_state</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">diffusion_steps</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<div class="viewcode-block" id="QGPO.sample"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">sample_per_state</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">diffusion_steps</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample actions for conditional sampling.</span>
@@ -671,7 +671,7 @@
 <span class="sd">            - guidance_scale (:obj:`float`): The scale of guidance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">forward_dpm_wrapper_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">forward_dpm_wrapper_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
             <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="n">states</span><span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">score</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">calculate_guidance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">guidance_scale</span><span class="o">=</span><span class="n">guidance_scale</span><span class="p">))</span> \
                 <span class="o">*</span> <span class="n">marginal_prob_std</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
@@ -695,7 +695,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">actions</span></div>
 
-<div class="viewcode-block" id="QGPO.score_model_loss_fn"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.score_model_loss_fn">[docs]</a>    <span class="k">def</span> <span class="nf">score_model_loss_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+<div class="viewcode-block" id="QGPO.score_model_loss_fn"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.score_model_loss_fn">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">score_model_loss_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The loss function for training score-based generative models.</span>
@@ -714,7 +714,7 @@
         <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">score</span> <span class="o">*</span> <span class="n">std</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">z</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">)))</span>
         <span class="k">return</span> <span class="n">loss</span></div>
 
-<div class="viewcode-block" id="QGPO.q_loss_fn"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.q_loss_fn">[docs]</a>    <span class="k">def</span> <span class="nf">q_loss_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">fake_a_</span><span class="p">,</span> <span class="n">discount</span><span class="o">=</span><span class="mf">0.99</span><span class="p">):</span>
+<div class="viewcode-block" id="QGPO.q_loss_fn"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.q_loss_fn">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">q_loss_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">fake_a_</span><span class="p">,</span> <span class="n">discount</span><span class="o">=</span><span class="mf">0.99</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The loss function for training Q function.</span>
@@ -739,7 +739,7 @@
 
         <span class="k">return</span> <span class="n">q_loss</span></div>
 
-<div class="viewcode-block" id="QGPO.qt_loss_fn"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.qt_loss_fn">[docs]</a>    <span class="k">def</span> <span class="nf">qt_loss_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">fake_a</span><span class="p">):</span>
+<div class="viewcode-block" id="QGPO.qt_loss_fn"><a class="viewcode-back" href="../../../../12_policies/qgpo_zh.html#ding.model.QGPO.qt_loss_fn">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">qt_loss_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">fake_a</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The loss function for training Guidance Qt.</span>

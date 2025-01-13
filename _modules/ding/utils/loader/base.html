@@ -302,14 +302,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.loader.base</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
 
 <span class="n">CAPTURE_EXCEPTIONS</span> <span class="o">=</span> <span class="p">(</span><span class="ne">Exception</span><span class="p">,</span> <span class="p">)</span>
 <span class="n">_ValueType</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;_ValueType&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_to_exception</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="ne">Exception</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_exception</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="ne">Exception</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Convert exception to callable exception.</span>
@@ -331,7 +331,7 @@
         <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_to_loader</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_loader</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Convert value to loader.</span>
@@ -352,7 +352,7 @@
 
         <span class="n">_exception</span> <span class="o">=</span> <span class="n">_to_exception</span><span class="p">(</span><span class="n">_exception</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">_load_tuple</span><span class="p">(</span><span class="n">value_</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_load_tuple</span><span class="p">(</span><span class="n">value_</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">_predict</span><span class="p">(</span><span class="n">value_</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">_exception</span><span class="p">(</span><span class="n">value_</span><span class="p">)</span>
 
@@ -361,7 +361,7 @@
         <span class="k">return</span> <span class="n">_to_loader</span><span class="p">(</span><span class="n">_load_tuple</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
 
-        <span class="k">def</span> <span class="nf">_load_type</span><span class="p">(</span><span class="n">value_</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_load_type</span><span class="p">(</span><span class="n">value_</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value_</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
                     <span class="s1">&#39;type not match, </span><span class="si">{expect}</span><span class="s1"> expected but </span><span class="si">{actual}</span><span class="s1"> found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -373,9 +373,9 @@
         <span class="k">return</span> <span class="n">_to_loader</span><span class="p">(</span><span class="n">_load_type</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;__call__&#39;</span><span class="p">):</span>
 
-        <span class="k">class</span> <span class="nc">_Loader</span><span class="p">(</span><span class="n">ILoaderClass</span><span class="p">):</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">_Loader</span><span class="p">(</span><span class="n">ILoaderClass</span><span class="p">):</span>
 
-            <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value_</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value_</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">value</span><span class="p">(</span><span class="n">value_</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">_Loader</span><span class="p">()</span>
@@ -395,7 +395,7 @@
 <span class="n">Loader</span> <span class="o">=</span> <span class="n">_to_loader</span>
 
 
-<span class="k">def</span> <span class="nf">_reset_exception</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">eg</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">],</span> <span class="ne">Exception</span><span class="p">]):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_reset_exception</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">eg</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">],</span> <span class="ne">Exception</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Reset exception of loader.</span>
@@ -403,7 +403,7 @@
 
     <span class="n">loader</span> <span class="o">=</span> <span class="n">Loader</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">loader</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">CAPTURE_EXCEPTIONS</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -412,7 +412,7 @@
     <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ILoaderClass"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.base.ILoaderClass">[docs]</a><span class="k">class</span> <span class="nc">ILoaderClass</span><span class="p">:</span>
+<div class="viewcode-block" id="ILoaderClass"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.base.ILoaderClass">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ILoaderClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Base class of loader.</span>
@@ -421,7 +421,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ILoaderClass._load"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.base.ILoaderClass._load">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the value.</span>
@@ -431,7 +431,7 @@
 
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-    <span class="k">def</span> <span class="nf">__load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the value.</span>
@@ -441,7 +441,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Check whether the value is valid.</span>
@@ -456,7 +456,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
 
-<div class="viewcode-block" id="ILoaderClass.load"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.base.ILoaderClass.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
+<div class="viewcode-block" id="ILoaderClass.load"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.base.ILoaderClass.load">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the value.</span>
@@ -466,7 +466,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ILoaderClass.check"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.base.ILoaderClass.check">[docs]</a>    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="ILoaderClass.check"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.loader.base.ILoaderClass.check">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Check whether the value is valid.</span>
@@ -476,7 +476,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__check</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the value.</span>
@@ -486,7 +486,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Combine two loaders.</span>
@@ -494,13 +494,13 @@
 <span class="sd">            - other (:obj:`ILoaderClass`): The other loader.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__rand__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__rand__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Combine two loaders.</span>
@@ -510,7 +510,7 @@
 
         <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&amp;</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Combine two loaders.</span>
@@ -518,7 +518,7 @@
 <span class="sd">            - other (:obj:`ILoaderClass`): The other loader.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">except</span> <span class="n">CAPTURE_EXCEPTIONS</span><span class="p">:</span>
@@ -526,7 +526,7 @@
 
         <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__ror__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ror__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Combine two loaders.</span>
@@ -536,7 +536,7 @@
 
         <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">|</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="fm">__rshift__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__rshift__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Combine two loaders.</span>
@@ -544,13 +544,13 @@
 <span class="sd">            - other (:obj:`ILoaderClass`): The other loader.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">_ValueType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ValueType</span><span class="p">:</span>
             <span class="n">_return_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">_to_loader</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">_return_value</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">Loader</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__rrshift__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__rrshift__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ILoaderClass&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Combine two loaders.</span>

@@ -355,7 +355,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 <section id="verify-installation">
 <h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>Once installed, you can verify whether the installation is successful by running the following command on the Python command line.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">bsuite</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_from_id</span><span class="p">(</span><span class="s1">&#39;memory_len/0&#39;</span><span class="p">)</span> <span class="c1"># this environment configuration is &#39;memory steps&#39; long</span>
 <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span>
@@ -417,8 +417,8 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 <section id="using-bsuite-in-openai-gym-format">
 <h3>Using bsuite in ‘OpenAI Gym’ format<a class="headerlink" href="#using-bsuite-in-openai-gym-format" title="Permalink to this heading">¶</a></h3>
 <p>Our implementation uses the bsuite Gym wrapper to make the bsuite codebase run under the OpenAI Gym interface. Hence, <code class="docutils literal notranslate"><span class="pre">gym</span></code> needs to be installed to make bsuite work properly.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
-<span class="kn">from</span> <span class="nn">bsuite.utils</span> <span class="kn">import</span> <span class="n">gym_wrapper</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">bsuite</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bsuite.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">gym_wrapper</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_and_record_to_csv</span><span class="p">(</span><span class="s1">&#39;memory_len/0&#39;</span><span class="p">,</span> <span class="n">results_dir</span><span class="o">=</span><span class="s1">&#39;/path/to/results&#39;</span><span class="p">)</span>
 <span class="n">gym_env</span> <span class="o">=</span> <span class="n">gym_wrapper</span><span class="o">.</span><span class="n">GymFromDMEnv</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </pre></div>
@@ -428,7 +428,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 <h3>About Configurations<a class="headerlink" href="#about-configurations" title="Permalink to this heading">¶</a></h3>
 <p>Configurations are designed to increase the level of difficulty of an environment. For example, in a 5-armed bandit environment, configurations are used to regulate the level of noise to perturb the rewards.
 Given a specific environment, all possible configurations can be visualized with the following code snippet.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bsuite</span> <span class="kn">import</span> <span class="n">sweep</span>  <span class="c1"># this module contains information about all the environments</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">bsuite</span><span class="w"> </span><span class="kn">import</span> <span class="n">sweep</span>  <span class="c1"># this module contains information about all the environments</span>
 <span class="k">for</span> <span class="n">bsuite_id</span> <span class="ow">in</span> <span class="n">sweep</span><span class="o">.</span><span class="n">BANDIT_NOISE</span><span class="p">:</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_from_id</span><span class="p">(</span><span class="n">bsuite_id</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;bsuite_id=</span><span class="si">{}</span><span class="s1">, settings=</span><span class="si">{}</span><span class="s1">, num_episodes=</span><span class="si">{}</span><span class="s1">&#39;</span> <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bsuite_id</span><span class="p">,</span> <span class="n">sweep</span><span class="o">.</span><span class="n">SETTINGS</span><span class="p">[</span><span class="n">bsuite_id</span><span class="p">],</span> <span class="n">env</span><span class="o">.</span><span class="n">bsuite_num_episodes</span><span class="p">))</span>
@@ -436,8 +436,8 @@ Given a specific environment, all possible configurations can be visualized with
 </div>
 <img alt="../_images/bsuite_config.png" class="align-center" src="../_images/bsuite_config.png" />
 <p>Using DI-engine, you can create a bsuite environment simply with the name of your desired configuration.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">dizoo.bsuite.envs</span> <span class="kn">import</span> <span class="n">BSuiteEnv</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.bsuite.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSuiteEnv</span>
 <span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;env&#39;</span><span class="p">:</span> <span class="s1">&#39;memory_len/15&#39;</span><span class="p">}</span>
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 <span class="n">memory_len_env</span> <span class="o">=</span> <span class="n">BSuiteEnv</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
@@ -450,7 +450,7 @@ Given a specific environment, all possible configurations can be visualized with
 <p>The full training configuration can be found on <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/bsuite/config/serial">github
 link</a>
 . In the following part, we show an example of configuration for the file, <code class="docutils literal notranslate"><span class="pre">memory_len_0_dqn_config.py</span></code>, you can run the demo with the following code：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">memory_len_0_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;memory_len_0_dqn&#39;</span><span class="p">,</span>
@@ -503,7 +503,7 @@ link</a>
 <span class="n">create_config</span> <span class="o">=</span> <span class="n">memory_len_0_dqn_create_config</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline</span>
     <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>

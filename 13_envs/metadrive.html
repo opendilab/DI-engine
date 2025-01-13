@@ -339,7 +339,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <section id="verify-installation">
 <h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">metadrive</span> <span class="kn">import</span> <span class="n">MetaDriveEnv</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">metadrive</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetaDriveEnv</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">MetadriveEnv</span><span class="p">()</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># output (259,)</span>
@@ -476,18 +476,18 @@ Instead, the concrete original environment instance is initialized when the <cod
 <p>The training configuration files of each algorithm in this environment are in the directory <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/metadrive/config/">github
 link</a>.
 Here, for a specific configuration file, such as <code class="docutils literal notranslate"><span class="pre">metadrive_onppo_config.py</span></code> , use the following demo to run:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
-<span class="kn">import</span> <span class="nn">metadrive</span>
-<span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">SyncSubprocessEnvManager</span>
-<span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
-<span class="kn">from</span> <span class="nn">ding.model.template</span> <span class="kn">import</span> <span class="n">QAC</span><span class="p">,</span> <span class="n">VAC</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">PPOPolicy</span>
-<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">SampleSerialCollector</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">BaseLearner</span>
-<span class="kn">from</span> <span class="nn">dizoo.metadrive.env.drive_env</span> <span class="kn">import</span> <span class="n">MetaDrivePPOOriginEnv</span>
-<span class="kn">from</span> <span class="nn">dizoo.metadrive.env.drive_wrapper</span> <span class="kn">import</span> <span class="n">DriveEnvWrapper</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorboardX</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryWriter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">metadrive</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">SyncSubprocessEnvManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.model.template</span><span class="w"> </span><span class="kn">import</span> <span class="n">QAC</span><span class="p">,</span> <span class="n">VAC</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPOPolicy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.worker</span><span class="w"> </span><span class="kn">import</span> <span class="n">SampleSerialCollector</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">BaseLearner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.metadrive.env.drive_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetaDrivePPOOriginEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.metadrive.env.drive_wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">DriveEnvWrapper</span>
 
 <span class="n">metadrive_basic_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;metadrive_onppo_seed0&#39;</span><span class="p">,</span>
@@ -543,11 +543,11 @@ Here, for a specific configuration file, such as <code class="docutils literal n
 <span class="n">main_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">metadrive_basic_config</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">wrapped_env</span><span class="p">(</span><span class="n">env_cfg</span><span class="p">,</span> <span class="n">wrapper_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wrapped_env</span><span class="p">(</span><span class="n">env_cfg</span><span class="p">,</span> <span class="n">wrapper_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">DriveEnvWrapper</span><span class="p">(</span><span class="n">MetaDrivePPOOriginEnv</span><span class="p">(</span><span class="n">env_cfg</span><span class="p">),</span> <span class="n">wrapper_cfg</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span>
         <span class="n">cfg</span><span class="p">,</span> <span class="n">SyncSubprocessEnvManager</span><span class="p">,</span> <span class="n">PPOPolicy</span><span class="p">,</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">SampleSerialCollector</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span>
     <span class="p">)</span>

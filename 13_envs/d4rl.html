@@ -409,8 +409,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </s
 <section id="verifying-the-installation">
 <h3>Verifying the Installation<a class="headerlink" href="#verifying-the-installation" title="Permalink to this heading">¶</a></h3>
 <p>Once the installation is complete, you can verify that the installation was successful by running the following command from the Python command line.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">import</span> <span class="nn">d4rl</span> <span class="c1"># Import required to register environments</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">d4rl</span> <span class="c1"># Import required to register environments</span>
 
 <span class="c1"># Create the environment</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;maze2d-umaze-v1&#39;</span><span class="p">)</span>
@@ -494,7 +494,7 @@ hub</a> for more images.</p>
 <li><p>Basically no change</p></li>
 </ul>
 <p>The above space can be represented using the gym environment space definition as follows</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
 
 
 <span class="n">obs_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
@@ -519,8 +519,8 @@ hub</a> for more images.</p>
 <section id="video-storage">
 <h3>Video storage<a class="headerlink" href="#video-storage" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created and before it is reset, the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method is called to specify the path where the game footage is saved. The environment will automatically save the session’s video files after each episode. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>is implemented), the code shown below will run an environment episode and save the results of that episode in <code class="docutils literal notranslate"><span class="pre">./video/</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">dizoo.mujoco.envs</span> <span class="kn">import</span> <span class="n">MujocoEnv</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.mujoco.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">MujocoEnv</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">MujocoEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;Hoopper-v3&#39;</span> <span class="p">}))</span>
 <span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
@@ -540,9 +540,9 @@ hub</a> for more images.</p>
 <h2>DI-ZOO RUNNABLE CODE EXAMPLE<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The complete training profile is available in <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/d4rl/config">github link</a>
 , for specific profiles, like <code class="docutils literal notranslate"><span class="pre">https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_cql_default_config.py</span></code>，it works with the following demo:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">hopper_medium_cql_default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>

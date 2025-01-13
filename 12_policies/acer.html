@@ -531,7 +531,7 @@ refer to doc of <code class="docutils literal notranslate"><span class="pre">din
 <p>The whole code of ACER you can find <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/acer.py">here</a>.
 Here we show some details of this algorithm.</p>
 <p>First, we use the following functions to compute the retrace Q value.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compute_q_retraces</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">compute_q_retraces</span><span class="p">(</span>
         <span class="n">q_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">v_pred</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -558,7 +558,7 @@ Here we show some details of this algorithm.</p>
 </pre></div>
 </div>
 <p>After that, we calculate the value of policy loss, it will calculate the actor loss with importance weights truncation and bias correction loss by the following function</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_policy_error</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">acer_policy_error</span><span class="p">(</span>
         <span class="n">q_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">q_retraces</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">v_pred</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -607,7 +607,7 @@ Here we show some details of this algorithm.</p>
 </pre></div>
 </div>
 <p>Then, we execute backward operation towards target_pi. Moreover, we need to calculate the correction gradient in the trust region:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_trust_region_update</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">acer_trust_region_update</span><span class="p">(</span>
         <span class="n">actor_gradients</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">target_logit</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">avg_logit</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">trust_region_value</span><span class="p">:</span> <span class="nb">float</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
@@ -639,7 +639,7 @@ Here we show some details of this algorithm.</p>
 </div>
 <p>With the new gradients, we can continue to propagate backwardly and then update parameters accordingly.</p>
 <p>Finally, we should calculate the mean squared loss for Q values to update Q-Network</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_value_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span> <span class="n">q_retraces</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">acer_value_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span> <span class="n">q_retraces</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get ACER critic loss</span>

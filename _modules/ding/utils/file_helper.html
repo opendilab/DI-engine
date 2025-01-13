@@ -302,33 +302,33 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.file_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">io</span>
-<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">.import_helper</span> <span class="kn">import</span> <span class="n">try_import_ceph</span><span class="p">,</span> <span class="n">try_import_redis</span><span class="p">,</span> <span class="n">try_import_rediscluster</span><span class="p">,</span> <span class="n">try_import_mc</span>
-<span class="kn">from</span> <span class="nn">.lock_helper</span> <span class="kn">import</span> <span class="n">get_file_lock</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.import_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">try_import_ceph</span><span class="p">,</span> <span class="n">try_import_redis</span><span class="p">,</span> <span class="n">try_import_rediscluster</span><span class="p">,</span> <span class="n">try_import_mc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.lock_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_file_lock</span>
 
 <span class="n">_memcached</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">_redis_cluster</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DI_STORE&#39;</span><span class="p">,</span> <span class="s1">&#39;off&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;on&#39;</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Enable DI-store&#39;</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">di_store</span> <span class="kn">import</span> <span class="n">Client</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">di_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span>
 
     <span class="n">di_store_config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DI_STORE_CONFIG_PATH&quot;</span><span class="p">,</span> <span class="s1">&#39;./di_store.yaml&#39;</span><span class="p">)</span>
     <span class="n">di_store_client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="n">di_store_config_path</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">save_to_di_store</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_to_di_store</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">di_store_client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">read_from_di_store</span><span class="p">(</span><span class="n">object_ref</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_from_di_store</span><span class="p">(</span><span class="n">object_ref</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">di_store_client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">object_ref</span><span class="p">)</span>
         <span class="n">di_store_client</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">object_ref</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span>
@@ -337,26 +337,26 @@
 
 
 <span class="nd">@lru_cache</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_ceph_package</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ceph_package</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">try_import_ceph</span><span class="p">()</span>
 
 
 <span class="nd">@lru_cache</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_redis_package</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_redis_package</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">try_import_redis</span><span class="p">()</span>
 
 
 <span class="nd">@lru_cache</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_rediscluster_package</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_rediscluster_package</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">try_import_rediscluster</span><span class="p">()</span>
 
 
 <span class="nd">@lru_cache</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_mc_package</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_mc_package</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">try_import_mc</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="read_from_ceph"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_ceph">[docs]</a><span class="k">def</span> <span class="nf">read_from_ceph</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<div class="viewcode-block" id="read_from_ceph"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_ceph">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">read_from_ceph</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read file from ceph</span>
@@ -373,7 +373,7 @@
 
 
 <div class="viewcode-block" id="_get_redis"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper._get_redis">[docs]</a><span class="nd">@lru_cache</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">_get_redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Ensures redis usage</span>
@@ -386,7 +386,7 @@
     <span class="k">return</span> <span class="n">get_redis_package</span><span class="p">()</span><span class="o">.</span><span class="n">StrictRedis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="read_from_redis"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_redis">[docs]</a><span class="k">def</span> <span class="nf">read_from_redis</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<div class="viewcode-block" id="read_from_redis"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_redis">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">read_from_redis</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read file from redis</span>
@@ -398,7 +398,7 @@
     <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">_get_redis</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="_ensure_rediscluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper._ensure_rediscluster">[docs]</a><span class="k">def</span> <span class="nf">_ensure_rediscluster</span><span class="p">(</span><span class="n">startup_nodes</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;host&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;port&quot;</span><span class="p">:</span> <span class="s2">&quot;7000&quot;</span><span class="p">}]):</span>
+<div class="viewcode-block" id="_ensure_rediscluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper._ensure_rediscluster">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">_ensure_rediscluster</span><span class="p">(</span><span class="n">startup_nodes</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;host&quot;</span><span class="p">:</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;port&quot;</span><span class="p">:</span> <span class="s2">&quot;7000&quot;</span><span class="p">}]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Ensures redis usage</span>
@@ -416,7 +416,7 @@
     <span class="k">return</span></div>
 
 
-<div class="viewcode-block" id="read_from_rediscluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_rediscluster">[docs]</a><span class="k">def</span> <span class="nf">read_from_rediscluster</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<div class="viewcode-block" id="read_from_rediscluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_rediscluster">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">read_from_rediscluster</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read file from rediscluster</span>
@@ -431,7 +431,7 @@
     <span class="k">return</span> <span class="n">value</span></div>
 
 
-<div class="viewcode-block" id="read_from_file"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_file">[docs]</a><span class="k">def</span> <span class="nf">read_from_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<div class="viewcode-block" id="read_from_file"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_file">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">read_from_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read file from local file system</span>
@@ -446,7 +446,7 @@
     <span class="k">return</span> <span class="n">value</span></div>
 
 
-<div class="viewcode-block" id="_ensure_memcached"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper._ensure_memcached">[docs]</a><span class="k">def</span> <span class="nf">_ensure_memcached</span><span class="p">():</span>
+<div class="viewcode-block" id="_ensure_memcached"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper._ensure_memcached">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">_ensure_memcached</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Ensures memcache usage</span>
@@ -462,7 +462,7 @@
     <span class="k">return</span></div>
 
 
-<div class="viewcode-block" id="read_from_mc"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_mc">[docs]</a><span class="k">def</span> <span class="nf">read_from_mc</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<div class="viewcode-block" id="read_from_mc"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_mc">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">read_from_mc</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read file from memcache, file must be saved by `torch.save()`</span>
@@ -489,7 +489,7 @@
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="read_from_path"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_path">[docs]</a><span class="k">def</span> <span class="nf">read_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="read_from_path"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_from_path">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">read_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read file from ceph</span>
@@ -508,7 +508,7 @@
         <span class="k">return</span> <span class="n">read_from_ceph</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="save_file_ceph"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.save_file_ceph">[docs]</a><span class="k">def</span> <span class="nf">save_file_ceph</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<div class="viewcode-block" id="save_file_ceph"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.save_file_ceph">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">save_file_ceph</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Save pickle dumped data file to ceph</span>
@@ -544,7 +544,7 @@
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="save_file_redis"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.save_file_redis">[docs]</a><span class="k">def</span> <span class="nf">save_file_redis</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<div class="viewcode-block" id="save_file_redis"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.save_file_redis">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">save_file_redis</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Save pickle dumped data file to redis</span>
@@ -555,7 +555,7 @@
     <span class="n">_get_redis</span><span class="p">()</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="save_file_rediscluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.save_file_rediscluster">[docs]</a><span class="k">def</span> <span class="nf">save_file_rediscluster</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<div class="viewcode-block" id="save_file_rediscluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.save_file_rediscluster">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">save_file_rediscluster</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Save pickle dumped data file to rediscluster</span>
@@ -569,7 +569,7 @@
     <span class="k">return</span></div>
 
 
-<div class="viewcode-block" id="read_file"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_file">[docs]</a><span class="k">def</span> <span class="nf">read_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fs_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_lock</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<div class="viewcode-block" id="read_file"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.read_file">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">read_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fs_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_lock</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Read file from path</span>
@@ -599,7 +599,7 @@
     <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="save_file"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.save_file">[docs]</a><span class="k">def</span> <span class="nf">save_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">fs_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_lock</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="save_file"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.save_file">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">save_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">fs_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_lock</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Save data to file of path</span>
@@ -630,7 +630,7 @@
         <span class="n">read_from_mc</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="remove_file"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.remove_file">[docs]</a><span class="k">def</span> <span class="nf">remove_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fs_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="remove_file"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.file_helper.remove_file">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">remove_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fs_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Remove file</span>

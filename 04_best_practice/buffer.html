@@ -315,7 +315,7 @@
 <p><strong>Basic Concepts of Buffer</strong></p>
 <p>In the off-policy RL algorithms, we usually use Experience Replay to improve sample efficiency and reduce the correlation between samples from different time frames.
 DI-engine uses <strong>DequeBuffer</strong> to implement common features, like data input, sampling and so on, of experience replay pools. Users can create DequeBuffer object through the follwing codes:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">DequeBuffer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DequeBuffer</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
@@ -341,8 +341,8 @@ In the following, we will introduce the specific operation of buffer for users.<
 <p><strong>Using Buffer to Complete Online Training</strong></p>
 <p>In the previous subsection, we introduced the actual storage structure of the data in the buffer, as well as the most basic deposit and sample operations.
 In fact, in most tasks, the user does not need to use these underlying atomic operations. We <strong>recommend</strong> user to call the buffer object through the DI-engine wrapped middleware to complete the training.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
-<span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">OffPolicyLearner</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">data_pusher</span><span class="p">,</span> <span class="n">OffPolicyLearner</span>
 
 <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">data_pusher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer</span><span class="p">))</span>
 <span class="n">task</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">OffPolicyLearner</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">buffer</span><span class="p">))</span>
@@ -350,7 +350,7 @@ In fact, in most tasks, the user does not need to use these underlying atomic op
 </div>
 <p><strong>Using Buffer to Load Expert Data</strong></p>
 <p>During the imitation learning tasks, like SQIL and DQFD, we need to load some expert experiences before training. Actually, users can use another buffer to hold the expert data, taking SQIL as an example (the complete code can be found at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/sqil.py">./ding/example/sqil.py</a>):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework.middleware</span> <span class="kn">import</span> <span class="n">sqil_data_pusher</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.framework.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">sqil_data_pusher</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">expert_buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
@@ -367,7 +367,7 @@ In fact, in most tasks, the user does not need to use these underlying atomic op
 <p><strong>Priority Experience Replay(PER)</strong></p>
 <p>In some algorithms, priority experience replay is needed. In DI-engine, you can use <strong>PriorityExperienceReplay middleware</strong> to enable the buffer priority experience replay function.
 If users enable the function when putting samples, they must explicitly pass the meta information about the priority of each sample, as shown below. <strong>Priority sampling increases the sample elapsed time</strong>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data.buffer.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">buffer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">PriorityExperienceReplay</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">IS_weight</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
@@ -382,7 +382,7 @@ If users enable the function when putting samples, they must explicitly pass the
 If the user subsequently makes changes to the content of the reference, it may cause the corresponding content in the sample pool to change as well.
 In some application scenarios, the user may expect the data in the sample pool to remain unchanged, and this can be done by using the <strong>clone_object middleware</strong> to return a copy of the object in the buffer at sampling time.
 In this way, modifications to the copy contents do not affect the original data in the buffer. <strong>Sample cloning significantly increases the sampling elapsed time</strong>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">clone_object</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data.buffer.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">clone_object</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">buffer</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">clone_object</span><span class="p">())</span>
@@ -421,7 +421,7 @@ The code for R2D2 using group sampling lies below, the full version can be found
 </ul>
 <p><strong>(Available Options)</strong>
 On top of group sampling, you can also use <strong>group_sample middleware</strong> to implement post-processing of samples, such as: choosing whether to disrupt data within the same group, and setting the maximum length of each group of data.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">group_sample</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data.buffer.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">group_sample</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="c1"># The maximum length of each group of data is set to 3, keeping the original order within the group</span>
@@ -431,7 +431,7 @@ On top of group sampling, you can also use <strong>group_sample middleware</stro
 <p><strong>Delete Multiple Use Samples</strong></p>
 <p>By default in the Dequebuffer, samples may be collected repeatedly by multiple sample function calls. If it is not controlled, the training performance will decay since it fits partial samples too many times.
 To avoid this problem, we can use <strong>use_time_check middleware</strong> to set the maximum number of times the samples can be used.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">use_time_check</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.data.buffer.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">use_time_check</span>
 
 <span class="n">buffer</span> <span class="o">=</span> <span class="n">DequeBuffer</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="c1"># Set the maximum number of times a single sample can be used to 2</span>

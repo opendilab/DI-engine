@@ -407,21 +407,21 @@ pytest<span class="w"> </span>-sv<span class="w"> </span>dizoo/overcooked/envs/t
 <p>Complete training configuration is at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/overcooked/entry/overcooked_selfplay_ppo_main.py">github
 link</a>.
 You can run the demo as shown below:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
-<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">Episode1v1Collector</span><span class="p">,</span> <span class="n">OnevOneEvaluator</span><span class="p">,</span> <span class="n">NaiveReplayBuffer</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">DingEnvWrapper</span>
-<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">PPOPolicy</span>
-<span class="kn">from</span> <span class="nn">dizoo.overcooked.models.overcooked_vac</span> <span class="kn">import</span> <span class="n">BaselineVAC</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
-<span class="kn">from</span> <span class="nn">dizoo.overcooked.envs</span> <span class="kn">import</span> <span class="n">OvercookGameEnv</span>
-<span class="kn">from</span> <span class="nn">dizoo.overcooked.config</span> <span class="kn">import</span> <span class="n">overcooked_demo_ppo_config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.worker</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">Episode1v1Collector</span><span class="p">,</span> <span class="n">OnevOneEvaluator</span><span class="p">,</span> <span class="n">NaiveReplayBuffer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">DingEnvWrapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPOPolicy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.overcooked.models.overcooked_vac</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaselineVAC</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_pkg_seed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.overcooked.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">OvercookGameEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.overcooked.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">overcooked_demo_ppo_config</span>
 
 
-<span class="k">def</span> <span class="nf">wrapped_overcookgame</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wrapped_overcookgame</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">OvercookGameEnv</span><span class="p">({})</span>
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">)):</span>
     <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;selfplay_demo_ppo&#39;</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span>
         <span class="n">cfg</span><span class="p">,</span>

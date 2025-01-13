@@ -302,23 +302,23 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.league.base_league</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span>
-<span class="kn">import</span> <span class="nn">uuid</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">osp</span>
-<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os.path</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">osp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tabulate</span><span class="w"> </span><span class="kn">import</span> <span class="n">tabulate</span>
 
-<span class="kn">from</span> <span class="nn">ding.league.player</span> <span class="kn">import</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">HistoricalPlayer</span><span class="p">,</span> <span class="n">create_player</span>
-<span class="kn">from</span> <span class="nn">ding.league.shared_payoff</span> <span class="kn">import</span> <span class="n">create_payoff</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">read_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LEAGUE_REGISTRY</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.league.player</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">HistoricalPlayer</span><span class="p">,</span> <span class="n">create_player</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.league.shared_payoff</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_payoff</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">read_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LEAGUE_REGISTRY</span><span class="p">,</span> \
     <span class="n">deep_merge_dicts</span>
-<span class="kn">from</span> <span class="nn">.metric</span> <span class="kn">import</span> <span class="n">LeagueMetricEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">LeagueMetricEnv</span>
 
 
-<div class="viewcode-block" id="BaseLeague"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague">[docs]</a><span class="k">class</span> <span class="nc">BaseLeague</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseLeague"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseLeague</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        League, proposed by Google Deepmind AlphaStar. Can manage multiple players in one league.</span>
@@ -330,7 +330,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
         <span class="n">cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">config</span><span class="p">))</span>
         <span class="n">cfg</span><span class="o">.</span><span class="n">cfg_type</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;Dict&#39;</span>
         <span class="k">return</span> <span class="n">cfg</span>
@@ -370,7 +370,7 @@
         <span class="p">),</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization method.</span>
@@ -393,7 +393,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_active_players_lock</span> <span class="o">=</span> <span class="n">LockContext</span><span class="p">(</span><span class="n">lock_type</span><span class="o">=</span><span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_players</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_init_players</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_players</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize players (active &amp; historical) in the league.</span>
@@ -439,7 +439,7 @@
         <span class="c1"># Validate active players are unique by ``player_id``.</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_players_ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_players_ids</span><span class="p">))</span>
 
-<div class="viewcode-block" id="BaseLeague.get_job_info"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.get_job_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_job_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">eval_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseLeague.get_job_info"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.get_job_info">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_job_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">eval_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get info dict of the job which is to be launched to an active player.</span>
@@ -461,7 +461,7 @@
         <span class="k">return</span> <span class="n">job_info</span></div>
 
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">_get_job_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">eval_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_job_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">eval_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Real `get_job` method. Called by ``_launch_job``.</span>
@@ -473,7 +473,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-<div class="viewcode-block" id="BaseLeague.judge_snapshot"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.judge_snapshot">[docs]</a>    <span class="k">def</span> <span class="nf">judge_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseLeague.judge_snapshot"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.judge_snapshot">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">judge_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Judge whether a player is trained enough for snapshot. If yes, call player&#39;s ``snapshot``, create a</span>
@@ -500,7 +500,7 @@
                 <span class="k">return</span> <span class="kc">False</span></div>
 
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">_mutate_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Players have the probability to mutate, e.g. Reset network parameters.</span>
@@ -510,7 +510,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-<div class="viewcode-block" id="BaseLeague.update_active_player"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.update_active_player">[docs]</a>    <span class="k">def</span> <span class="nf">update_active_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseLeague.update_active_player"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.update_active_player">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">update_active_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update an active player&#39;s info.</span>
@@ -527,7 +527,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
 
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">_update_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">player_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">player_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update an active player. Called by ``self.update_active_player``.</span>
@@ -537,7 +537,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-<div class="viewcode-block" id="BaseLeague.finish_job"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.finish_job">[docs]</a>    <span class="k">def</span> <span class="nf">finish_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseLeague.finish_job"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.finish_job">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">finish_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Finish current job. Update shared payoff to record the game results.</span>
@@ -556,14 +556,14 @@
                 <span class="n">home_player</span><span class="o">.</span><span class="n">rating</span><span class="p">,</span> <span class="n">away_player</span><span class="o">.</span><span class="n">rating</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">job_info_result</span>
             <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_player_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Player&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_player_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Player&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
         <span class="k">if</span> <span class="s1">&#39;historical&#39;</span> <span class="ow">in</span> <span class="n">player_id</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">historical_players</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">player_id</span> <span class="o">==</span> <span class="n">player_id</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_players</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">player_id</span> <span class="o">==</span> <span class="n">player_id</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
 <div class="viewcode-block" id="BaseLeague.save_checkpoint"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.base_league.BaseLeague.save_checkpoint">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">save_checkpoint</span><span class="p">(</span><span class="n">src_checkpoint</span><span class="p">,</span> <span class="n">dst_checkpoint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_checkpoint</span><span class="p">(</span><span class="n">src_checkpoint</span><span class="p">,</span> <span class="n">dst_checkpoint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Copy a checkpoint from path ``src_checkpoint`` to path ``dst_checkpoint``.</span>
@@ -574,7 +574,7 @@
         <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">read_file</span><span class="p">(</span><span class="n">src_checkpoint</span><span class="p">)</span>
         <span class="n">save_file</span><span class="p">(</span><span class="n">dst_checkpoint</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">player_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">player_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
         <span class="n">rank</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_players</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">historical_players</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">player_id</span>
@@ -590,7 +590,7 @@
             <span class="k">return</span> <span class="n">rank</span></div>
 
 
-<span class="k">def</span> <span class="nf">create_league</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseLeague</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_league</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseLeague</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Given the key (league_type), create a new league instance if in league_mapping&#39;s values,</span>

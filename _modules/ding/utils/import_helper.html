@@ -302,14 +302,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.import_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">importlib</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">ding</span>
-<span class="kn">from</span> <span class="nn">.default_helper</span> <span class="kn">import</span> <span class="n">one_time_warning</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ding</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.default_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">one_time_warning</span>
 
 
-<div class="viewcode-block" id="try_import_ceph"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_ceph">[docs]</a><span class="k">def</span> <span class="nf">try_import_ceph</span><span class="p">():</span>
+<div class="viewcode-block" id="try_import_ceph"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_ceph">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">try_import_ceph</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Try import ceph module, if failed, return ``None``</span>
@@ -318,12 +318,12 @@
 <span class="sd">        - (:obj:`Module`): Imported module, or ``None`` when ceph not found</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">ceph</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">ceph</span>
         <span class="n">client</span> <span class="o">=</span> <span class="n">ceph</span><span class="o">.</span><span class="n">S3Client</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">client</span>
     <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">petrel_client.client</span> <span class="kn">import</span> <span class="n">Client</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">petrel_client.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span>
             <span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="n">conf_path</span><span class="o">=</span><span class="s1">&#39;~/petreloss.conf&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">client</span>
         <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -332,7 +332,7 @@
             <span class="k">return</span> <span class="n">ceph</span></div>
 
 
-<div class="viewcode-block" id="try_import_mc"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_mc">[docs]</a><span class="k">def</span> <span class="nf">try_import_mc</span><span class="p">():</span>
+<div class="viewcode-block" id="try_import_mc"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_mc">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">try_import_mc</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Try import mc module, if failed, return ``None``</span>
@@ -341,14 +341,14 @@
 <span class="sd">        - (:obj:`Module`): Imported module, or ``None`` when mc not found</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">mc</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">mc</span>
     <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># one_time_warning(&quot;You have not installed memcache package! DI-engine has changed to some alternatives.&quot;)</span>
         <span class="n">mc</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">mc</span></div>
 
 
-<div class="viewcode-block" id="try_import_redis"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_redis">[docs]</a><span class="k">def</span> <span class="nf">try_import_redis</span><span class="p">():</span>
+<div class="viewcode-block" id="try_import_redis"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_redis">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">try_import_redis</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Try import redis module, if failed, return ``None``</span>
@@ -357,14 +357,14 @@
 <span class="sd">        - (:obj:`Module`): Imported module, or ``None`` when redis not found</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">redis</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">redis</span>
     <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">one_time_warning</span><span class="p">(</span><span class="s2">&quot;You have not installed redis package! DI-engine has changed to some alternatives.&quot;</span><span class="p">)</span>
         <span class="n">redis</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">redis</span></div>
 
 
-<div class="viewcode-block" id="try_import_rediscluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_rediscluster">[docs]</a><span class="k">def</span> <span class="nf">try_import_rediscluster</span><span class="p">():</span>
+<div class="viewcode-block" id="try_import_rediscluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_rediscluster">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">try_import_rediscluster</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Try import rediscluster module, if failed, return ``None``</span>
@@ -373,14 +373,14 @@
 <span class="sd">        - (:obj:`Module`): Imported module, or ``None`` when rediscluster not found</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">rediscluster</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">rediscluster</span>
     <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">one_time_warning</span><span class="p">(</span><span class="s2">&quot;You have not installed rediscluster package! DI-engine has changed to some alternatives.&quot;</span><span class="p">)</span>
         <span class="n">rediscluster</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">rediscluster</span></div>
 
 
-<div class="viewcode-block" id="try_import_link"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_link">[docs]</a><span class="k">def</span> <span class="nf">try_import_link</span><span class="p">():</span>
+<div class="viewcode-block" id="try_import_link"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.try_import_link">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">try_import_link</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Try import linklink module, if failed, import ding.tests.fake_linklink instead</span>
@@ -390,17 +390,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ding</span><span class="o">.</span><span class="n">enable_linklink</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">linklink</span> <span class="k">as</span> <span class="nn">link</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">linklink</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">link</span>
         <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">one_time_warning</span><span class="p">(</span><span class="s2">&quot;You have not installed linklink package! DI-engine has changed to some alternatives.&quot;</span><span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">.fake_linklink</span> <span class="kn">import</span> <span class="n">link</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.fake_linklink</span><span class="w"> </span><span class="kn">import</span> <span class="n">link</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">.fake_linklink</span> <span class="kn">import</span> <span class="n">link</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.fake_linklink</span><span class="w"> </span><span class="kn">import</span> <span class="n">link</span>
 
     <span class="k">return</span> <span class="n">link</span></div>
 
 
-<div class="viewcode-block" id="import_module"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.import_module">[docs]</a><span class="k">def</span> <span class="nf">import_module</span><span class="p">(</span><span class="n">modules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="import_module"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.import_helper.import_module">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">import_module</span><span class="p">(</span><span class="n">modules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Import several module as a list</span>

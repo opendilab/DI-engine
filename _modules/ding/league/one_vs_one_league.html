@@ -302,16 +302,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.league.one_vs_one_league</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">LEAGUE_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">.base_league</span> <span class="kn">import</span> <span class="n">BaseLeague</span>
-<span class="kn">from</span> <span class="nn">.player</span> <span class="kn">import</span> <span class="n">ActivePlayer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">LEAGUE_REGISTRY</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base_league</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseLeague</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.player</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActivePlayer</span>
 
 
 <div class="viewcode-block" id="OneVsOneLeague"><a class="viewcode-back" href="../../../05_api_doc/league/league.html#ding.league.one_vs_one_league.OneVsOneLeague">[docs]</a><span class="nd">@LEAGUE_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;one_vs_one&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">OneVsOneLeague</span><span class="p">(</span><span class="n">BaseLeague</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OneVsOneLeague</span><span class="p">(</span><span class="n">BaseLeague</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        One vs One battle game league.</span>
@@ -367,7 +367,7 @@
     <span class="p">)</span>
 
     <span class="c1"># override</span>
-    <span class="k">def</span> <span class="nf">_get_job_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">eval_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_job_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">eval_flag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get player&#39;s job related info, called by ``_launch_job``.</span>
@@ -395,7 +395,7 @@
             <span class="p">}</span>
 
     <span class="c1"># override</span>
-    <span class="k">def</span> <span class="nf">_mutate_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_mutate_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Players have the probability to be reset to supervised learning model parameters.</span>
@@ -405,7 +405,7 @@
         <span class="k">pass</span>
 
     <span class="c1"># override</span>
-    <span class="k">def</span> <span class="nf">_update_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">player_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">:</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">player_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update an active player, called by ``self.update_active_player``.</span>

@@ -302,8 +302,8 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.autolog.base</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">unique</span><span class="p">,</span> <span class="n">IntEnum</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">unique</span><span class="p">,</span> <span class="n">IntEnum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="n">_LOGGED_VALUE__PROPERTY_NAME</span> <span class="o">=</span> <span class="s1">&#39;__property_name__&#39;</span>
 <span class="n">_LOGGED_MODEL__PROPERTIES</span> <span class="o">=</span> <span class="s1">&#39;__properties__&#39;</span>
@@ -314,7 +314,7 @@
 
 
 <div class="viewcode-block" id="TimeMode"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.TimeMode">[docs]</a><span class="nd">@unique</span>
-<span class="k">class</span> <span class="nc">TimeMode</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimeMode</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Mode that used to decide the format of range_values function</span>

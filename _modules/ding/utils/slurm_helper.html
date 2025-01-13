@@ -302,9 +302,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.slurm_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="n">MANAGER_NODE_TABLE</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;10.198.8&#39;</span><span class="p">:</span> <span class="s1">&#39;10.198.8.31&#39;</span><span class="p">,</span>
@@ -317,7 +317,7 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="get_ip"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.get_ip">[docs]</a><span class="k">def</span> <span class="nf">get_ip</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="get_ip"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.get_ip">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_ip</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the ip of the current node</span>
@@ -330,7 +330,7 @@
     <span class="k">return</span> <span class="n">myaddr</span></div>
 
 
-<div class="viewcode-block" id="get_manager_node_ip"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.get_manager_node_ip">[docs]</a><span class="k">def</span> <span class="nf">get_manager_node_ip</span><span class="p">(</span><span class="n">node_ip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="get_manager_node_ip"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.get_manager_node_ip">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_manager_node_ip</span><span class="p">(</span><span class="n">node_ip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Look up the manager node of the slurm cluster and return the node ip</span>
@@ -338,7 +338,7 @@
 <span class="sd">        - node_ip (:obj:`Optional[str]`): The ip of the current node</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s1">&#39;SLURM_JOB_ID&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">ditk</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
             <span class="s1">&#39;We are not running on slurm!, </span><span class="se">\&#39;</span><span class="s1">auto</span><span class="se">\&#39;</span><span class="s1"> for manager_ip or &#39;</span>
             <span class="s1">&#39;coordinator_ip is only intended for running on multiple slurm clusters&#39;</span>
@@ -354,7 +354,7 @@
 
 
 <span class="c1"># get all info of cluster</span>
-<div class="viewcode-block" id="get_cls_info"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.get_cls_info">[docs]</a><span class="k">def</span> <span class="nf">get_cls_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+<div class="viewcode-block" id="get_cls_info"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.get_cls_info">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_cls_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the cluster info</span>
@@ -376,7 +376,7 @@
     <span class="k">return</span> <span class="n">ret_dict</span></div>
 
 
-<div class="viewcode-block" id="node_to_partition"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.node_to_partition">[docs]</a><span class="k">def</span> <span class="nf">node_to_partition</span><span class="p">(</span><span class="n">target_node</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="node_to_partition"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.node_to_partition">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">node_to_partition</span><span class="p">(</span><span class="n">target_node</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the partition of the target node</span>
@@ -395,7 +395,7 @@
     <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;not found target_node: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">target_node</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="node_to_host"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.node_to_host">[docs]</a><span class="k">def</span> <span class="nf">node_to_host</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="node_to_host"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.node_to_host">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">node_to_host</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the host of the node</span>
@@ -406,7 +406,7 @@
     <span class="k">return</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">4</span><span class="p">:])</span></div>
 
 
-<div class="viewcode-block" id="find_free_port_slurm"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.find_free_port_slurm">[docs]</a><span class="k">def</span> <span class="nf">find_free_port_slurm</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="find_free_port_slurm"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.slurm_helper.find_free_port_slurm">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">find_free_port_slurm</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Find a free port on the node</span>

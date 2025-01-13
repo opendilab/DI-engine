@@ -302,15 +302,15 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.k8s_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">unique</span>
-<span class="kn">from</span> <span class="nn">ding.interaction.base</span> <span class="kn">import</span> <span class="n">split_http_address</span>
-<span class="kn">from</span> <span class="nn">.default_helper</span> <span class="kn">import</span> <span class="n">one_time_warning</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">unique</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.interaction.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_http_address</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.default_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">one_time_warning</span>
 
 <span class="n">DEFAULT_NAMESPACE</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
 <span class="n">DEFAULT_POD_NAME</span> <span class="o">=</span> <span class="s1">&#39;dijob-example-coordinator&#39;</span>
@@ -323,7 +323,7 @@
 <span class="n">DEFAULT_K8S_AGGREGATOR_MASTER_PORT</span> <span class="o">=</span> <span class="mi">22273</span>
 
 
-<div class="viewcode-block" id="get_operator_server_kwargs"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.get_operator_server_kwargs">[docs]</a><span class="k">def</span> <span class="nf">get_operator_server_kwargs</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="get_operator_server_kwargs"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.get_operator_server_kwargs">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_operator_server_kwargs</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get kwarg dict from config file</span>
@@ -353,7 +353,7 @@
     <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="exist_operator_server"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.exist_operator_server">[docs]</a><span class="k">def</span> <span class="nf">exist_operator_server</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="exist_operator_server"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.exist_operator_server">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">exist_operator_server</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Check if the &#39;KUBERNETES_SERVER_URL&#39; environment variable exists.</span>
@@ -362,7 +362,7 @@
     <span class="k">return</span> <span class="s1">&#39;KUBERNETES_SERVER_URL&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span></div>
 
 
-<div class="viewcode-block" id="pod_exec_command"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.pod_exec_command">[docs]</a><span class="k">def</span> <span class="nf">pod_exec_command</span><span class="p">(</span><span class="n">kubeconfig</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">namespace</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="pod_exec_command"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.pod_exec_command">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">pod_exec_command</span><span class="p">(</span><span class="n">kubeconfig</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">namespace</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Execute command in pod</span>
@@ -373,10 +373,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">kubernetes</span> <span class="kn">import</span> <span class="n">config</span>
-        <span class="kn">from</span> <span class="nn">kubernetes.client</span> <span class="kn">import</span> <span class="n">CoreV1Api</span>
-        <span class="kn">from</span> <span class="nn">kubernetes.client.rest</span> <span class="kn">import</span> <span class="n">ApiException</span>
-        <span class="kn">from</span> <span class="nn">kubernetes.stream</span> <span class="kn">import</span> <span class="n">stream</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">kubernetes</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">kubernetes.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreV1Api</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">kubernetes.client.rest</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApiException</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">kubernetes.stream</span><span class="w"> </span><span class="kn">import</span> <span class="n">stream</span>
     <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">one_time_warning</span><span class="p">(</span><span class="s2">&quot;You have not installed kubernetes package! Please try &#39;pip install DI-engine[k8s]&#39;.&quot;</span><span class="p">)</span>
         <span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -414,12 +414,12 @@
 
 
 <div class="viewcode-block" id="K8sType"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sType">[docs]</a><span class="nd">@unique</span>
-<span class="k">class</span> <span class="nc">K8sType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">K8sType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">Local</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">K3s</span> <span class="o">=</span> <span class="mi">2</span></div>
 
 
-<div class="viewcode-block" id="K8sLauncher"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher">[docs]</a><span class="k">class</span> <span class="nc">K8sLauncher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="K8sLauncher"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">K8sLauncher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        object to manage the K8s cluster</span>
@@ -427,7 +427,7 @@
 <span class="sd">        ``__init__``, ``_load``, ``create_cluster``, ``_check_k3d_tools``, ``delete_cluster``, ``preload_images``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="K8sLauncher.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="K8sLauncher.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the K8sLauncher object.</span>
@@ -444,7 +444,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_k3d_tools</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="K8sLauncher._load"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher._load">[docs]</a>    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="K8sLauncher._load"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher._load">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the config file.</span>
@@ -475,7 +475,7 @@
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;preload_images&#39; type is expected list, actual </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;preload_images&#39;</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_images</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;preload_images&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="K8sLauncher._check_k3d_tools"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher._check_k3d_tools">[docs]</a>    <span class="k">def</span> <span class="nf">_check_k3d_tools</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="K8sLauncher._check_k3d_tools"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher._check_k3d_tools">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_check_k3d_tools</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Check if the k3d tools exist.</span>
@@ -491,7 +491,7 @@
                 <span class="s2">&quot;No k3d tools found, please install by executing ./ding/scripts/install-k8s-tools.sh&quot;</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="K8sLauncher.create_cluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher.create_cluster">[docs]</a>    <span class="k">def</span> <span class="nf">create_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="K8sLauncher.create_cluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher.create_cluster">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Create the k8s cluster.</span>
@@ -513,7 +513,7 @@
         <span class="c1"># preload images</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">preload_images</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_images</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="K8sLauncher.delete_cluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher.delete_cluster">[docs]</a>    <span class="k">def</span> <span class="nf">delete_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="K8sLauncher.delete_cluster"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher.delete_cluster">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Delete the k8s cluster.</span>
@@ -530,7 +530,7 @@
                 <span class="s1">&#39;NotFound&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">err_str</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to delete cluster </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">err_str</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="K8sLauncher.preload_images"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher.preload_images">[docs]</a>    <span class="k">def</span> <span class="nf">preload_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">images</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="K8sLauncher.preload_images"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.k8s_helper.K8sLauncher.preload_images">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">preload_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">images</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Preload images.</span>

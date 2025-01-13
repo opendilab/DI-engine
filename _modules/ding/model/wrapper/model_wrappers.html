@@ -302,19 +302,19 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.model.wrapper.model_wrappers</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Categorical</span><span class="p">,</span> <span class="n">Independent</span><span class="p">,</span> <span class="n">Normal</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">get_tensor_data</span><span class="p">,</span> <span class="n">zeros_like</span>
-<span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">create_noise_generator</span>
-<span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">default_collate</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.distributions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Categorical</span><span class="p">,</span> <span class="n">Independent</span><span class="p">,</span> <span class="n">Normal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.torch_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_tensor_data</span><span class="p">,</span> <span class="n">zeros_like</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.rl_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_noise_generator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_collate</span>
 
 
-<div class="viewcode-block" id="IModelWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">IModelWrapper</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="IModelWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">IModelWrapper</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The basic interface class of model wrappers. Model wrapper is a wrapper class of torch.nn.Module model, which \</span>
@@ -324,14 +324,14 @@
 <span class="sd">        ``__init__``, ``__getattr__``, ``info``, ``reset``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="IModelWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="IModelWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize model and other necessary member variabls in the model wrapper.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span></div>
 
-<div class="viewcode-block" id="IModelWrapper.__getattr__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.__getattr__">[docs]</a>    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="viewcode-block" id="IModelWrapper.__getattr__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.__getattr__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get original attrbutes of torch.nn.Module model, such as variables and methods defined in model.</span>
@@ -342,7 +342,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IModelWrapper.info"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="IModelWrapper.info"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.info">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get some string information of the indicated ``attr_name``, which is used for debug wrappers.</span>
@@ -366,7 +366,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IModelWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="IModelWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.reset">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview</span>
 <span class="sd">            Basic interface, reset some stateful varaibles in the model wrapper, such as hidden state of RNN.</span>
@@ -381,7 +381,7 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="n">data_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IModelWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="viewcode-block" id="IModelWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IModelWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Basic interface, call the wrapped model&#39;s forward method. Other derived model wrappers can override this \</span>
@@ -390,7 +390,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="BaseModelWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BaseModelWrapper">[docs]</a><span class="k">class</span> <span class="nc">BaseModelWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseModelWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BaseModelWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseModelWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Placeholder class for the model wrapper. This class is used to wrap the model without any extra operations, \</span>
@@ -401,7 +401,7 @@
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="HiddenStateWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HiddenStateWrapper">[docs]</a><span class="k">class</span> <span class="nc">HiddenStateWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="HiddenStateWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HiddenStateWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HiddenStateWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Maintain the hidden state for RNN-base model. Each sample in a batch has its own state.</span>
@@ -409,7 +409,7 @@
 <span class="sd">        ``__init__``, ``reset``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="HiddenStateWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HiddenStateWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="HiddenStateWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HiddenStateWrapper.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
             <span class="n">state_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -440,7 +440,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_save_prev_state</span> <span class="o">=</span> <span class="n">save_prev_state</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_fn</span> <span class="o">=</span> <span class="n">init_fn</span></div>
 
-<div class="viewcode-block" id="HiddenStateWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HiddenStateWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="HiddenStateWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HiddenStateWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">state_id</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;data_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">valid_id</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;valid_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># None, not used in any code in DI-engine</span>
         <span class="n">data</span><span class="p">,</span> <span class="n">state_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">before_forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">state_id</span><span class="p">)</span>  <span class="c1"># update data[&#39;prev_state&#39;] with self._state</span>
@@ -457,14 +457,14 @@
             <span class="n">output</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_state</span>
         <span class="k">return</span> <span class="n">output</span></div>
 
-<div class="viewcode-block" id="HiddenStateWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HiddenStateWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="HiddenStateWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HiddenStateWrapper.reset">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">state_id</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset_state</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">state_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">reset_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">state_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># train: init all states</span>
             <span class="n">state_id</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_num</span><span class="p">)]</span>
         <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># collect: init state that are done</span>
@@ -473,7 +473,7 @@
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">state_id</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span>
 
-    <span class="k">def</span> <span class="nf">before_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">before_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">state_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">state_id</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_num</span><span class="p">)]</span>
 
@@ -481,7 +481,7 @@
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">state_info</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">state_info</span>
 
-    <span class="k">def</span> <span class="nf">after_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">state_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">valid_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">after_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">state_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">valid_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">state_info</span><span class="p">),</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">state_info</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">state_info</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="k">if</span> <span class="n">valid_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -491,9 +491,9 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="TransformerInputWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerInputWrapper">[docs]</a><span class="k">class</span> <span class="nc">TransformerInputWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="TransformerInputWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerInputWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TransformerInputWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 
-<div class="viewcode-block" id="TransformerInputWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerInputWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">init_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="TransformerInputWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerInputWrapper.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">init_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Given N the length of the sequences received by a Transformer model, maintain the last N-1 input</span>
@@ -518,7 +518,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bs</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">memory_idx</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># len bs, index of where to put the next element in the sequence for each batch</span></div>
 
-<div class="viewcode-block" id="TransformerInputWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerInputWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="TransformerInputWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerInputWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                 <span class="n">input_obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                 <span class="n">only_last_logit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="n">data_id</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -556,7 +556,7 @@
             <span class="n">out</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
-    <span class="k">def</span> <span class="nf">reset_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the whole memory</span>
@@ -573,7 +573,7 @@
     <span class="c1"># called before evaluation</span>
     <span class="c1"># called after each evaluation iteration for each done env</span>
     <span class="c1"># called after each collect iteration for each done env</span>
-<div class="viewcode-block" id="TransformerInputWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerInputWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="TransformerInputWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerInputWrapper.reset">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">state_id</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">input_obs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_obs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">input_obs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -585,7 +585,7 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">reset_memory_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_memory_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset specific batch of the memory, batch ids are specified in &#39;state_id&#39;</span>
@@ -596,9 +596,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">obs_memory</span><span class="p">[:,</span> <span class="n">_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_obs</span><span class="p">[</span><span class="n">_id</span><span class="p">]</span>  <span class="c1"># init the corresponding sequence with broadcasting</span></div>
 
 
-<div class="viewcode-block" id="TransformerSegmentWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerSegmentWrapper">[docs]</a><span class="k">class</span> <span class="nc">TransformerSegmentWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="TransformerSegmentWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerSegmentWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TransformerSegmentWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 
-<div class="viewcode-block" id="TransformerSegmentWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerSegmentWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="TransformerSegmentWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerSegmentWrapper.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Given T the length of a trajectory and N the length of the sequences received by a Transformer model,</span>
@@ -611,7 +611,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span> <span class="o">=</span> <span class="n">seq_len</span></div>
 
-<div class="viewcode-block" id="TransformerSegmentWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerSegmentWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<div class="viewcode-block" id="TransformerSegmentWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerSegmentWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`dict`): Dict type data, including at least \</span>
@@ -636,9 +636,9 @@
         <span class="k">return</span> <span class="n">out</span></div></div>
 
 
-<div class="viewcode-block" id="TransformerMemoryWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerMemoryWrapper">[docs]</a><span class="k">class</span> <span class="nc">TransformerMemoryWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="TransformerMemoryWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerMemoryWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TransformerMemoryWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 
-<div class="viewcode-block" id="TransformerMemoryWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerMemoryWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="TransformerMemoryWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerMemoryWrapper.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
             <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -659,7 +659,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_memory</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mem_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">shape</span></div>
 
-<div class="viewcode-block" id="TransformerMemoryWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerMemoryWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<div class="viewcode-block" id="TransformerMemoryWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerMemoryWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`dict`): Dict type data, including at least \</span>
@@ -672,7 +672,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_memory</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="TransformerMemoryWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerMemoryWrapper.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="TransformerMemoryWrapper.reset"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TransformerMemoryWrapper.reset">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">state_id</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">state_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem_shape</span><span class="p">)</span>
@@ -681,7 +681,7 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">reset_memory_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_memory_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset specific batch of the memory, batch ids are specified in &#39;state_id&#39;</span>
@@ -689,7 +689,7 @@
         <span class="k">for</span> <span class="n">_id</span> <span class="ow">in</span> <span class="n">state_id</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">mem_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
-    <span class="k">def</span> <span class="nf">show_memory_occupancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show_memory_occupancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span>
         <span class="n">memory_shape</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">shape</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Layer </span><span class="si">{}</span><span class="s1">-------------------------------------------&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">layer</span><span class="p">))</span>
@@ -703,7 +703,7 @@
             <span class="nb">print</span><span class="p">()</span></div>
 
 
-<span class="k">def</span> <span class="nf">sample_action</span><span class="p">(</span><span class="n">logit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prob</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_action</span><span class="p">(</span><span class="n">logit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prob</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">prob</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">prob</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logit</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">shape</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">shape</span>
@@ -715,7 +715,7 @@
     <span class="k">return</span> <span class="n">action</span>
 
 
-<div class="viewcode-block" id="ArgmaxSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ArgmaxSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">ArgmaxSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="ArgmaxSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ArgmaxSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ArgmaxSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Used to help the model to sample argmax action.</span>
@@ -723,7 +723,7 @@
 <span class="sd">        ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ArgmaxSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ArgmaxSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="ArgmaxSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ArgmaxSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Employ model forward computation graph, and use the output logit to greedily select max action (argmax).</span>
@@ -746,7 +746,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="CombinationArgmaxSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.CombinationArgmaxSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">CombinationArgmaxSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="CombinationArgmaxSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.CombinationArgmaxSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CombinationArgmaxSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Used to help the model to sample combination argmax action.</span>
@@ -754,7 +754,7 @@
 <span class="sd">        ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CombinationArgmaxSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.CombinationArgmaxSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shot_number</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="CombinationArgmaxSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.CombinationArgmaxSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shot_number</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># Generate actions.</span>
         <span class="n">act</span> <span class="o">=</span> <span class="p">[]</span>
@@ -771,7 +771,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="CombinationMultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.CombinationMultinomialSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">CombinationMultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="CombinationMultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.CombinationMultinomialSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CombinationMultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Used to help the model to sample combination multinomial action.</span>
@@ -779,7 +779,7 @@
 <span class="sd">        ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CombinationMultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.CombinationMultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shot_number</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="CombinationMultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.CombinationMultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shot_number</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># Generate actions.</span>
         <span class="n">act</span> <span class="o">=</span> <span class="p">[]</span>
@@ -797,7 +797,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="HybridArgmaxSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridArgmaxSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">HybridArgmaxSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridArgmaxSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridArgmaxSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HybridArgmaxSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Used to help the model to sample argmax action in hybrid action space,</span>
@@ -806,7 +806,7 @@
 <span class="sd">        ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="HybridArgmaxSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridArgmaxSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridArgmaxSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridArgmaxSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s2">&quot;model output must be dict, but find </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
         <span class="k">if</span> <span class="s1">&#39;logit&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">output</span><span class="p">:</span>
@@ -827,7 +827,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="MultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.MultinomialSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">MultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="MultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.MultinomialSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">MultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Used to help the model get the corresponding action from the output[&#39;logits&#39;]self.</span>
@@ -835,7 +835,7 @@
 <span class="sd">        ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="MultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.MultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="MultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.MultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="s1">&#39;alpha&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">alpha</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -862,7 +862,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="EpsGreedySampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.EpsGreedySampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">EpsGreedySampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="EpsGreedySampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.EpsGreedySampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">EpsGreedySampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.</span>
@@ -873,7 +873,7 @@
 <span class="sd">        ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="EpsGreedySampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.EpsGreedySampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="EpsGreedySampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.EpsGreedySampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">eps</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;eps&#39;</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s2">&quot;model output must be dict, but find </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
@@ -918,7 +918,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="EpsGreedyMultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.EpsGreedyMultinomialSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">EpsGreedyMultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="EpsGreedyMultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.EpsGreedyMultinomialSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">EpsGreedyMultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Epsilon greedy sampler coupled with multinomial sample used in collector_model</span>
@@ -927,7 +927,7 @@
 <span class="sd">        ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="EpsGreedyMultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.EpsGreedyMultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="EpsGreedyMultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.EpsGreedyMultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">eps</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;eps&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;alpha&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">alpha</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">)</span>
@@ -965,7 +965,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="HybridEpsGreedySampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridEpsGreedySampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">HybridEpsGreedySampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridEpsGreedySampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridEpsGreedySampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HybridEpsGreedySampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Epsilon greedy sampler used in collector_model to help balance exploration and exploitation.</span>
@@ -974,7 +974,7 @@
 <span class="sd">        ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="HybridEpsGreedySampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridEpsGreedySampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridEpsGreedySampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridEpsGreedySampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">eps</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;eps&#39;</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s2">&quot;model output must be dict, but find </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
@@ -1004,7 +1004,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="HybridEpsGreedyMultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridEpsGreedyMultinomialSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">HybridEpsGreedyMultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridEpsGreedyMultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridEpsGreedyMultinomialSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HybridEpsGreedyMultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Epsilon greedy sampler coupled with multinomial sample used in collector_model</span>
@@ -1014,7 +1014,7 @@
 <span class="sd">        ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="HybridEpsGreedyMultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridEpsGreedyMultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridEpsGreedyMultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridEpsGreedyMultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">eps</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;eps&#39;</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s2">&quot;model output must be dict, but find </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
@@ -1047,7 +1047,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="HybridReparamMultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridReparamMultinomialSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">HybridReparamMultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridReparamMultinomialSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridReparamMultinomialSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HybridReparamMultinomialSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Reparameterization sampler coupled with multinomial sample used in collector_model</span>
@@ -1057,7 +1057,7 @@
 <span class="sd">        forward</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="HybridReparamMultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridReparamMultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridReparamMultinomialSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridReparamMultinomialSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s2">&quot;model output must be dict, but find </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
 
@@ -1076,7 +1076,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="HybridDeterministicArgmaxSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridDeterministicArgmaxSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">HybridDeterministicArgmaxSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridDeterministicArgmaxSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridDeterministicArgmaxSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HybridDeterministicArgmaxSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Deterministic sampler coupled with argmax sample used in eval_model.</span>
@@ -1085,7 +1085,7 @@
 <span class="sd">        forward</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="HybridDeterministicArgmaxSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridDeterministicArgmaxSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="HybridDeterministicArgmaxSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.HybridDeterministicArgmaxSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s2">&quot;model output must be dict, but find </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
         <span class="n">logit</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>  <span class="c1"># logit: {&#39;action_type&#39;: action_type_logit, &#39;action_args&#39;: action_args_logit}</span>
@@ -1100,7 +1100,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="DeterministicSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DeterministicSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">DeterministicSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="DeterministicSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DeterministicSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DeterministicSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Deterministic sampler (just use mu directly) used in eval_model.</span>
@@ -1108,14 +1108,14 @@
 <span class="sd">        forward</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DeterministicSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DeterministicSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="DeterministicSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DeterministicSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s2">&quot;model output must be dict, but find </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
         <span class="n">output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="s1">&#39;mu&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="ReparamSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ReparamSampleWrapper">[docs]</a><span class="k">class</span> <span class="nc">ReparamSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="ReparamSampleWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ReparamSampleWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ReparamSampleWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Reparameterization gaussian sampler used in collector_model.</span>
@@ -1123,7 +1123,7 @@
 <span class="sd">        forward</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ReparamSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ReparamSampleWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="ReparamSampleWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ReparamSampleWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s2">&quot;model output must be dict, but find </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
         <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="s1">&#39;sigma&#39;</span><span class="p">]</span>
@@ -1132,7 +1132,7 @@
         <span class="k">return</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="ActionNoiseWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ActionNoiseWrapper">[docs]</a><span class="k">class</span> <span class="nc">ActionNoiseWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="ActionNoiseWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ActionNoiseWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ActionNoiseWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Add noise to collector&#39;s action output; Do clips on both generated noise and action after adding noise.</span>
@@ -1146,7 +1146,7 @@
 <span class="sd">        - action_range (:obj:`Optional[dict]`): Range of action + noise, used for clip, default clip to [-1, 1].</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ActionNoiseWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ActionNoiseWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="ActionNoiseWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ActionNoiseWrapper.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
             <span class="n">noise_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;gauss&#39;</span><span class="p">,</span>
@@ -1162,7 +1162,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">noise_range</span> <span class="o">=</span> <span class="n">noise_range</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_range</span> <span class="o">=</span> <span class="n">action_range</span></div>
 
-<div class="viewcode-block" id="ActionNoiseWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ActionNoiseWrapper.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="ActionNoiseWrapper.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ActionNoiseWrapper.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># if noise sigma need decay, update noise kwargs.</span>
         <span class="k">if</span> <span class="s1">&#39;sigma&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">sigma</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">)</span>
@@ -1182,7 +1182,7 @@
                 <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">action</span>
         <span class="k">return</span> <span class="n">output</span></div>
 
-    <span class="k">def</span> <span class="nf">add_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Generate noise and clip noise if needed. Add noise to action and clip action if needed.</span>
@@ -1200,7 +1200,7 @@
         <span class="k">return</span> <span class="n">action</span></div>
 
 
-<div class="viewcode-block" id="TargetNetworkWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TargetNetworkWrapper">[docs]</a><span class="k">class</span> <span class="nc">TargetNetworkWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="TargetNetworkWrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TargetNetworkWrapper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TargetNetworkWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Maintain and update the target network</span>
@@ -1208,20 +1208,20 @@
 <span class="sd">        update, reset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="TargetNetworkWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TargetNetworkWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">update_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">update_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<div class="viewcode-block" id="TargetNetworkWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.TargetNetworkWrapper.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">update_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">update_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">update_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;momentum&#39;</span><span class="p">,</span> <span class="s1">&#39;assign&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_type</span> <span class="o">=</span> <span class="n">update_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_kwargs</span> <span class="o">=</span> <span class="n">update_kwargs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_count</span> <span class="o">=</span> <span class="mi">0</span></div>
 
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">target_update_count</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;target_update_count&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset_state</span><span class="p">(</span><span class="n">target_update_count</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="s1">&#39;reset&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">direct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">direct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update the target network state dict</span>
@@ -1245,7 +1245,7 @@
                     <span class="c1"># default theta = 0.001</span>
                     <span class="n">p</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">state_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">reset_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_update_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_update_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the update_count</span>
@@ -1256,13 +1256,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_count</span> <span class="o">=</span> <span class="n">target_update_count</span></div>
 
 
-<span class="k">class</span> <span class="nc">TeacherNetworkWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TeacherNetworkWrapper</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Set the teacher Network. Set the model&#39;s model.teacher_cfg to the input teacher_cfg</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">teacher_cfg</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">teacher_cfg</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">_teacher_cfg</span> <span class="o">=</span> <span class="n">teacher_cfg</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
@@ -1294,7 +1294,7 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="model_wrap"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.model_wrap">[docs]</a><span class="k">def</span> <span class="nf">model_wrap</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">IModelWrapper</span><span class="p">],</span> <span class="n">wrapper_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="model_wrap"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.model_wrap">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">model_wrap</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">IModelWrapper</span><span class="p">],</span> <span class="n">wrapper_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Wrap the model with the specified wrapper and return the wrappered model.</span>
@@ -1315,7 +1315,7 @@
     <span class="k">return</span> <span class="n">model</span></div>
 
 
-<div class="viewcode-block" id="register_wrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.register_wrapper">[docs]</a><span class="k">def</span> <span class="nf">register_wrapper</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">wrapper_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="register_wrapper"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.register_wrapper">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">register_wrapper</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">wrapper_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Register new wrapper to ``wrapper_name_map``. When user implements a new wrapper, they must call this function \</span>

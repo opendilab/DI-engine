@@ -332,7 +332,7 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 <section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>安装完成后，可以通过在 Python 命令行中运行如下命令验证安装成功：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dmc2gym</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">dmc2gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">dmc2gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">domain_name</span><span class="o">=</span><span class="s1">&#39;point_mass&#39;</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="s1">&#39;easy&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>    <span class="c1"># (4,)</span>
@@ -556,8 +556,8 @@ np_seed = 100 * np.random.randint(1, 1000)。</p></li>
 <section id="id19">
 <h3>存储录像<a class="headerlink" href="#id19" title="Permalink to this heading">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个episode结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），下面所示的代码将运行一个环境episode，并将这个episode的结果保存在<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">dizoo.dmc2gym.envs</span> <span class="kn">import</span> <span class="n">DMC2GymEnv</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.dmc2gym.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DMC2GymEnv</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">DMC2GymEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span>
      <span class="s2">&quot;domain_name&quot;</span><span class="p">:</span> <span class="s2">&quot;cartpole&quot;</span><span class="p">,</span>
@@ -584,7 +584,7 @@ np_seed = 100 * np.random.randint(1, 1000)。</p></li>
 <p>完整的示例文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/dmc2gym/entry/dmc2gym_save_replay_example.py">github
 link</a>
 内</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">cartpole_balance_ddpg_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;dmc2gym_cartpole_balance_ddpg_eval&#39;</span><span class="p">,</span>

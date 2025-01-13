@@ -351,7 +351,7 @@ pip<span class="w"> </span>install<span class="w"> </span>pettingzoo<span class=
 <section id="verify-installation">
 <h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, run the following Python program. If no error is reported, the installation is successful.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pettingzoo.mpe</span> <span class="kn">import</span> <span class="n">simple_spread_v2</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pettingzoo.mpe</span><span class="w"> </span><span class="kn">import</span> <span class="n">simple_spread_v2</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">simple_spread_v2</span><span class="o">.</span><span class="n">parallel_env</span><span class="p">()</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>  <span class="c1"># (18,)</span>
@@ -394,7 +394,7 @@ For example, when you generate a simple spread environment with 5 agents (n_agen
 <li><p>Discrete action space: The action space of each agent is the same, the size is <code class="docutils literal notranslate"><span class="pre">(5,)</span></code>, and the data type is <code class="docutils literal notranslate"><span class="pre">gym.spaces.Discrete(5)</span></code>. The dimension of each specific action is (,), the data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>, the specific meaning is to do nothing or move in four basic directions.</p></li>
 <li><p>Continuous action space: The action space of each agent is the same, and the data type is <code class="docutils literal notranslate"><span class="pre">gym.spaces.Box(0.0,</span> <span class="pre">1.0,</span> <span class="pre">(5,))</span></code>. The dimension of each specific action is (5,), the data type is <code class="docutils literal notranslate"><span class="pre">array</span></code>, the specific meaning is to do nothing or enter a speed between 0.0 and 1.0 in each of the four cardinal directions, and Velocities in opposite directions can be superimposed.</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pettingzoo.mpe</span> <span class="kn">import</span> <span class="n">simple_spread_v2</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pettingzoo.mpe</span><span class="w"> </span><span class="kn">import</span> <span class="n">simple_spread_v2</span>
 <span class="c1"># discrete env</span>
 <span class="n">dis_env</span> <span class="o">=</span> <span class="n">simple_spread_v2</span><span class="o">.</span><span class="n">parallel_env</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">continuous_actions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="c1"># continuous env</span>
@@ -498,7 +498,7 @@ For example, when you generate a simple spread environment with 5 agents (n_agen
 <h2>DI-Zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The full training profile is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/config/">github link</a>
 ，or specific configuration files such as，such as<code class="docutils literal notranslate"><span class="pre">ptz_simple_spread_mappo_config.py</span></code>，Use the following demo to run：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">n_agent</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">n_landmark</span> <span class="o">=</span> <span class="n">n_agent</span>
@@ -581,7 +581,7 @@ For example, when you generate a simple spread environment with 5 agents (n_agen
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="c1"># or you can enter `ding -m serial_onpolicy -c ptz_simple_spread_mappo_config.py -s 0`</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
     <span class="n">serial_pipeline_onpolicy</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>

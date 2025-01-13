@@ -302,10 +302,10 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.normalizer_helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 
-<div class="viewcode-block" id="DatasetNormalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.DatasetNormalizer">[docs]</a><span class="k">class</span> <span class="nc">DatasetNormalizer</span><span class="p">:</span>
+<div class="viewcode-block" id="DatasetNormalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.DatasetNormalizer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DatasetNormalizer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The `DatasetNormalizer` class provides functionality to normalize and unnormalize data in a dataset.</span>
@@ -315,7 +315,7 @@
 <span class="sd">        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DatasetNormalizer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.DatasetNormalizer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path_lengths</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DatasetNormalizer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.DatasetNormalizer.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">normalizer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path_lengths</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the NormalizerHelper object.</span>
@@ -343,7 +343,7 @@
             <span class="c1"># key: normalizer(val)</span>
             <span class="c1"># for key, val in dataset.items()</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns a string representation of the NormalizerHelper object. \</span>
@@ -357,7 +357,7 @@
             <span class="n">string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">normalizer</span><span class="si">}</span><span class="s1">]</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">return</span> <span class="n">string</span>
 
-<div class="viewcode-block" id="DatasetNormalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.DatasetNormalizer.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="DatasetNormalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.DatasetNormalizer.normalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Normalize the input data using the specified key.</span>
@@ -371,7 +371,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalizers</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DatasetNormalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.DatasetNormalizer.unnormalize">[docs]</a>    <span class="k">def</span> <span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="DatasetNormalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.DatasetNormalizer.unnormalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Unnormalizes the given value `x` using the specified `key`.</span>
@@ -386,7 +386,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalizers</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">unnormalize</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.flatten">[docs]</a><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">dataset</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path_lengths</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.flatten">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">flatten</span><span class="p">(</span><span class="n">dataset</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path_lengths</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Flattens dataset of { key: [ n_episodes x max_path_length x dim ] } \</span>
@@ -408,7 +408,7 @@
     <span class="k">return</span> <span class="n">flattened</span></div>
 
 
-<div class="viewcode-block" id="Normalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.Normalizer">[docs]</a><span class="k">class</span> <span class="nc">Normalizer</span><span class="p">:</span>
+<div class="viewcode-block" id="Normalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.Normalizer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Normalizer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Parent class, subclass by defining the `normalize` and `unnormalize` methods</span>
@@ -417,7 +417,7 @@
 <span class="sd">        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Normalizer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.Normalizer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<div class="viewcode-block" id="Normalizer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.Normalizer.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the Normalizer object.</span>
@@ -429,7 +429,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mins</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maxs</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns a string representation of the Normalizer object.</span>
@@ -442,7 +442,7 @@
             <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mins</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">    +: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxs</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="Normalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.Normalizer.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Normalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.Normalizer.normalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Normalize the input data.</span>
@@ -453,7 +453,7 @@
 
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Normalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.Normalizer.unnormalize">[docs]</a>    <span class="k">def</span> <span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Normalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.Normalizer.unnormalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Unnormalize the input data.</span>
@@ -465,7 +465,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="GaussianNormalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.GaussianNormalizer">[docs]</a><span class="k">class</span> <span class="nc">GaussianNormalizer</span><span class="p">(</span><span class="n">Normalizer</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianNormalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.GaussianNormalizer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">GaussianNormalizer</span><span class="p">(</span><span class="n">Normalizer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A class that normalizes data to zero mean and unit variance.</span>
@@ -474,7 +474,7 @@
 <span class="sd">        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="GaussianNormalizer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.GaussianNormalizer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="GaussianNormalizer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.GaussianNormalizer.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the GaussianNormalizer object.</span>
@@ -490,7 +490,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="mi">1</span></div>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns a string representation of the GaussianNormalizer object.</span>
@@ -504,7 +504,7 @@
             <span class="sa">f</span><span class="s2">&quot;&quot;&quot;stds: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">stds</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="GaussianNormalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.GaussianNormalizer.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="GaussianNormalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.GaussianNormalizer.normalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Normalize the input data.</span>
@@ -517,7 +517,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">stds</span></div>
 
-<div class="viewcode-block" id="GaussianNormalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.GaussianNormalizer.unnormalize">[docs]</a>    <span class="k">def</span> <span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="GaussianNormalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.GaussianNormalizer.unnormalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Unnormalize the input data.</span>
@@ -531,7 +531,7 @@
         <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">stds</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span></div></div>
 
 
-<div class="viewcode-block" id="CDFNormalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer">[docs]</a><span class="k">class</span> <span class="nc">CDFNormalizer</span><span class="p">(</span><span class="n">Normalizer</span><span class="p">):</span>
+<div class="viewcode-block" id="CDFNormalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CDFNormalizer</span><span class="p">(</span><span class="n">Normalizer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A class that makes training data uniform (over each dimension) by transforming it with marginal CDFs.</span>
@@ -540,7 +540,7 @@
 <span class="sd">        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CDFNormalizer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<div class="viewcode-block" id="CDFNormalizer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the CDFNormalizer object.</span>
@@ -552,7 +552,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cdfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">CDFNormalizer1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)]</span></div>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns a string representation of the CDFNormalizer object.</span>
@@ -564,7 +564,7 @@
             <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s1">3d</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">cdf</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cdf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cdfs</span><span class="p">)</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="CDFNormalizer.wrap"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer.wrap">[docs]</a>    <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="CDFNormalizer.wrap"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer.wrap">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">wrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Wraps the given function name and applies it to the input data.</span>
@@ -585,7 +585,7 @@
             <span class="n">out</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CDFNormalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="CDFNormalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer.normalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Normalizes the input data.</span>
@@ -598,7 +598,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="s1">&#39;normalize&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CDFNormalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer.unnormalize">[docs]</a>    <span class="k">def</span> <span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="CDFNormalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer.unnormalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Unnormalizes the input data.</span>
@@ -612,7 +612,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="s1">&#39;unnormalize&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="CDFNormalizer1d"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer1d">[docs]</a><span class="k">class</span> <span class="nc">CDFNormalizer1d</span><span class="p">:</span>
+<div class="viewcode-block" id="CDFNormalizer1d"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer1d">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CDFNormalizer1d</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        CDF normalizer for a single dimension. This class provides methods to normalize and unnormalize data \</span>
@@ -621,7 +621,7 @@
 <span class="sd">        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CDFNormalizer1d.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer1d.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<div class="viewcode-block" id="CDFNormalizer1d.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer1d.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the CDFNormalizer1d object.</span>
@@ -629,7 +629,7 @@
 <span class="sd">            - X (:obj:`np.ndarray`): The data to be normalized.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="kn">import</span> <span class="nn">scipy.interpolate</span> <span class="k">as</span> <span class="nn">interpolate</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">interpolate</span>
         <span class="k">assert</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">min</span><span class="p">():</span>
@@ -643,7 +643,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmax</span> <span class="o">=</span> <span class="n">quantiles</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">quantiles</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ymin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ymax</span> <span class="o">=</span> <span class="n">cumprob</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">cumprob</span><span class="o">.</span><span class="n">max</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns a string representation of the CDFNormalizer1d object.</span>
@@ -651,7 +651,7 @@
 
         <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xmin</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xmax</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CDFNormalizer1d.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer1d.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="CDFNormalizer1d.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer1d.normalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Normalize the input data.</span>
@@ -672,7 +672,7 @@
         <span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">y</span></div>
 
-<div class="viewcode-block" id="CDFNormalizer1d.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer1d.unnormalize">[docs]</a>    <span class="k">def</span> <span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="CDFNormalizer1d.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.CDFNormalizer1d.unnormalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Unnormalize the input data.</span>
@@ -704,7 +704,7 @@
         <span class="k">return</span> <span class="n">y</span></div></div>
 
 
-<div class="viewcode-block" id="empirical_cdf"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.empirical_cdf">[docs]</a><span class="k">def</span> <span class="nf">empirical_cdf</span><span class="p">(</span><span class="n">sample</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<div class="viewcode-block" id="empirical_cdf"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.empirical_cdf">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">empirical_cdf</span><span class="p">(</span><span class="n">sample</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Compute the empirical cumulative distribution function (CDF) of a given sample.</span>
@@ -730,7 +730,7 @@
     <span class="k">return</span> <span class="n">quantiles</span><span class="p">,</span> <span class="n">cumprob</span></div>
 
 
-<div class="viewcode-block" id="atleast_2d"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.atleast_2d">[docs]</a><span class="k">def</span> <span class="nf">atleast_2d</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="atleast_2d"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.atleast_2d">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">atleast_2d</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Ensure that the input array has at least two dimensions.</span>
@@ -746,7 +746,7 @@
     <span class="k">return</span> <span class="n">x</span></div>
 
 
-<div class="viewcode-block" id="LimitsNormalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.LimitsNormalizer">[docs]</a><span class="k">class</span> <span class="nc">LimitsNormalizer</span><span class="p">(</span><span class="n">Normalizer</span><span class="p">):</span>
+<div class="viewcode-block" id="LimitsNormalizer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.LimitsNormalizer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LimitsNormalizer</span><span class="p">(</span><span class="n">Normalizer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A class that normalizes and unnormalizes values within specified limits. \</span>
@@ -756,7 +756,7 @@
 <span class="sd">        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LimitsNormalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.LimitsNormalizer.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="LimitsNormalizer.normalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.LimitsNormalizer.normalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Normalizes the input values.</span>
@@ -774,7 +774,7 @@
         <span class="n">x</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">x</span></div>
 
-<div class="viewcode-block" id="LimitsNormalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.LimitsNormalizer.unnormalize">[docs]</a>    <span class="k">def</span> <span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="LimitsNormalizer.unnormalize"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.normalizer_helper.LimitsNormalizer.unnormalize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Unnormalizes the input values.</span>

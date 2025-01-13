@@ -422,7 +422,7 @@ learning algorithm needs to introduce expert config, see the example of sqil for
 <li><p>Each config must have a startup command written in a format similar to the following:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">___name___</span> <span class="o">==</span> <span class="s2">&quot;___main___&quot;</span><span class="p">:</span>
     <span class="c1"># or you can enter `ding -m serial -c cartpole_dqn_config.py -s 0`</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">serial_pipeline</span>
     <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>

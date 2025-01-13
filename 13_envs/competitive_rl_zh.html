@@ -348,8 +348,8 @@
 <section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>安装完成后，可以通过在 Python 命令行中运行如下命令验证安装成功：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">import</span> <span class="nn">competitive_rl</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">competitive_rl</span>
 
 <span class="n">competitive_rl</span><span class="o">.</span><span class="n">register_competitive_envs</span><span class="p">()</span>
 
@@ -479,11 +479,11 @@
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/competitive_rl/config/cpong_dqn_config.py">github
 link</a>
 内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">pong_dqn_config.py</span></code>，使用如下的 demo 即可运行：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">dizoo.competitive_rl.config.cpong_dqn_config</span> <span class="kn">import</span> <span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_system_config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dizoo.competitive_rl.config.cpong_dqn_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_system_config</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">parallel_pipeline</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ding.entry</span><span class="w"> </span><span class="kn">import</span> <span class="n">parallel_pipeline</span>
     <span class="n">parallel_pipeline</span><span class="p">((</span><span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_system_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>

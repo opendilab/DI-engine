@@ -621,20 +621,20 @@ of self-defined discrete time, such as the implement of TickTime). Serveral valu
 with each other can be maintained together by using LoggedModel.</p>
 </dd>
 <dt>Example:</dt><dd><p>Define AvgList model like this</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils.autolog</span> <span class="kn">import</span> <span class="n">LoggedValue</span><span class="p">,</span> <span class="n">LoggedModel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">AvgList</span><span class="p">(</span><span class="n">LoggedModel</span><span class="p">):</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.autolog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggedValue</span><span class="p">,</span> <span class="n">LoggedModel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">AvgList</span><span class="p">(</span><span class="n">LoggedModel</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">value</span> <span class="o">=</span> <span class="n">LoggedValue</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">__property_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_</span><span class="p">:</span> <span class="n">BaseTime</span><span class="p">,</span> <span class="n">expire</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_</span><span class="p">:</span> <span class="n">BaseTime</span><span class="p">,</span> <span class="n">expire</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]):</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="n">LoggedModel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_</span><span class="p">,</span> <span class="n">expire</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="c1"># attention, original value must be set in __init__ function, or it will not</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="c1"># be activated, the timeline of this value will also be unexpectedly affected.</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="bp">self</span><span class="o">.</span><span class="n">__register</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span> <span class="nf">__register</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="k">def</span> <span class="nf">__avg_func</span><span class="p">(</span><span class="n">prop_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>  <span class="c1"># function to calculate average value of properties</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span><span class="w"> </span><span class="nf">__register</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="k">def</span><span class="w"> </span><span class="nf">__avg_func</span><span class="p">(</span><span class="n">prop_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>  <span class="c1"># function to calculate average value of properties</span>
 <span class="gp">&gt;&gt;&gt; </span>            <span class="n">records</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">range_values</span><span class="p">[</span><span class="n">prop_name</span><span class="p">]()</span>
 <span class="gp">&gt;&gt;&gt; </span>            <span class="p">(</span><span class="n">_start_time</span><span class="p">,</span> <span class="n">_</span><span class="p">),</span> <span class="n">_</span> <span class="o">=</span> <span class="n">records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span>            <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">_end_time</span><span class="p">),</span> <span class="n">_</span> <span class="o">=</span> <span class="n">records</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -649,7 +649,7 @@ with each other can be maintained together by using LoggedModel.</p>
 </pre></div>
 </div>
 <p>Use it like this</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils.autolog</span> <span class="kn">import</span> <span class="n">NaturalTime</span><span class="p">,</span> <span class="n">TimeMode</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.autolog</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaturalTime</span><span class="p">,</span> <span class="n">TimeMode</span>
 <span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">_time</span> <span class="o">=</span> <span class="n">NaturalTime</span><span class="p">()</span>
@@ -886,7 +886,7 @@ This feature can be useful when adding value replay feature (in the future)</p>
 </dd>
 <dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code></p>
 </dd>
-<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils.autolog.time_ctl</span> <span class="kn">import</span> <span class="n">NaturalTime</span>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.autolog.time_ctl</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaturalTime</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span> <span class="o">=</span> <span class="n">NaturalTime</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -912,7 +912,7 @@ This feature can be useful when adding value replay feature (in the future)</p>
 <li><p>time(<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): unix timestamp</p></li>
 </ul>
 </dd>
-<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils.autolog.time_ctl</span> <span class="kn">import</span> <span class="n">NaturalTime</span>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.autolog.time_ctl</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaturalTime</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span> <span class="o">=</span> <span class="n">NaturalTime</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 <span class="go">1603896383.8811457</span>
@@ -935,7 +935,7 @@ This feature can be useful when adding value replay feature (in the future)</p>
 </dd>
 <dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code></p>
 </dd>
-<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils.autolog.time_ctl</span> <span class="kn">import</span> <span class="n">TickTime</span>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.autolog.time_ctl</span><span class="w"> </span><span class="kn">import</span> <span class="n">TickTime</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span> <span class="o">=</span> <span class="n">TickTime</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -973,7 +973,7 @@ This feature can be useful when adding value replay feature (in the future)</p>
 <li><p>time (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): new time after stepping</p></li>
 </ul>
 </dd>
-<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils.autolog.time_ctl</span> <span class="kn">import</span> <span class="n">TickTime</span>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.autolog.time_ctl</span><span class="w"> </span><span class="kn">import</span> <span class="n">TickTime</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span> <span class="o">=</span> <span class="n">TickTime</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 <span class="go">1</span>
@@ -993,7 +993,7 @@ This feature can be useful when adding value replay feature (in the future)</p>
 </dd>
 <dt>Returns:</dt><dd><p>int: current tick time</p>
 </dd>
-<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils.autolog.time_ctl</span> <span class="kn">import</span> <span class="n">TickTime</span>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.autolog.time_ctl</span><span class="w"> </span><span class="kn">import</span> <span class="n">TickTime</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span> <span class="o">=</span> <span class="n">TickTime</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -1018,7 +1018,7 @@ This object is thread-safe, and also freeze and unfreeze operation is strictly o
 </dd>
 <dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">freeze</span></code>, <code class="docutils literal notranslate"><span class="pre">unfreeze</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">current_time</span></code></p>
 </dd>
-<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils.autolog.time_ctl</span> <span class="kn">import</span> <span class="n">TickTime</span><span class="p">,</span> <span class="n">TimeProxy</span>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.autolog.time_ctl</span><span class="w"> </span><span class="kn">import</span> <span class="n">TickTime</span><span class="p">,</span> <span class="n">TimeProxy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tick_time_</span> <span class="o">=</span> <span class="n">TickTime</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span> <span class="o">=</span> <span class="n">TimeProxy</span><span class="p">(</span><span class="n">tick_time_</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tick_time_</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
@@ -2917,7 +2917,7 @@ b'R      Hello.'
 <li><p>newdata (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Mapping[object,</span> <span class="pre">object],</span> <span class="pre">NamedTuple]</span></code>): A list of dicts as a result</p></li>
 </ul>
 </dd>
-<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="o">*</span>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">lists_to_dicts</span><span class="p">([{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">:</span> <span class="mi">4</span><span class="p">}])</span>
 <span class="go">{1: [1, 2], 10: [3, 4]}</span>
 </pre></div>
@@ -2943,7 +2943,7 @@ b'R      Hello.'
 <li><p>newdata (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Mapping[object,</span> <span class="pre">object]]</span></code>): A dict of lists as a result</p></li>
 </ul>
 </dd>
-<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="o">*</span>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dicts_to_lists</span><span class="p">({</span><span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">10</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]})</span>
 <span class="go">[{1: 1, 10: 3}, {1: 2, 10: 4}]</span>
 </pre></div>
@@ -3068,7 +3068,7 @@ b'R      Hello.'
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Used to checkfor Fakelink (Refer to utils.linklink_dist_helper.py)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">get_rank</span><span class="p">():</span>  <span class="c1"># Get the rank of linklink model, return 0 if use FakeLink.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">get_rank</span><span class="p">():</span>  <span class="c1"># Get the rank of linklink model, return 0 if use FakeLink.</span>
 <span class="gp">&gt;&gt;&gt; </span>   <span class="k">if</span> <span class="n">is_fake_link</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>       <span class="k">return</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span>   <span class="k">return</span> <span class="n">error_wrapper</span><span class="p">(</span><span class="n">link</span><span class="o">.</span><span class="n">get_rank</span><span class="p">,</span> <span class="mi">0</span><span class="p">)()</span>
@@ -5642,7 +5642,7 @@ and provides a register functions.</p>
 </pre></div>
 </div>
 </dd>
-<dt>Examples (registering: normal way):</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+<dt>Examples (registering: normal way):</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">foo</span><span class="p">():</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="o">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">some_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;foo_module&quot;</span><span class="p">,</span> <span class="n">foo</span><span class="p">)</span>
 </pre></div>
@@ -5650,7 +5650,7 @@ and provides a register functions.</p>
 </dd>
 <dt>Examples (registering: decorator way):</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@some_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;foo_module&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@some_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;foo_modeul_nickname&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">foo</span><span class="p">():</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="o">...</span>
 </pre></div>
 </div>
@@ -6349,7 +6349,7 @@ and sum_{j}leaf[j] &gt; <code class="docutils literal notranslate"><span class="
 </dd>
 <dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">run</span></code>, <code class="docutils literal notranslate"><span class="pre">join</span></code></p>
 </dd>
-<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">func</span><span class="p">():</span>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">func</span><span class="p">():</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">PropagatingThread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>

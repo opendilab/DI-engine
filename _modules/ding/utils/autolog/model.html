@@ -302,19 +302,19 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.utils.autolog.model</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABCMeta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_LOGGED_MODEL__PROPERTIES</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTY_ATTR_PREFIX</span><span class="p">,</span> <span class="n">_TimeType</span><span class="p">,</span> <span class="n">TimeMode</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_LOGGED_MODEL__PROPERTIES</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTY_ATTR_PREFIX</span><span class="p">,</span> <span class="n">_TimeType</span><span class="p">,</span> <span class="n">TimeMode</span><span class="p">,</span> \
     <span class="n">_LOGGED_VALUE__PROPERTY_NAME</span>
-<span class="kn">from</span> <span class="nn">.data</span> <span class="kn">import</span> <span class="n">TimeRangedData</span>
-<span class="kn">from</span> <span class="nn">.time_ctl</span> <span class="kn">import</span> <span class="n">BaseTime</span><span class="p">,</span> <span class="n">TimeProxy</span>
-<span class="kn">from</span> <span class="nn">.value</span> <span class="kn">import</span> <span class="n">LoggedValue</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeRangedData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.time_ctl</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseTime</span><span class="p">,</span> <span class="n">TimeProxy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.value</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggedValue</span>
 
 <span class="n">_TimeObjectType</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;_TimeObjectType&#39;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseTime</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">_LoggedModelMeta</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_LoggedModelMeta</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Metaclass of LoggedModel, used to find all LoggedValue properties and register them.</span>
@@ -322,7 +322,7 @@
 <span class="sd">        ``__init__``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bases</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">namespace</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bases</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">namespace</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">namespace</span><span class="p">)</span>
 
@@ -335,7 +335,7 @@
         <span class="nb">setattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTIES</span><span class="p">,</span> <span class="n">_properties</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="LoggedModel"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel">[docs]</a><span class="k">class</span> <span class="nc">LoggedModel</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">_LoggedModelMeta</span><span class="p">):</span>
+<div class="viewcode-block" id="LoggedModel"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LoggedModel</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">_LoggedModelMeta</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A model with timeline (integered time, such as 1st, 2nd, 3rd, can also be modeled as a kind</span>
@@ -394,7 +394,7 @@
 <span class="sd">        - expire (:obj:`float`): The expire time.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LoggedModel.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_</span><span class="p">:</span> <span class="n">_TimeObjectType</span><span class="p">,</span> <span class="n">expire</span><span class="p">:</span> <span class="n">_TimeType</span><span class="p">):</span>
+<div class="viewcode-block" id="LoggedModel.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_</span><span class="p">:</span> <span class="n">_TimeObjectType</span><span class="p">,</span> <span class="n">expire</span><span class="p">:</span> <span class="n">_TimeType</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the LoggedModel object using the given arguments.</span>
@@ -415,7 +415,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__register_default_funcs</span><span class="p">()</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">__properties</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__properties</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get all property names.</span>
@@ -423,7 +423,7 @@
 
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTIES</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__get_property_ranged_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeRangedData</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_property_ranged_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeRangedData</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get ranged data of one property.</span>
@@ -433,7 +433,7 @@
 
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTY_ATTR_PREFIX</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__init_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize all properties.</span>
@@ -445,7 +445,7 @@
                 <span class="n">TimeRangedData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="p">,</span> <span class="n">expire</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__expire</span><span class="p">)</span>
             <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__get_range_values_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_range_values_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get range_values function of one property.</span>
@@ -453,7 +453,7 @@
 <span class="sd">            - name (:obj:`str`): The property name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_func</span><span class="p">(</span><span class="n">mode</span><span class="p">:</span> <span class="n">TimeMode</span> <span class="o">=</span> <span class="n">TimeMode</span><span class="o">.</span><span class="n">RELATIVE_LIFECYCLE</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_func</span><span class="p">(</span><span class="n">mode</span><span class="p">:</span> <span class="n">TimeMode</span> <span class="o">=</span> <span class="n">TimeMode</span><span class="o">.</span><span class="n">RELATIVE_LIFECYCLE</span><span class="p">):</span>
             <span class="n">_current_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
             <span class="n">_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_property_ranged_data</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">history</span><span class="p">()</span>
 
@@ -472,7 +472,7 @@
 
         <span class="k">return</span> <span class="n">_func</span>
 
-    <span class="k">def</span> <span class="nf">__register_default_funcs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__register_default_funcs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Register default functions.</span>
@@ -482,7 +482,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">register_attribute_value</span><span class="p">(</span><span class="s1">&#39;range_values&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_range_values_func</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TimeObjectType</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TimeObjectType</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get original time object passed in, can execute method (such as step()) by this property.</span>
@@ -493,7 +493,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">expire</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TimeType</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expire</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TimeType</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get expire time</span>
@@ -503,7 +503,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expire</span>
 
-<div class="viewcode-block" id="LoggedModel.fixed_time"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.fixed_time">[docs]</a>    <span class="k">def</span> <span class="nf">fixed_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<div class="viewcode-block" id="LoggedModel.fixed_time"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.fixed_time">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fixed_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get fixed time (will be frozen time if time proxy is frozen)</span>
@@ -514,7 +514,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">time</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="LoggedModel.current_time"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.current_time">[docs]</a>    <span class="k">def</span> <span class="nf">current_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<div class="viewcode-block" id="LoggedModel.current_time"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.current_time">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">current_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get current time (real time that regardless of time proxy&#39;s frozen statement)</span>
@@ -524,7 +524,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">current_time</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="LoggedModel.freeze"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.freeze">[docs]</a>    <span class="k">def</span> <span class="nf">freeze</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="LoggedModel.freeze"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.freeze">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">freeze</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Freeze time proxy object.</span>
@@ -532,7 +532,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="LoggedModel.unfreeze"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.unfreeze">[docs]</a>    <span class="k">def</span> <span class="nf">unfreeze</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="LoggedModel.unfreeze"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.unfreeze">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">unfreeze</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Unfreeze time proxy object.</span>
@@ -540,7 +540,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">unfreeze</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="LoggedModel.register_attribute_value"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.register_attribute_value">[docs]</a>    <span class="k">def</span> <span class="nf">register_attribute_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<div class="viewcode-block" id="LoggedModel.register_attribute_value"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.register_attribute_value">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">register_attribute_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Register a new attribute for one of the values. Example can be found in overview of class.</span>
@@ -557,7 +557,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__prop2attr</span><span class="p">[</span><span class="n">property_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__prop2attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">property_name</span><span class="p">,</span> <span class="p">[])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__prop2attr</span><span class="p">[</span><span class="n">property_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Support all methods registered.</span>
@@ -575,9 +575,9 @@
         <span class="k">if</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__methods</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">_attributes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__methods</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
 
-            <span class="k">class</span> <span class="nc">_Cls</span><span class="p">:</span>
+            <span class="k">class</span><span class="w"> </span><span class="nc">_Cls</span><span class="p">:</span>
 
-                <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">property_name</span> <span class="ow">in</span> <span class="n">_attributes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                         <span class="k">return</span> <span class="n">_attributes</span><span class="p">[</span><span class="n">property_name</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
@@ -592,7 +592,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Attribute </span><span class="si">{name}</span><span class="s2"> not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">)))</span>
 
-<div class="viewcode-block" id="LoggedModel.get_property_attribute"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.get_property_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">get_property_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="LoggedModel.get_property_attribute"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.get_property_attribute">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_property_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Find all registered attributes (except common &quot;range_values&quot; attribute, since &quot;range_values&quot; is not</span>

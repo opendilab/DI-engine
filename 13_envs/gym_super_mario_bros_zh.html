@@ -327,9 +327,9 @@
 <section id="id5">
 <h3>验证安装<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <p>运行如下 Python 程序，如果没有报错则证明安装成功。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
-<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
-<span class="kn">from</span> <span class="nn">gym_super_mario_bros.actions</span> <span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">nes_py.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">JoypadSpace</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gym_super_mario_bros.actions</span><span class="w"> </span><span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">JoypadSpace</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">SIMPLE_MOVEMENT</span><span class="p">)</span>
 
@@ -587,11 +587,11 @@ Box<span class="o">([[[</span><span class="m">0</span><span class="w"> </span><s
 <section id="id15">
 <h3>录像保存<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h3>
 <p>采用 gym.wrappers.RecordVideo 类进行录像保存：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
-<span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
-<span class="kn">from</span> <span class="nn">gym_super_mario_bros.actions</span> <span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nes_py.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">JoypadSpace</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gym_super_mario_bros</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gym_super_mario_bros.actions</span><span class="w"> </span><span class="kn">import</span> <span class="n">SIMPLE_MOVEMENT</span>
 
 <span class="n">video_dir_path</span> <span class="o">=</span> <span class="s1">&#39;mario_videos&#39;</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym_super_mario_bros</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;SuperMarioBros-v0&#39;</span><span class="p">)</span>
@@ -622,7 +622,7 @@ Box<span class="o">([[[</span><span class="m">0</span><span class="w"> </span><s
 <section id="di-zoo">
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>下面提供一个完整的 gym-super-mario-bros 环境 config，采用 DQN 作为基线算法。请在<code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/mario</span></code> 目录下运行<code class="docutils literal notranslate"><span class="pre">mario_dqn_main.py</span></code> 文件。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="n">mario_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;mario_dqn_seed0&#39;</span><span class="p">,</span>

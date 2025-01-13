@@ -334,10 +334,10 @@
 <li><p>为新策略添加 <code class="docutils literal notranslate"><span class="pre">Registry</span></code> 装饰器 (decorator)。</p></li>
 </ol>
 <blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">POLICY_REGISTRY</span>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">POLICY_REGISTRY</span>
 
 <span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">DQNPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DQNPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
     <span class="k">pass</span>
 </pre></div>
 </div>
@@ -369,7 +369,7 @@
 <blockquote>
 <div><p>如果你想通过 DI-engine 的 <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code> 启动训练任务， 例如， 使用 CLI <code class="docutils literal notranslate"><span class="pre">ding</span> <span class="pre">-m</span> <span class="pre">XXX</span> <span class="pre">-c</span> <span class="pre">XXXX_config.py</span> <span class="pre">-s</span> <span class="pre">XX</span></code>, 或者调用 <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code>， 那么第 3 步可以忽略，因为这一步已经在 <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code> 函数中完成.
 但是，如果你想编写自己的入口文件，你可以调用 create_policy 函数来创建你的策略。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">create_policy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ding.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_policy</span>
 
 <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span>
 <span class="n">dqn_policy</span> <span class="o">=</span> <span class="n">create_policy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">)</span>

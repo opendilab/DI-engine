@@ -388,7 +388,7 @@ Furthermore, the ablation study from the experiments in the paper suggests that 
 </dd></dl>
 
 <p>The Bellman update of SQIL/SQL and the Q-value function update are defined in the function <code class="docutils literal notranslate"><span class="pre">q_nstep_sql_td_error</span></code> of <code class="docutils literal notranslate"><span class="pre">ding/rl_utils/td.py</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">q_nstep_sql_td_error</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">q_nstep_sql_td_error</span><span class="p">(</span>
       <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
       <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -448,9 +448,9 @@ Furthermore, the ablation study from the experiments in the paper suggests that 
 </pre></div>
 </div>
 <p>We use an epsilon-greedy strategy when implementing the SQIL/SQL policy.  How we pick actions is implemented in  <code class="docutils literal notranslate"><span class="pre">EpsGreedySampleWrapper_sql</span></code> of <code class="docutils literal notranslate"><span class="pre">ding/model/wrappers/model_wrappers.py</span></code></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">EpsGreedySampleWrapperSql</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">EpsGreedySampleWrapperSql</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 
-   <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+   <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
       <span class="n">eps</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;eps&#39;</span><span class="p">)</span>
       <span class="n">alpha</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">)</span>
       <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
