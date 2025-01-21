@@ -265,12 +265,17 @@ class VAC(nn.Module):
             >>> assert actor_outputs['logit'].shape == torch.Size([4, 64])
         """
         if self.share_encoder:
-            x = self.encoder(x)
+            # import ipdb;ipdb.set_trace()
+            # x = self.encoder(x)
+            action_mask = x['action_mask']
+            x = self.encoder(x['observation'])
         else:
             x = self.actor_encoder(x)
 
         if self.action_space == 'discrete':
-            return self.actor_head(x)
+            # return self.actor_head(x)
+            # import ipdb;ipdb.set_trace()
+            return  {'logit': self.actor_head(x)['logit'], 'action_mask': action_mask}
         elif self.action_space == 'continuous':
             x = self.actor_head(x)  # mu, sigma
             return {'logit': x}
@@ -299,7 +304,9 @@ class VAC(nn.Module):
             >>> assert critic_outputs['value'].shape == torch.Size([4])
         """
         if self.share_encoder:
-            x = self.encoder(x)
+            # x = self.encoder(x)
+            # action_mask = x['action_mask']
+            x = self.encoder(x['observation'])
         else:
             x = self.critic_encoder(x)
         x = self.critic_head(x)
@@ -339,7 +346,9 @@ class VAC(nn.Module):
             dict output.
         """
         if self.share_encoder:
-            actor_embedding = critic_embedding = self.encoder(x)
+            action_mask = x['action_mask']
+            actor_embedding = critic_embedding = self.encoder(x['observation'])
+            # actor_embedding = critic_embedding = self.encoder(x)
         else:
             actor_embedding = self.actor_encoder(x)
             critic_embedding = self.critic_encoder(x)
@@ -348,7 +357,8 @@ class VAC(nn.Module):
 
         if self.action_space == 'discrete':
             logit = self.actor_head(actor_embedding)['logit']
-            return {'logit': logit, 'value': value}
+            # return {'logit': logit, 'value': value}
+            return {'logit': logit, 'action_mask': action_mask, 'value': value}
         elif self.action_space == 'continuous':
             x = self.actor_head(actor_embedding)
             return {'logit': x, 'value': value}
