@@ -6,7 +6,8 @@ from vllm import AsyncLLMEngine, AsyncEngineArgs, SamplingParams, RequestOutput
 
 
 class VllmActor:
-    def __init__(self, model_path: str,mm_processor_kwargs: dict) -> None:
+
+    def __init__(self, model_path: str, mm_processor_kwargs: dict) -> None:
         """
         Overview:
             Initialize the vLLM actor. For more details, please refer to https://docs.vllm.ai/en/stable.
@@ -19,7 +20,7 @@ class VllmActor:
         # Set CUDA_VISIBLE_DEVICES to use only free GPUs
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, self.free_gpus))
         self.model_path = model_path
-        self.mm_processor_kwargs=mm_processor_kwargs
+        self.mm_processor_kwargs = mm_processor_kwargs
         self._initialize()
 
     def get_free_gpus(self) -> List[int]:
@@ -31,7 +32,8 @@ class VllmActor:
         """
         try:
             # Get GPU memory usage using nvidia-smi
-            gpu_stats = os.popen('nvidia-smi --query-gpu=memory.used,memory.total --format=csv,nounits,noheader').readlines()
+            gpu_stats = os.popen('nvidia-smi --query-gpu=memory.used,memory.total --format=csv,nounits,noheader')\
+                .readlines()
             free_gpus = []
 
             for gpu_id, stats in enumerate(gpu_stats):
@@ -81,7 +83,7 @@ class VllmActor:
             max_tokens=max_tokens,
             temperature=temperature,
         )
-        
+
         # Using async iterator to handle vLLM's generation process
         # 1. vLLM's generate method is asynchronous to prevent blocking while waiting for model outputs
         # 2. async for allows streaming the generated outputs incrementally instead of waiting for all results
@@ -100,10 +102,16 @@ class HuggingFaceModelGenerator:
         A LLM/VLM generator that uses Hugging Face models with vLLM as the backend.
     """
 
-    def __init__(self, model_path: str, max_tokens: int = 1024, temperature: float = 0, mm_processor_kwargs:dict = {
+    def __init__(
+            self,
+            model_path: str,
+            max_tokens: int = 1024,
+            temperature: float = 0,
+            mm_processor_kwargs: dict = {
                 "min_pixels": 28 * 28,
                 "max_pixels": 1280 * 28 * 28,
-            }) -> None:
+            }
+    ) -> None:
         """
         Overview:
             Initialize the Hugging Face model generator.
@@ -112,14 +120,14 @@ class HuggingFaceModelGenerator:
             - max_tokens (int): The maximum number of tokens to generate, default to 1024.
             - temperature (float): The temperature for the language model, default to 0.
         """
-        self.vllm_actor = VllmActor(model_path,mm_processor_kwargs)
+        self.vllm_actor = VllmActor(model_path, mm_processor_kwargs)
         self.max_tokens = max_tokens
         self.temperature = temperature
 
     async def generate(
-        self,
-        prompt,
-        num_samples: int,
+            self,
+            prompt,
+            num_samples: int,
     ) -> List[Tuple[str, float]]:
         """
         Overview:
@@ -136,8 +144,4 @@ class HuggingFaceModelGenerator:
         response = await self.vllm_actor.generate(prompt, num_samples, self.max_tokens, self.temperature)
         # Use raw logprobs as confidence scores
         confidence_scores = [x.cumulative_logprob for x in response.outputs]
-        return [
-            (x.text.strip(), conf)
-            for x, conf in zip(response.outputs, confidence_scores)
-        ]
-        
+        return [(x.text.strip(), conf) for x, conf in zip(response.outputs, confidence_scores)]
