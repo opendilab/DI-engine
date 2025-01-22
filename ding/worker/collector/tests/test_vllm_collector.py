@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import os
 import uuid
 from loguru import logger
@@ -9,11 +9,16 @@ from vllm.assets.image import ImageAsset
 # note that HFModelGenerator has a parameter "mm_processor_kwargs" set to align with the settings of Qwen in default
 model = HuggingFaceModelGenerator('/mnt/afs/share/Qwen2-VL-7B', temperature=0.5)
 
+from enum import Enum
+class Modality(Enum):
+    IMAGE = "image"
+    TEXT = "text"
+    VIDEO = "video"
 
-def get_prompts_qwen(questions: list, modality: str):
-    if modality == "image":
+def get_prompts_qwen(questions: list, modality: Modality) -> Tuple[List[str],Optional[List[int]]]:    
+    if modality == Modality.IMAGE:
         placeholder = "<|image_pad|>"
-    elif modality == "video":
+    elif modality == Modality.VIDEO:
         placeholder = "<|video_pad|>"
     else:
         msg = f"Modality {modality} is not supported."
@@ -28,17 +33,17 @@ def get_prompts_qwen(questions: list, modality: str):
         ) for question in questions
     ]
     stop_token_ids = None
-    return prompts, stop_token_ids
+    return prompts,stop_token_ids
 
 
-def get_multi_modal_input(modality: str, filenames: list, questions: list):
+def get_multi_modal_input(modality: Modality, filenames: list, questions: list) -> dict:
     """
     return {
         "data": image or video,
         "question": question,
     }
     """
-    if modality == "image":
+    if modality == Modality.IMAGE:
         # Input image and question
         ret = {'data': [], 'question': []}
         for filename, question in zip(filenames, questions):
@@ -65,16 +70,11 @@ img_names = [
 
 num_prompts = len(questions)
 image_repeat_prob = None
-from enum import Enum
 
 
-class Modality(Enum):
-    IMAGE = 'image'
-    TEXT = 'text'
-    VIDEO = 'video'
 
 
-modality = Modality.IMAGE.value
+modality = Modality.IMAGE
 
 mm_input = get_multi_modal_input(modality, img_names, questions)
 data = mm_input["data"]
@@ -87,7 +87,7 @@ nest_asyncio.apply()
 
 
 async def main():
-    inputs = [{"prompt": prompt, "multi_modal_data": {modality: data}} for prompt, data in zip(prompts, data)]
+    inputs = [{"prompt": prompt, "multi_modal_data": {modality.value: data}} for prompt, data in zip(prompts, data)]
     # generate responses
     for in_data in inputs:
         responses = await model.generate(prompt=in_data, num_samples=3)
