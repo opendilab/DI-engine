@@ -6,7 +6,8 @@ from vllm import AsyncLLMEngine, AsyncEngineArgs, SamplingParams, RequestOutput
 
 
 class VllmActor:
-    def __init__(self, model_path: str,mm_processor_kwargs: dict,free_gpus:list) -> None:
+
+    def __init__(self, model_path: str, mm_processor_kwargs: dict, free_gpus: list) -> None:
         """
         Overview:
             Initialize the vLLM actor. For more details, please refer to https://docs.vllm.ai/en/stable.
@@ -19,7 +20,7 @@ class VllmActor:
         # Set CUDA_VISIBLE_DEVICES to use only free GPUs
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, self.free_gpus))
         self.model_path = model_path
-        self.mm_processor_kwargs=mm_processor_kwargs
+        self.mm_processor_kwargs = mm_processor_kwargs
         self._initialize()
 
     def _initialize(self) -> None:
@@ -58,7 +59,7 @@ class VllmActor:
             max_tokens=max_tokens,
             temperature=temperature,
         )
-        
+
         # Using async iterator to handle vLLM's generation process
         # 1. vLLM's generate method is asynchronous to prevent blocking while waiting for model outputs
         # 2. async for allows streaming the generated outputs incrementally instead of waiting for all results
@@ -77,11 +78,17 @@ class HuggingFaceModelGenerator:
         A LLM/VLM generator that uses Hugging Face models with vLLM as the backend.
     """
 
-    def __init__(self, model_path: str, free_gpus:list, 
-                 max_tokens: int = 1024, temperature: float = 0, mm_processor_kwargs:dict = {
+    def __init__(
+            self,
+            model_path: str,
+            free_gpus: list,
+            max_tokens: int = 1024,
+            temperature: float = 0,
+            mm_processor_kwargs: dict = {
                 "min_pixels": 28 * 28,
                 "max_pixels": 1280 * 28 * 28,
-            }) -> None:
+            }
+    ) -> None:
         """
         Overview:
             Initialize the Hugging Face model generator.
@@ -90,14 +97,14 @@ class HuggingFaceModelGenerator:
             - max_tokens (int): The maximum number of tokens to generate, default to 1024.
             - temperature (float): The temperature for the language model, default to 0.
         """
-        self.vllm_actor = VllmActor(model_path,mm_processor_kwargs,free_gpus)
+        self.vllm_actor = VllmActor(model_path, mm_processor_kwargs, free_gpus)
         self.max_tokens = max_tokens
         self.temperature = temperature
 
     async def generate(
-        self,
-        prompt,
-        num_samples: int,
+            self,
+            prompt,
+            num_samples: int,
     ) -> List[Tuple[str, float]]:
         """
         Overview:
@@ -114,11 +121,8 @@ class HuggingFaceModelGenerator:
         response = await self.vllm_actor.generate(prompt, num_samples, self.max_tokens, self.temperature)
         # Use raw logprobs as confidence scores
         confidence_scores = [x.cumulative_logprob for x in response.outputs]
-        return [
-            (x.text.strip(), conf)
-            for x, conf in zip(response.outputs, confidence_scores)
-        ]
-        
+        return [(x.text.strip(), conf) for x, conf in zip(response.outputs, confidence_scores)]
+
 
 def get_free_gpus() -> List[int]:
     """
@@ -144,7 +148,8 @@ def get_free_gpus() -> List[int]:
         logger.warning("Failed to get GPU stats, defaulting to GPU 0")
         return [0]
 
-def chunk_list(original_list:list, t:int) -> List[list]:
+
+def chunk_list(original_list: list, t: int) -> List[list]:
     # chunk the list into sub_lists
     new_list = [original_list[i:i + t] for i in range(0, len(original_list), t)]
     return new_list
@@ -156,12 +161,15 @@ from loguru import logger
 from vllm.assets.image import ImageAsset
 from enum import Enum
 import concurrent.futures
+
+
 class Modality(Enum):
     IMAGE = "image"
     TEXT = "text"
     VIDEO = "video"
 
-def get_prompts_qwen(questions: list, modality: Modality) -> Tuple[List[str],Optional[List[int]]]:    
+
+def get_prompts_qwen(questions: list, modality: Modality) -> Tuple[List[str], Optional[List[int]]]:
     if modality == Modality.IMAGE:
         placeholder = "<|image_pad|>"
     elif modality == Modality.VIDEO:
@@ -179,7 +187,7 @@ def get_prompts_qwen(questions: list, modality: Modality) -> Tuple[List[str],Opt
         ) for question in questions
     ]
     stop_token_ids = None
-    return prompts,stop_token_ids
+    return prompts, stop_token_ids
 
 
 def get_multi_modal_input(modality: Modality, filenames: list, questions: list) -> dict:
@@ -205,11 +213,11 @@ def get_multi_modal_input(modality: Modality, filenames: list, questions: list) 
     return ret
 
 
-async def run_vllm_collector(gpu_id:int, prompts:List, model_path:str,temperature:float) ->List[str]:
+async def run_vllm_collector(gpu_id: int, prompts: List, model_path: str, temperature: float) -> List[str]:
     # set visible gpu
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
     # get a model on a single gpu
-    model = HuggingFaceModelGenerator(model_path,free_gpus=[gpu_id],temperature=temperature) 
+    model = HuggingFaceModelGenerator(model_path, free_gpus=[gpu_id], temperature=temperature)
 
     responses_list = []
     for prompt in prompts:
@@ -220,21 +228,25 @@ async def run_vllm_collector(gpu_id:int, prompts:List, model_path:str,temperatur
 
     return responses_list
 
+
 import asyncio
-def start_collector(gpu_id:int, prompts:list, model_path:str,temperature:float) ->List[str]:
-    # event loop in a process 
-    results = asyncio.run(run_vllm_collector(gpu_id, prompts, model_path,temperature))
+
+
+def start_collector(gpu_id: int, prompts: list, model_path: str, temperature: float) -> List[str]:
+    # event loop in a process
+    results = asyncio.run(run_vllm_collector(gpu_id, prompts, model_path, temperature))
     return results
 
-def main(prompts:list, model_path:str,  free_gpus:List[int],temperature:float) -> None:
-    num_tot=len(prompts)
-    num_gpu=len(free_gpus)
-    num_per_gpu=num_tot//num_gpu
-    prompts_per_gpu=chunk_list(prompts,num_per_gpu)
+
+def main(prompts: list, model_path: str, free_gpus: List[int], temperature: float) -> None:
+    num_tot = len(prompts)
+    num_gpu = len(free_gpus)
+    num_per_gpu = num_tot // num_gpu
+    prompts_per_gpu = chunk_list(prompts, num_per_gpu)
     with concurrent.futures.ProcessPoolExecutor(max_workers=len(free_gpus)) as executor:
         futures = []
-        for gpu_id,prompts_gpu in zip(free_gpus,prompts_per_gpu):
-            futures.append(executor.submit(start_collector, gpu_id, prompts_gpu, model_path,temperature))
+        for gpu_id, prompts_gpu in zip(free_gpus, prompts_per_gpu):
+            futures.append(executor.submit(start_collector, gpu_id, prompts_gpu, model_path, temperature))
 
         # get all results
         all_results = []
@@ -245,23 +257,19 @@ def main(prompts:list, model_path:str,  free_gpus:List[int],temperature:float) -
     with open("/mnt/afs/wangqijian/tests/vllm_multi_gpu.txt", "w") as f:
         for response in all_results:
             f.write(f"{response}\n")
-            
-
 
 
 if __name__ == "__main__":
-    questions=['Please describe the image.','Please describe the image.',
-               'What\'s the text in the image?','What\'s the text in the image?',
-             'What is in the image?','What is in the image?',
-             'How many people are in the image?','How many people are in the image?',
-             'What is the emotion of the main character of the image?',
-             'What is the emotion of the main character of the image?',
-             'How many animals are in the image?',
-             'How many animals are in the image?',
-             'What is the place of the image?','What is the place of the image?',
-             'What is the peroson doing?','What is the peroson doing?'
-             ]
-    img_names=[
+    questions = [
+        'Please describe the image.', 'Please describe the image.', 'What\'s the text in the image?',
+        'What\'s the text in the image?', 'What is in the image?', 'What is in the image?',
+        'How many people are in the image?', 'How many people are in the image?',
+        'What is the emotion of the main character of the image?',
+        'What is the emotion of the main character of the image?', 'How many animals are in the image?',
+        'How many animals are in the image?', 'What is the place of the image?', 'What is the place of the image?',
+        'What is the peroson doing?', 'What is the peroson doing?'
+    ]
+    img_names = [
         '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(2127)',
         '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(5394)',
         '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(1160)',
@@ -278,13 +286,13 @@ if __name__ == "__main__":
         '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(2284)',
         '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(4533)',
         '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(5495)'
-            ]
-    free_gpus=get_free_gpus()
+    ]
+    free_gpus = get_free_gpus()
     modality = Modality.IMAGE
     mm_input = get_multi_modal_input(modality, img_names, questions)
     data = mm_input["data"]
     question = mm_input["question"]
     prompts, stop_token_ids = get_prompts_qwen(question, modality)
-    model_path='/mnt/afs/share/Qwen2-VL-7B'
-    temperature=0.5
-    main(prompts,model_path,free_gpus,temperature)
+    model_path = '/mnt/afs/share/Qwen2-VL-7B'
+    temperature = 0.5
+    main(prompts, model_path, free_gpus, temperature)
