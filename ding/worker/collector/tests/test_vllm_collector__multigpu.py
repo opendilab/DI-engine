@@ -77,7 +77,8 @@ class HuggingFaceModelGenerator:
         A LLM/VLM generator that uses Hugging Face models with vLLM as the backend.
     """
 
-    def __init__(self, model_path: str, free_gpus:list, max_tokens: int = 1024, temperature: float = 0, mm_processor_kwargs:dict = {
+    def __init__(self, model_path: str, free_gpus:list, 
+                 max_tokens: int = 1024, temperature: float = 0, mm_processor_kwargs:dict = {
                 "min_pixels": 28 * 28,
                 "max_pixels": 1280 * 28 * 28,
             }) -> None:
@@ -120,31 +121,31 @@ class HuggingFaceModelGenerator:
         
 
 def get_free_gpus() -> List[int]:
-        """
-        Overview:
-            Get IDs of GPUs with free memory.
-        Returns:
-            - List[int]: The IDs of the free GPUs.
-        """
-        try:
-            # Get GPU memory usage using nvidia-smi
-            gpu_stats = os.popen('nvidia-smi --query-gpu=memory.used,memory.total --format=csv,nounits,noheader')\
-                .readlines()
-            free_gpus = []
+    """
+    Overview:
+        Get IDs of GPUs with free memory.
+    Returns:
+        - List[int]: The IDs of the free GPUs.
+    """
+    try:
+        # Get GPU memory usage using nvidia-smi
+        gpu_stats = os.popen('nvidia-smi --query-gpu=memory.used,memory.total --format=csv,nounits,noheader')\
+            .readlines()
+        free_gpus = []
 
-            for gpu_id, stats in enumerate(gpu_stats):
-                mem_used, mem_total = map(int, stats.strip().split(','))
-                # Consider GPU as free if less than 5% memory is used
-                if mem_used / mem_total < 0.05:
-                    free_gpus.append(gpu_id)
+        for gpu_id, stats in enumerate(gpu_stats):
+            mem_used, mem_total = map(int, stats.strip().split(','))
+            # Consider GPU as free if less than 5% memory is used
+            if mem_used / mem_total < 0.05:
+                free_gpus.append(gpu_id)
 
-            return free_gpus if free_gpus else [0]  # Default to GPU 0 if no free GPUs found
-        except Exception:
-            logger.warning("Failed to get GPU stats, defaulting to GPU 0")
-            return [0]
+        return free_gpus if free_gpus else [0]  # Default to GPU 0 if no free GPUs found
+    except Exception:
+        logger.warning("Failed to get GPU stats, defaulting to GPU 0")
+        return [0]
 
-def chunk_list(original_list, t):
-    # 使用列表推导式和切片
+def chunk_list(original_list:list, t:int) -> List[list]:
+    # chunk the list into sub_lists
     new_list = [original_list[i:i + t] for i in range(0, len(original_list), t)]
     return new_list
 
@@ -204,11 +205,11 @@ def get_multi_modal_input(modality: Modality, filenames: list, questions: list) 
     return ret
 
 
-async def run_vllm_collector(gpu_id, prompts, model_path,temperature):
-    # 设置当前进程的可用GPU
+async def run_vllm_collector(gpu_id:int, prompts:List, model_path:str,temperature:float) ->List[str]:
+    # set visible gpu
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
-    
-    model = HuggingFaceModelGenerator(model_path,free_gpus=[gpu_id],temperature=temperature)  # 实例化模型
+    # get a model on a single gpu
+    model = HuggingFaceModelGenerator(model_path,free_gpus=[gpu_id],temperature=temperature) 
 
     responses_list = []
     for prompt in prompts:
@@ -220,13 +221,12 @@ async def run_vllm_collector(gpu_id, prompts, model_path,temperature):
     return responses_list
 
 import asyncio
-import nest_asyncio
-def start_collector(gpu_id, prompts, model_path,temperature):
-    # 在每个进程中运行事件循环
+def start_collector(gpu_id:int, prompts:list, model_path:str,temperature:float) ->List[str]:
+    # event loop in a process 
     results = asyncio.run(run_vllm_collector(gpu_id, prompts, model_path,temperature))
     return results
 
-def main(prompts, model_path,  free_gpus,temperature):
+def main(prompts:list, model_path:str,  free_gpus:List[int],temperature:float) -> None:
     num_tot=len(prompts)
     num_gpu=len(free_gpus)
     num_per_gpu=num_tot//num_gpu
@@ -236,12 +236,12 @@ def main(prompts, model_path,  free_gpus,temperature):
         for gpu_id,prompts_gpu in zip(free_gpus,prompts_per_gpu):
             futures.append(executor.submit(start_collector, gpu_id, prompts_gpu, model_path,temperature))
 
-        # 收集所有结果
+        # get all results
         all_results = []
         for future in concurrent.futures.as_completed(futures):
             all_results.extend(future.result())
 
-    # 保存结果的逻辑
+    # save results
     with open("/mnt/afs/wangqijian/tests/vllm_multi_gpu.txt", "w") as f:
         for response in all_results:
             f.write(f"{response}\n")
@@ -252,19 +252,32 @@ def main(prompts, model_path,  free_gpus,temperature):
 if __name__ == "__main__":
     questions=['Please describe the image.','Please describe the image.',
                'What\'s the text in the image?','What\'s the text in the image?',
-             'What is in the image?','What is in the image?','How many people are in the image?','How many people are in the image?',
-             'What is the emotion of the main character of the image?','What is the emotion of the main character of the image?',
-             'How many animals are in the image?','How many animals are in the image?',
-             'What is the place of the image?','What is the place of the image?','What is the peroson doing?','What is the peroson doing?'
+             'What is in the image?','What is in the image?',
+             'How many people are in the image?','How many people are in the image?',
+             'What is the emotion of the main character of the image?',
+             'What is the emotion of the main character of the image?',
+             'How many animals are in the image?',
+             'How many animals are in the image?',
+             'What is the place of the image?','What is the place of the image?',
+             'What is the peroson doing?','What is the peroson doing?'
              ]
-    img_names=['/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(2127)','/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(5394)',
-        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(1160)','/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(4956)',
-        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(2212)','/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(3387)',
-        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(4086)','/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(4384)',
-        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(5000)','/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(1237)',
-        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(766)','/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(6031)',
-        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(6)','/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(2284)',
-        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(4533)','/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(5495)'
+    img_names=[
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(2127)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(5394)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(1160)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(4956)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(2212)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(3387)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(4086)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(4384)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(5000)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(1237)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(766)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(6031)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(6)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(2284)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(4533)',
+        '/mnt/afs/niuyazhe/data/meme/data/Cimages/Cimages/Cimages/Image_(5495)'
             ]
     free_gpus=get_free_gpus()
     modality = Modality.IMAGE
