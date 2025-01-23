@@ -22,6 +22,11 @@ def test_check_array_space():
     discrete_array = np.array(11, dtype=np.int64)
     with pytest.raises(AssertionError):
         check_array_space(discrete_array, discrete_space, 'test_discrete')
+
+    multi_discrete_space = gym.spaces.MultiDiscrete([2, 3])
+    multi_discrete_array = np.array([1, 2], dtype=np.int64)
+    check_array_space(multi_discrete_array, multi_discrete_space, 'test_multi_discrete')
+
     seq_array = (np.array([1, 2, 3], dtype=np.int64), np.array([4., 5., 6.], dtype=np.float32))
     seq_space = [gym.spaces.Box(low=0, high=10, shape=(3, ), dtype=np.int64) for _ in range(2)]
     with pytest.raises(AssertionError):
