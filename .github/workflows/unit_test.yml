@@ -11,7 +11,7 @@ jobs:
     if: ( !contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'ut skip'))
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: ['3.8', '3.9', '3.10']
 
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: ['3.8', '3.9', '3.10']
 
     steps:
       - uses: actions/checkout@v4
