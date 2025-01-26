@@ -1,9 +1,8 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import os
 import uuid
 from loguru import logger
 from vllm import AsyncLLMEngine, AsyncEngineArgs, SamplingParams, RequestOutput
-from typing import List, Tuple, Optional
 from vllm.assets.image import ImageAsset
 from enum import Enum
 import concurrent.futures
