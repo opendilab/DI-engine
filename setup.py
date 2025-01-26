@@ -79,7 +79,8 @@ setup(
         'redis',  # parallel
         'mpire>=2.3.5',  # parallel
         'einops',
-        'loguru'
+        'loguru',
+        'vllm'
     ],
     extras_require={
         'test': [
