@@ -10,12 +10,15 @@ from vllm.assets.image import ImageAsset
 model = HuggingFaceModelGenerator('/mnt/afs/share/Qwen2-VL-7B', temperature=0.5)
 
 from enum import Enum
+
+
 class Modality(Enum):
     IMAGE = "image"
     TEXT = "text"
     VIDEO = "video"
 
-def get_prompts_qwen(questions: list, modality: Modality) -> Tuple[List[str],Optional[List[int]]]:    
+
+def get_prompts_qwen(questions: list, modality: Modality) -> Tuple[List[str], Optional[List[int]]]:
     if modality == Modality.IMAGE:
         placeholder = "<|image_pad|>"
     elif modality == Modality.VIDEO:
@@ -33,7 +36,7 @@ def get_prompts_qwen(questions: list, modality: Modality) -> Tuple[List[str],Opt
         ) for question in questions
     ]
     stop_token_ids = None
-    return prompts,stop_token_ids
+    return prompts, stop_token_ids
 
 
 def get_multi_modal_input(modality: Modality, filenames: list, questions: list) -> dict:
@@ -70,9 +73,6 @@ img_names = [
 
 num_prompts = len(questions)
 image_repeat_prob = None
-
-
-
 
 modality = Modality.IMAGE
 
