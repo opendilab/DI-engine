@@ -4,12 +4,12 @@ import uuid
 from loguru import logger
 from ..vllm_collector import HuggingFaceModelGenerator
 from vllm.assets.image import ImageAsset
-
+from enum import Enum
+import asyncio
+import nest_asyncio
 # set a temperature > 0 to get multiple responses
 # note that HFModelGenerator has a parameter "mm_processor_kwargs" set to align with the settings of Qwen in default
 model = HuggingFaceModelGenerator('/mnt/afs/share/Qwen2-VL-7B', temperature=0.5)
-
-from enum import Enum
 
 
 class Modality(Enum):
@@ -81,8 +81,6 @@ data = mm_input["data"]
 question = mm_input["question"]
 prompts, stop_token_ids = get_prompts_qwen(question, modality)
 
-import asyncio
-import nest_asyncio
 nest_asyncio.apply()
 
 
