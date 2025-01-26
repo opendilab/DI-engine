@@ -3,6 +3,11 @@ import os
 import uuid
 from loguru import logger
 from vllm import AsyncLLMEngine, AsyncEngineArgs, SamplingParams, RequestOutput
+from typing import List, Tuple, Optional
+from vllm.assets.image import ImageAsset
+from enum import Enum
+import concurrent.futures
+import asyncio
 
 
 class VllmActor:
@@ -155,14 +160,6 @@ def chunk_list(original_list: list, t: int) -> List[list]:
     return new_list
 
 
-from typing import List, Tuple, Optional
-import os
-from loguru import logger
-from vllm.assets.image import ImageAsset
-from enum import Enum
-import concurrent.futures
-
-
 class Modality(Enum):
     IMAGE = "image"
     TEXT = "text"
@@ -227,9 +224,6 @@ async def run_vllm_collector(gpu_id: int, prompts: List, model_path: str, temper
             print(f"[GPU {gpu_id}] Response: {response}")
 
     return responses_list
-
-
-import asyncio
 
 
 def start_collector(gpu_id: int, prompts: list, model_path: str, temperature: float) -> List[str]:
