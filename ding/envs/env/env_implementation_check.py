@@ -24,38 +24,37 @@ def check_space_dtype(env: 'BaseEnv') -> None:
 
 
 # Util function
-def check_array_space(ndarray: Union[np.ndarray, Sequence, Dict], space: Union['Space', Dict], name: str) -> None:
-    if isinstance(ndarray, np.ndarray):
+def check_array_space(data: Union[np.ndarray, Sequence, Dict], space: Union['Space', Dict], name: str) -> None:
+    if isinstance(data, np.ndarray):
         # print("{}'s type should be np.ndarray".format(name))
-        assert ndarray.dtype == space.dtype, "{}'s dtype is {}, but requires {}".format(
-            name, ndarray.dtype, space.dtype
-        )
-        assert ndarray.shape == space.shape, "{}'s shape is {}, but requires {}".format(
-            name, ndarray.shape, space.shape
-        )
+        assert data.dtype == space.dtype, "{}'s dtype is {}, but requires {}".format(name, data.dtype, space.dtype)
+        assert data.shape == space.shape, "{}'s shape is {}, but requires {}".format(name, data.shape, space.shape)
         if isinstance(space, Box):
-            assert (space.low <= ndarray).all() and (ndarray <= space.high).all(
-            ), "{}'s value is {}, but requires in range ({},{})".format(name, ndarray, space.low, space.high)
+            assert (space.low <= data).all() and (data <= space.high).all(
+            ), "{}'s value is {}, but requires in range ({},{})".format(name, data, space.low, space.high)
         elif isinstance(space, (Discrete, MultiDiscrete, MultiBinary)):
-            print(space.start, space.n)
-            assert (ndarray >= space.start) and (ndarray <= space.n)
-    elif isinstance(ndarray, Sequence):
-        for i in range(len(ndarray)):
+            if isinstance(space, Discrete):
+                assert (data >= space.start) and (data <= space.n)
+            else:
+                assert (data >= 0).all()
+                assert all([d < n for d, n in zip(data, space.nvec)])
+    elif isinstance(data, Sequence):
+        for i in range(len(data)):
             try:
-                check_array_space(ndarray[i], space[i], name)
+                check_array_space(data[i], space[i], name)
             except AssertionError as e:
                 print("The following error happens at {}-th index".format(i))
                 raise e
-    elif isinstance(ndarray, dict):
-        for k in ndarray.keys():
+    elif isinstance(data, dict):
+        for k in data.keys():
             try:
-                check_array_space(ndarray[k], space[k], name)
+                check_array_space(data[k], space[k], name)
             except AssertionError as e:
                 print("The following  error happens at key {}".format(k))
                 raise e
     else:
         raise TypeError(
-            "Input array should be np.ndarray or sequence/dict of np.ndarray, but found {}".format(type(ndarray))
+            "Input array should be np.ndarray or sequence/dict of np.ndarray, but found {}".format(type(data))
         )
 
 
