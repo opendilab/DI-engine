@@ -290,7 +290,6 @@ class NGUPolicy(Policy):
                     'action': data['burnin_nstep_action'],
                     'reward': data['burnin_nstep_reward'],
                     'beta': data['burnin_nstep_beta'],
-
                 }
                 tmp = self._learn_model.forward(
                     inputs, saved_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
@@ -304,7 +303,6 @@ class NGUPolicy(Policy):
             'action': data['main_action'],
             'reward': data['main_reward'],
             'beta': data['main_beta'],
-
         }
         self._learn_model.reset(data_id=None, state=tmp['saved_state'][0])
         q_value = self._learn_model.forward(inputs)['logit']
@@ -317,7 +315,6 @@ class NGUPolicy(Policy):
             'action': data['target_action'],
             'reward': data['target_reward'],
             'beta': data['target_beta'],
-
         }
         with torch.no_grad():
             target_q_value = self._target_model.forward(next_inputs)['logit']

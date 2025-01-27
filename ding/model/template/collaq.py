@@ -411,27 +411,20 @@ class CollaQ(nn.Module):
         agent_alone_state = agent_alone_state.reshape(T, -1, *agent_alone_state.shape[3:])
         agent_alone_padding_state = agent_alone_padding_state.reshape(T, -1, *agent_alone_padding_state.shape[3:])
 
-        colla_output = self._q_network(
-            {
-                'obs': agent_state,
-                'prev_state': colla_prev_state,
-
-            }
-        )
+        colla_output = self._q_network({
+            'obs': agent_state,
+            'prev_state': colla_prev_state,
+        })
         colla_alone_output = self._q_network(
             {
                 'obs': agent_alone_padding_state,
                 'prev_state': colla_alone_prev_state,
-
             }
         )
-        alone_output = self._q_alone_network(
-            {
-                'obs': agent_alone_state,
-                'prev_state': alone_prev_state,
-
-            }
-        )
+        alone_output = self._q_alone_network({
+            'obs': agent_alone_state,
+            'prev_state': alone_prev_state,
+        })
 
         agent_alone_q, alone_next_state = alone_output['logit'], alone_output['next_state']
         agent_colla_alone_q, colla_alone_next_state = colla_alone_output['logit'], colla_alone_output['next_state']
