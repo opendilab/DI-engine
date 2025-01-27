@@ -177,7 +177,6 @@ class WQMix(nn.Module):
                 {
                     'obs': agent_state,
                     'prev_state': prev_state,
-                    'enable_fast_timestep': True
                 }
             )  # here is the forward pass of the agent networks of Q_star
             agent_q, next_state = output['logit'], output['next_state']
@@ -223,7 +222,6 @@ class WQMix(nn.Module):
                 {
                     'obs': agent_state,
                     'prev_state': prev_state,
-                    'enable_fast_timestep': True
                 }
             )  # here is the forward pass of the agent networks of Q
             agent_q, next_state = output['logit'], output['next_state']

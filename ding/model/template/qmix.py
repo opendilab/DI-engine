@@ -227,7 +227,7 @@ class QMix(nn.Module):
         ), '{}-{}-{}-{}'.format([type(p) for p in prev_state], B, A, len(prev_state[0]))
         prev_state = reduce(lambda x, y: x + y, prev_state)
         agent_state = agent_state.reshape(T, -1, *agent_state.shape[3:])
-        output = self._q_network({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True})
+        output = self._q_network({'obs': agent_state, 'prev_state': prev_state})
         agent_q, next_state = output['logit'], output['next_state']
         next_state, _ = list_split(next_state, step=A)
         agent_q = agent_q.reshape(T, B, A, -1)
