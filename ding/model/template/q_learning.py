@@ -863,8 +863,7 @@ class DRQN(nn.Module):
         - **Head**: Computes Q-values for each action dimension.
 
     Interfaces:
-        - ``__init__``: Initializes the DRQN model.
-        - ``forward``: Defines the forward computation graph.
+        ``__init__``, ``forward``.
 
     .. note::
         The current implementation supports:
@@ -889,23 +888,23 @@ class DRQN(nn.Module):
     ) -> None:
         """
         Overview:
-            Initializes the DRQN model with specified parameters.
+            Initialize the DRQN model with specified parameters.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Shape of the observation space, e.g., 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Shape of the action space, e.g., 6 or [2, 3, 3].
             - encoder_hidden_size_list (:obj:`SequenceType`): List of hidden sizes for the encoder. The last element \
-              must match ``head_hidden_size``.
+                must match ``head_hidden_size``.
             - dueling (:obj:`Optional[bool]`): Use ``DuelingHead`` if True, otherwise use ``DiscreteHead``.
             - head_hidden_size (:obj:`Optional[int]`): Hidden size for the head network. Defaults to the last \
-              element of ``encoder_hidden_size_list`` if None.
+                element of ``encoder_hidden_size_list`` if None.
             - head_layer_num (:obj:`int`): Number of layers in the head network to compute Q-value outputs.
             - lstm_type (:obj:`Optional[str]`): Type of RNN module. Supported types are ``normal``, ``pytorch``, \
-              and ``gru``.
+                and ``gru``.
             - activation (:obj:`Optional[nn.Module]`): Activation function used in the network. Defaults to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): Normalization type for the networks. Supported types are: \
-              ['BN', 'IN', 'SyncBN', 'LN']. See ``ding.torch_utils.fc_block`` for more details.
+                ['BN', 'IN', 'SyncBN', 'LN']. See ``ding.torch_utils.fc_block`` for more details.
             - res_link (:obj:`bool`): Enables residual connections between single-frame data and sequential data. \
-              Defaults to False.
+                Defaults to False.
         """
         super(DRQN, self).__init__()
         # Compatibility for obs_shape/action_shape: Handles scalar, tuple, or multi-dimensional inputs.
@@ -954,26 +953,23 @@ class DRQN(nn.Module):
         Overview:
             Defines the forward pass of the DRQN model. Takes observation and previous RNN states as inputs \
             and predicts Q-values.
-
         Arguments:
             - inputs (:obj:`Dict`): Input data dictionary containing observation and previous RNN state.
             - inference (:obj:`bool`): If True, unrolls one timestep (used during evaluation). If False, unrolls \
-              the entire sequence (used during training).
+                the entire sequence (used during training).
             - saved_state_timesteps (:obj:`Optional[list]`): When inference is False, specifies the timesteps \
-              whose hidden states are saved and returned.
-        Input Keys:
+                whose hidden states are saved and returned.
+        ArgumentsKeys:
             - obs (:obj:`torch.Tensor`): Raw observation tensor.
             - prev_state (:obj:`list`): Previous RNN state tensor, structure depends on ``lstm_type``.
-
         Returns:
-            - outputs (:obj:`Dict`): Dictionary containing the Q-value logits and next RNN state.
-        Output Keys:
+            - outputs (:obj:`Dict`): The output of DRQN's forward, including logit (q_value) and next state.
+        ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Discrete Q-value output for each action dimension.
             - next_state (:obj:`list`): Next RNN state tensor.
         Shapes:
             - obs (:obj:`torch.Tensor`): :math:`(B, N)` where B is batch size and N is ``obs_shape``.
             - logit (:obj:`torch.Tensor`): :math:`(B, M)` where B is batch size and M is ``action_shape``.
-
         Examples:
             >>> # Initialize input keys
             >>> prev_state = [[torch.randn(1, 1, 64) for __ in range(2)] for _ in range(4)] # B=4
