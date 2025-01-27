@@ -900,7 +900,8 @@ class DRQN(nn.Module):
             - head_layer_num (:obj:`int`): Number of layers in the head network to compute Q-value outputs.
             - lstm_type (:obj:`Optional[str]`): Type of RNN module. Supported types are ``normal``, ``pytorch``, \
                 and ``gru``.
-            - activation (:obj:`Optional[nn.Module]`): Activation function used in the network. Defaults to ``nn.ReLU()``.
+            - activation (:obj:`Optional[nn.Module]`): Activation function used in the network. Defaults to \
+                ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): Normalization type for the networks. Supported types are: \
                 ['BN', 'IN', 'SyncBN', 'LN']. See ``ding.torch_utils.fc_block`` for more details.
             - res_link (:obj:`bool`): Enables residual connections between single-frame data and sequential data. \
