@@ -415,21 +415,21 @@ class CollaQ(nn.Module):
             {
                 'obs': agent_state,
                 'prev_state': colla_prev_state,
-                'enable_fast_timestep': True
+
             }
         )
         colla_alone_output = self._q_network(
             {
                 'obs': agent_alone_padding_state,
                 'prev_state': colla_alone_prev_state,
-                'enable_fast_timestep': True
+
             }
         )
         alone_output = self._q_alone_network(
             {
                 'obs': agent_alone_state,
                 'prev_state': alone_prev_state,
-                'enable_fast_timestep': True
+
             }
         )
 

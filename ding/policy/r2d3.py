@@ -275,7 +275,7 @@ class R2D3Policy(Policy):
 
         if len(data['burnin_nstep_obs']) != 0:
             with torch.no_grad():
-                inputs = {'obs': data['burnin_nstep_obs'], 'enable_fast_timestep': True}
+                inputs = {'obs': data['burnin_nstep_obs']}
                 burnin_output = self._learn_model.forward(
                     inputs,
                     saved_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep, self._burnin_step + 1]
@@ -286,14 +286,14 @@ class R2D3Policy(Policy):
                 )
 
         self._learn_model.reset(data_id=None, state=burnin_output['saved_state'][0])
-        inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
+        inputs = {'obs': data['main_obs']}
         q_value = self._learn_model.forward(inputs)['logit']
 
         # n-step
         self._learn_model.reset(data_id=None, state=burnin_output['saved_state'][1])
         self._target_model.reset(data_id=None, state=burnin_output_target['saved_state'][1])
 
-        next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
+        next_inputs = {'obs': data['target_obs']}
         with torch.no_grad():
             target_q_value = self._target_model.forward(next_inputs)['logit']
             # argmax_action double_dqn
@@ -303,7 +303,7 @@ class R2D3Policy(Policy):
         self._learn_model.reset(data_id=None, state=burnin_output['saved_state'][2])
         self._target_model.reset(data_id=None, state=burnin_output_target['saved_state'][2])
 
-        next_inputs_one_step = {'obs': data['target_obs_one_step'], 'enable_fast_timestep': True}
+        next_inputs_one_step = {'obs': data['target_obs_one_step']}
         with torch.no_grad():
             target_q_value_one_step = self._target_model.forward(next_inputs_one_step)['logit']
             # argmax_action double_dqn

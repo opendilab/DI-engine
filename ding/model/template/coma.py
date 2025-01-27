@@ -70,7 +70,7 @@ class COMAActorNetwork(nn.Module):
         T, B, A = agent_state.shape[:3]
         agent_state = agent_state.reshape(T, -1, *agent_state.shape[3:])
         prev_state = reduce(lambda x, y: x + y, prev_state)
-        output = self.main({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True})
+        output = self.main({'obs': agent_state, 'prev_state': prev_state})
         logit, next_state = output['logit'], output['next_state']
         next_state, _ = list_split(next_state, step=A)
         logit = logit.reshape(T, B, A, -1)
