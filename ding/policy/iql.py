@@ -25,7 +25,8 @@ def asymmetric_l2_loss(u, tau):
 class IQLPolicy(Policy):
     """
     Overview:
-        Policy class of Implicit Q-Learning (IQL) algorithm for continuous control. Paper link: https://arxiv.org/abs/2110.06169.
+        Policy class of Implicit Q-Learning (IQL) algorithm for continuous control.
+        Paper link: https://arxiv.org/abs/2110.06169.
 
     Config:
         == ====================  ========    =============  ================================= =======================
@@ -243,7 +244,7 @@ class IQLPolicy(Policy):
 
         self._tau = self._cfg.learn.tau
         self._beta = self._cfg.learn.beta
-        self._policy_start_training_counter = 10000  #300000
+        self._policy_start_training_counter = 10000  # 300000
 
     def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """

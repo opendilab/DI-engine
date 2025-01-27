@@ -13,10 +13,10 @@ from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, Multi
 class ContinuousQVAC(nn.Module):
     """
     Overview:
-        The neural network and computation graph of algorithms related to Actor-Critic that have both Q-value and V-value critic, such as \
-        IQL. This model now supports continuous and hybrid action space. The ContinuousQVAC is composed of \
-        four parts: ``actor_encoder``, ``critic_encoder``, ``actor_head`` and ``critic_head``. Encoders are used to \
-        extract the feature from various observation. Heads are used to predict corresponding Q-value and V-value or action logit. \
+        The neural network and computation graph of algorithms related to Actor-Critic that have both Q-value and \
+        V-value critic, such as IQL. This model now supports continuous and hybrid action space. The ContinuousQVAC is \
+        composed of four parts: ``actor_encoder``, ``critic_encoder``, ``actor_head`` and ``critic_head``. Encoders \
+        are used to extract the feature. Heads are used to predict corresponding value or action logit.
         In high-dimensional observation space like 2D image, we often use a shared encoder for both ``actor_encoder`` \
         and ``critic_encoder``. In low-dimensional observation space like 1D vector, we often use different encoders.
     Interfaces:
@@ -34,7 +34,7 @@ class ContinuousQVAC(nn.Module):
         actor_head_layer_num: int = 1,
         critic_head_hidden_size: int = 64,
         critic_head_layer_num: int = 1,
-        activation: Optional[nn.Module] = nn.SiLU(),  #nn.ReLU(),
+        activation: Optional[nn.Module] = nn.SiLU(),
         norm_type: Optional[str] = None,
         encoder_hidden_size_list: Optional[SequenceType] = None,
         share_encoder: Optional[bool] = False,
@@ -319,7 +319,7 @@ class ContinuousQVAC(nn.Module):
             - logit (:obj:`torch.Tensor`): Discrete action logit, only in hybrid action_space.
             - action_args (:obj:`torch.Tensor`): Continuous action arguments, only in hybrid action_space.
         Returns:
-            - outputs (:obj:`Dict[str, torch.Tensor]`): The output dict of QVAC's forward computation graph for critic, \
+            - outputs (:obj:`Dict[str, torch.Tensor]`): The output of QVAC's forward computation graph for critic, \
                 including ``q_value``.
         ReturnKeys:
             - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
