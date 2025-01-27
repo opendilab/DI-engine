@@ -79,6 +79,8 @@ setup(
         'redis',  # parallel
         'mpire>=2.3.5',  # parallel
         'einops',
+        'transformers',
+        'datasets',
     ],
     extras_require={
         'test': [
