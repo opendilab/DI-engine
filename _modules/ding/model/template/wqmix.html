@@ -481,7 +481,6 @@
                 <span class="p">{</span>
                     <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">agent_state</span><span class="p">,</span>
                     <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">prev_state</span><span class="p">,</span>
-                    <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span>
                 <span class="p">}</span>
             <span class="p">)</span>  <span class="c1"># here is the forward pass of the agent networks of Q_star</span>
             <span class="n">agent_q</span><span class="p">,</span> <span class="n">next_state</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;next_state&#39;</span><span class="p">]</span>
@@ -527,7 +526,6 @@
                 <span class="p">{</span>
                     <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">agent_state</span><span class="p">,</span>
                     <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">prev_state</span><span class="p">,</span>
-                    <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span>
                 <span class="p">}</span>
             <span class="p">)</span>  <span class="c1"># here is the forward pass of the agent networks of Q</span>
             <span class="n">agent_q</span><span class="p">,</span> <span class="n">next_state</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;next_state&#39;</span><span class="p">]</span>

@@ -594,7 +594,6 @@
                     <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_action&#39;</span><span class="p">],</span>
                     <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_reward&#39;</span><span class="p">],</span>
                     <span class="s1">&#39;beta&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_beta&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span>
                 <span class="p">}</span>
                 <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span>
                     <span class="n">inputs</span><span class="p">,</span> <span class="n">saved_state_timesteps</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
@@ -608,7 +607,6 @@
             <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_action&#39;</span><span class="p">],</span>
             <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_reward&#39;</span><span class="p">],</span>
             <span class="s1">&#39;beta&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_beta&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span>
         <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;saved_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
@@ -621,7 +619,6 @@
             <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;target_action&#39;</span><span class="p">],</span>
             <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;target_reward&#39;</span><span class="p">],</span>
             <span class="s1">&#39;beta&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;target_beta&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span>
         <span class="p">}</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">target_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_inputs</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>

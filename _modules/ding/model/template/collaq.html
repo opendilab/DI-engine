@@ -715,27 +715,20 @@
         <span class="n">agent_alone_state</span> <span class="o">=</span> <span class="n">agent_alone_state</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">agent_alone_state</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">:])</span>
         <span class="n">agent_alone_padding_state</span> <span class="o">=</span> <span class="n">agent_alone_padding_state</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">agent_alone_padding_state</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">:])</span>
 
-        <span class="n">colla_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q_network</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">agent_state</span><span class="p">,</span>
-                <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">colla_prev_state</span><span class="p">,</span>
-                <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span>
-            <span class="p">}</span>
-        <span class="p">)</span>
+        <span class="n">colla_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q_network</span><span class="p">({</span>
+            <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">agent_state</span><span class="p">,</span>
+            <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">colla_prev_state</span><span class="p">,</span>
+        <span class="p">})</span>
         <span class="n">colla_alone_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q_network</span><span class="p">(</span>
             <span class="p">{</span>
                 <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">agent_alone_padding_state</span><span class="p">,</span>
                 <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">colla_alone_prev_state</span><span class="p">,</span>
-                <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span>
             <span class="p">}</span>
         <span class="p">)</span>
-        <span class="n">alone_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q_alone_network</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">agent_alone_state</span><span class="p">,</span>
-                <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">alone_prev_state</span><span class="p">,</span>
-                <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span>
-            <span class="p">}</span>
-        <span class="p">)</span>
+        <span class="n">alone_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q_alone_network</span><span class="p">({</span>
+            <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">agent_alone_state</span><span class="p">,</span>
+            <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">alone_prev_state</span><span class="p">,</span>
+        <span class="p">})</span>
 
         <span class="n">agent_alone_q</span><span class="p">,</span> <span class="n">alone_next_state</span> <span class="o">=</span> <span class="n">alone_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">alone_output</span><span class="p">[</span><span class="s1">&#39;next_state&#39;</span><span class="p">]</span>
         <span class="n">agent_colla_alone_q</span><span class="p">,</span> <span class="n">colla_alone_next_state</span> <span class="o">=</span> <span class="n">colla_alone_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">colla_alone_output</span><span class="p">[</span><span class="s1">&#39;next_state&#39;</span><span class="p">]</span>

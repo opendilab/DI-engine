@@ -1159,18 +1159,22 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">DRQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The neural network structure and computation graph of DRQN (DQN + RNN = DRQN) algorithm, which is the most \</span>
-<span class="sd">        common DQN variant for sequential data and paratially observable environment. The DRQN is composed of three \</span>
-<span class="sd">        parts: ``encoder``, ``head`` and ``rnn``. The ``encoder`` is used to extract the feature from various \</span>
-<span class="sd">        observation, the ``rnn`` is used to process the sequential observation and other data, and the ``head`` is \</span>
-<span class="sd">        used to compute the Q value of each action dimension.</span>
+<span class="sd">        The DRQN (Deep Recurrent Q-Network) is a neural network model combining DQN with RNN to handle sequential</span>
+<span class="sd">        data and partially observable environments. It consists of three main components: ``encoder``, ``rnn``,</span>
+<span class="sd">        and ``head``.</span>
+<span class="sd">        - **Encoder**: Extracts features from various observation inputs.</span>
+<span class="sd">        - **RNN**: Processes sequential observations and other data.</span>
+<span class="sd">        - **Head**: Computes Q-values for each action dimension.</span>
+
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 
 <span class="sd">    .. note::</span>
-<span class="sd">        Current ``DRQN`` supports two types of encoder: ``FCEncoder`` and ``ConvEncoder``, two types of head: \</span>
-<span class="sd">        ``DiscreteHead`` and ``DuelingHead``, three types of rnn: ``normal (LSTM with LayerNorm)``, ``pytorch`` and \</span>
-<span class="sd">        ``gru``. You can customize your own encoder, rnn or head by inheriting this class.</span>
+<span class="sd">        The current implementation supports:</span>
+<span class="sd">        - Two encoder types: ``FCEncoder`` and ``ConvEncoder``.</span>
+<span class="sd">        - Two head types: ``DiscreteHead`` and ``DuelingHead``.</span>
+<span class="sd">        - Three RNN types: ``normal (LSTM with LayerNorm)``, ``pytorch`` (PyTorch&#39;s native LSTM), and ``gru``.</span>
+<span class="sd">        You can extend the model by customizing your own encoder, RNN, or head by inheriting this class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DRQN.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DRQN.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1188,43 +1192,48 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Initialize the DRQN Model according to the corresponding input arguments.</span>
+<span class="sd">            Initialize the DRQN model with specified parameters.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].</span>
-<span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].</span>
-<span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \</span>
-<span class="sd">                the last element must match ``head_hidden_size``.</span>
-<span class="sd">            - dueling (:obj:`Optional[bool]`): Whether choose ``DuelingHead`` or ``DiscreteHead (default)``.</span>
-<span class="sd">            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network, defaults to None, \</span>
-<span class="sd">                then it will be set to the last element of ``encoder_hidden_size_list``.</span>
-<span class="sd">            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output.</span>
-<span class="sd">            - lstm_type (:obj:`Optional[str]`): The type of RNN module, now support [&#39;normal&#39;, &#39;pytorch&#39;, &#39;gru&#39;].</span>
-<span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \</span>
-<span class="sd">                if ``None`` then default set it to ``nn.ReLU()``.</span>
-<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \</span>
-<span class="sd">                ``ding.torch_utils.fc_block`` for more details. you can choose one of [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;, &#39;LN&#39;]</span>
-<span class="sd">            - res_link (:obj:`bool`): Whether to enable the residual link, which is the skip connnection between \</span>
-<span class="sd">                single frame data and the sequential data, defaults to False.</span>
+<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Shape of the observation space, e.g., 8 or [4, 84, 84].</span>
+<span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Shape of the action space, e.g., 6 or [2, 3, 3].</span>
+<span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): List of hidden sizes for the encoder. The last element \</span>
+<span class="sd">                must match ``head_hidden_size``.</span>
+<span class="sd">            - dueling (:obj:`Optional[bool]`): Use ``DuelingHead`` if True, otherwise use ``DiscreteHead``.</span>
+<span class="sd">            - head_hidden_size (:obj:`Optional[int]`): Hidden size for the head network. Defaults to the last \</span>
+<span class="sd">                element of ``encoder_hidden_size_list`` if None.</span>
+<span class="sd">            - head_layer_num (:obj:`int`): Number of layers in the head network to compute Q-value outputs.</span>
+<span class="sd">            - lstm_type (:obj:`Optional[str]`): Type of RNN module. Supported types are ``normal``, ``pytorch``, \</span>
+<span class="sd">                and ``gru``.</span>
+<span class="sd">            - activation (:obj:`Optional[nn.Module]`): Activation function used in the network. Defaults to \</span>
+<span class="sd">                ``nn.ReLU()``.</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): Normalization type for the networks. Supported types are: \</span>
+<span class="sd">                [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;, &#39;LN&#39;]. See ``ding.torch_utils.fc_block`` for more details.</span>
+<span class="sd">            - res_link (:obj:`bool`): Enables residual connections between single-frame data and sequential data. \</span>
+<span class="sd">                Defaults to False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DRQN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="c1"># For compatibility: 1, (1, ), [4, 32, 32]</span>
+        <span class="c1"># Compatibility for obs_shape/action_shape: Handles scalar, tuple, or multi-dimensional inputs.</span>
         <span class="n">obs_shape</span><span class="p">,</span> <span class="n">action_shape</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">),</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">action_shape</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">head_hidden_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">head_hidden_size</span> <span class="o">=</span> <span class="n">encoder_hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="c1"># FC Encoder</span>
+
+        <span class="c1"># Encoder: Determines the encoder type based on the observation shape.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># FC Encoder</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">FCEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
-        <span class="c1"># Conv Encoder</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># Conv Encoder</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;not support obs_shape for pre-defined encoder: </span><span class="si">{}</span><span class="s2">, please customize your own DRQN&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">&quot;Unsupported obs_shape for pre-defined encoder: </span><span class="si">{</span><span class="n">obs_shape</span><span class="si">}</span><span class="s2">. Please customize your own DRQN.&quot;</span>
             <span class="p">)</span>
-        <span class="c1"># LSTM Type</span>
+
+        <span class="c1"># RNN: Initializes the RNN module based on the specified lstm_type.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span> <span class="o">=</span> <span class="n">get_lstm</span><span class="p">(</span><span class="n">lstm_type</span><span class="p">,</span> <span class="n">input_size</span><span class="o">=</span><span class="n">head_hidden_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="o">=</span><span class="n">head_hidden_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">res_link</span> <span class="o">=</span> <span class="n">res_link</span>
-        <span class="c1"># Head Type</span>
+
+        <span class="c1"># Head: Determines the head type (Dueling or Discrete) and its configuration.</span>
         <span class="k">if</span> <span class="n">dueling</span><span class="p">:</span>
             <span class="n">head_cls</span> <span class="o">=</span> <span class="n">DuelingHead</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1247,31 +1256,32 @@
 <div class="viewcode-block" id="DRQN.forward"><a class="viewcode-back" href="../../../../12_policies/r2d2.html#ding.model.DRQN.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">inference</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saved_state_timesteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            DRQN forward computation graph, input observation tensor to predict q_value.</span>
+<span class="sd">            Defines the forward pass of the DRQN model. Takes observation and previous RNN states as inputs \</span>
+<span class="sd">            and predicts Q-values.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): The dict of input data, including observation and previous rnn state.</span>
-<span class="sd">            - inference: (:obj:&#39;bool&#39;): Whether to enable inference forward mode, if True, we unroll the one timestep \</span>
-<span class="sd">                transition, otherwise, we unroll the eentire sequence transitions.</span>
-<span class="sd">            - saved_state_timesteps: (:obj:&#39;Optional[list]&#39;): When inference is False, we unroll the sequence \</span>
-<span class="sd">                transitions, then we would use this list to indicate how to save and return hidden state.</span>
+<span class="sd">            - inputs (:obj:`Dict`): Input data dictionary containing observation and previous RNN state.</span>
+<span class="sd">            - inference (:obj:`bool`): If True, unrolls one timestep (used during evaluation). If False, unrolls \</span>
+<span class="sd">                the entire sequence (used during training).</span>
+<span class="sd">            - saved_state_timesteps (:obj:`Optional[list]`): When inference is False, specifies the timesteps \</span>
+<span class="sd">                whose hidden states are saved and returned.</span>
 <span class="sd">        ArgumentsKeys:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): The raw observation tensor.</span>
-<span class="sd">            - prev_state (:obj:`list`): The previous rnn state tensor, whose structure depends on ``lstm_type``.</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): Raw observation tensor.</span>
+<span class="sd">            - prev_state (:obj:`list`): Previous RNN state tensor, structure depends on ``lstm_type``.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`): The output of DRQN&#39;s forward, including logit (q_value) and next state.</span>
 <span class="sd">        ReturnsKeys:</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.</span>
-<span class="sd">            - next_state (:obj:`list`): The next rnn state tensor, whose structure depends on ``lstm_type``.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete Q-value output for each action dimension.</span>
+<span class="sd">            - next_state (:obj:`list`): Next RNN state tensor.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N)` where B is batch size and N is ``obs_shape``.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, M)` where B is batch size and M is ``action_shape``.</span>
 <span class="sd">        Examples:</span>
-<span class="sd">            &gt;&gt;&gt; # Init input&#39;s Keys:</span>
+<span class="sd">            &gt;&gt;&gt; # Initialize input keys</span>
 <span class="sd">            &gt;&gt;&gt; prev_state = [[torch.randn(1, 1, 64) for __ in range(2)] for _ in range(4)] # B=4</span>
 <span class="sd">            &gt;&gt;&gt; obs = torch.randn(4,64)</span>
 <span class="sd">            &gt;&gt;&gt; model = DRQN(64, 64) # arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
 <span class="sd">            &gt;&gt;&gt; outputs = model({&#39;obs&#39;: inputs, &#39;prev_state&#39;: prev_state}, inference=True)</span>
-<span class="sd">            &gt;&gt;&gt; # Check outputs&#39;s Keys</span>
+<span class="sd">            &gt;&gt;&gt; # Validate output keys and shapes</span>
 <span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict)</span>
 <span class="sd">            &gt;&gt;&gt; assert outputs[&#39;logit&#39;].shape == (4, 64)</span>
 <span class="sd">            &gt;&gt;&gt; assert len(outputs[&#39;next_state&#39;]) == 4</span>
@@ -1280,9 +1290,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">x</span><span class="p">,</span> <span class="n">prev_state</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">]</span>
-        <span class="c1"># for both inference and other cases, the network structure is encoder -&gt; rnn network -&gt; head</span>
-        <span class="c1"># the difference is inference take the data with seq_len=1 (or T = 1)</span>
-        <span class="c1"># NOTE(rjy): in most situations, set inference=True when evaluate and inference=False when training</span>
+        <span class="c1"># Forward pass: Encoder -&gt; RNN -&gt; Head</span>
+        <span class="c1"># in most situations, set inference=True when evaluate and inference=False when training</span>
+        <span class="c1"># Inference mode: Processes one timestep (seq_len=1).</span>
         <span class="k">if</span> <span class="n">inference</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_link</span><span class="p">:</span>
@@ -1296,6 +1306,7 @@
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="n">x</span><span class="p">[</span><span class="s1">&#39;next_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_state</span>
             <span class="k">return</span> <span class="n">x</span>
+        <span class="c1"># Training mode: Processes the entire sequence.</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># In order to better explain why rnn needs saved_state and which states need to be stored,</span>
             <span class="c1"># let&#39;s take r2d2 as an example</span>
@@ -1303,20 +1314,20 @@
             <span class="c1"># 1) data[&#39;burnin_nstep_obs&#39;] = data[&#39;obs&#39;][:bs + self._nstep]</span>
             <span class="c1"># 2) data[&#39;main_obs&#39;] = data[&#39;obs&#39;][bs:-self._nstep]</span>
             <span class="c1"># 3) data[&#39;target_obs&#39;] = data[&#39;obs&#39;][bs + self._nstep:]</span>
-            <span class="c1"># NOTE(rjy): (T, B, N) or (T, B, C, H, W)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;Expected shape (T, B, N) or (T, B, C, H, W), got </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">parallel_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># (T, B, N)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_link</span><span class="p">:</span>
                 <span class="n">a</span> <span class="o">=</span> <span class="n">x</span>
-            <span class="c1"># NOTE(rjy) lstm_embedding stores all hidden_state</span>
+            <span class="c1"># lstm_embedding stores all hidden_state</span>
             <span class="n">lstm_embedding</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="c1"># TODO(nyz) how to deal with hidden_size key-value</span>
             <span class="n">hidden_state_list</span> <span class="o">=</span> <span class="p">[]</span>
+
             <span class="k">if</span> <span class="n">saved_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">saved_state</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c1"># T timesteps</span>
-                <span class="c1"># NOTE(rjy) use x[t:t+1] but not x[t] can keep original dimension</span>
-                <span class="n">output</span><span class="p">,</span> <span class="n">prev_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">:</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">prev_state</span><span class="p">)</span>  <span class="c1"># output: (1,B, head_hidden_size)</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c1"># Iterate over timesteps (T).</span>
+                <span class="c1"># use x[t:t+1] but not x[t] can keep the original dimension</span>
+                <span class="n">output</span><span class="p">,</span> <span class="n">prev_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">t</span><span class="p">:</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">prev_state</span><span class="p">)</span>  <span class="c1"># RNN step output: (1, B, hidden_size)</span>
                 <span class="k">if</span> <span class="n">saved_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">1</span> <span class="ow">in</span> <span class="n">saved_state_timesteps</span><span class="p">:</span>
                     <span class="n">saved_state</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prev_state</span><span class="p">)</span>
                 <span class="n">lstm_embedding</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
@@ -1327,7 +1338,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_link</span><span class="p">:</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">a</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">parallel_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># (T, B, action_shape)</span>
-            <span class="c1"># NOTE(rjy): x[&#39;next_state&#39;] is the hidden state of the last timestep inputted to lstm</span>
+            <span class="c1"># x[&#39;next_state&#39;] is the hidden state of the last timestep inputted to lstm</span>
             <span class="c1"># the last timestep state including the hidden state (h) and the cell state (c)</span>
             <span class="c1"># shape: {list: B{dict: 2{Tensor:(1, 1, head_hidden_size}}}</span>
             <span class="n">x</span><span class="p">[</span><span class="s1">&#39;next_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_state</span>
