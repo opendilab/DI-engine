@@ -1,7 +1,7 @@
 import pytest
 from datasets import load_dataset
 from transformers import AutoTokenizer
-from rl.data.onlinerl_dataset import OnlineRLDataset
+from ding.utils.data import OnlineRLDataset
 
 
 @pytest.fixture

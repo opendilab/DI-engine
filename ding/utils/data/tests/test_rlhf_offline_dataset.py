@@ -1,6 +1,6 @@
 import pytest
 from datasets import load_dataset, concatenate_datasets
-from rl.data.offlinerl_dataset import OfflineRLDataset
+from ding.utils.data import OfflineRLDataset
 from transformers import AutoTokenizer
 
 
