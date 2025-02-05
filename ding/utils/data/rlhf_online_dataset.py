@@ -2,18 +2,20 @@ from typing import Any, Dict, Union, Callable, Iterable
 from tqdm import tqdm
 from torch.utils.data import Dataset
 from torch.distributed import get_rank
+from transformers import AutoTokenizer
 
 
 class OnlineRLDataset(Dataset):
     """
     Overview:
         PyTorch Dataset for OnlineRL LLM training like PPO.
+        This dataset only supports pure text input now.
     """
 
     def __init__(
             self,
             dataset: Iterable[Dict],
-            tokenizer,
+            tokenizer: AutoTokenizer,
             input_key: str = "input",
             apply_chat_template: bool = False,
             input_template: str = None,
@@ -23,9 +25,9 @@ class OnlineRLDataset(Dataset):
             Initialize the OnlineRLDataset.
         Arguments:
             - dataset (torch.utils.data.Dataset): The dataset to preprocess.
-            - tokenizer (): The tokenizer to preprocess the data.
-            - input_key (str): The key of the input data.
-            - apply_chat_template (bool): Whether to apply the chat template.
+            - tokenizer (AutoTokenizer): The tokenizer to preprocess the data.
+            - input_key (str): The key of the input data, default is "input".
+            - apply_chat_template (bool): Whether to apply the chat template, default is False.
             - input_template (str): The template to format the data.
         """
         super().__init__()
@@ -57,7 +59,7 @@ class OnlineRLDataset(Dataset):
         """
         Overview:
             Get the item at the given index.
-        Args:
+        Arguments:
             - idx (int): The index of the item to get.
         Returns:
             - item (str): The item at the given index.
@@ -78,8 +80,9 @@ class OnlineRLDataset(Dataset):
             - data (Dict[str, Any]): The data to preprocess.
             - input_template (str): The template to format the data.
             - input_key (str): The key of the input data.
-            - apply_chat_template (Union[bool, Callable]): The function to apply the chat template, \
-                usually is the `tokenizer.apply_chat_template`.
+            - apply_chat_template (Union[bool, Callable]): Controls chat template application. If True, uses the \
+                tokenizer's default template. If a Callable is provided, uses that function to apply the template \
+                (typically tokenizer.apply_chat_template).
         Returns:
             - prompt (str): The formatted prompt.
         """
