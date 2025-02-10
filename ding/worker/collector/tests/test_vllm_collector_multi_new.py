@@ -1,7 +1,3 @@
-from typing import Any, Dict, Union, Callable, Iterable,List
-from tqdm import tqdm
-from torch.utils.data import Dataset
-from torch.distributed import get_rank
 from transformers import AutoTokenizer
 from typing import List, Tuple, Optional, Any
 import os
@@ -451,7 +447,7 @@ def main(tot_dataset, free_gpus,config):
                     f.write(f"{output.text}\n")
                     
                     
-test_dataset=dataset(num=96)
+test_dataset=dataset(num=16)
 free_gpus=get_free_gpus()                   
 config = EasyDict(
         # (str) LLM/VLM model path
