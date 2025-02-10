@@ -1,3 +1,8 @@
+from typing import Any, Dict, Union, Callable, Iterable,List
+from tqdm import tqdm
+from torch.utils.data import Dataset
+from torch.distributed import get_rank
+from transformers import AutoTokenizer
 from typing import List, Tuple, Optional, Any
 import os
 import uuid
@@ -6,54 +11,30 @@ import numpy as np
 from loguru import logger
 from easydict import EasyDict
 from vllm import AsyncLLMEngine, AsyncEngineArgs, SamplingParams, RequestOutput
-from transformers import AutoTokenizer
-
-from ding.utils.data.rlhf_online_dataset import OnlineRLDataset
 from ding.utils import SERIAL_COLLECTOR_REGISTRY
-from .base_serial_collector import ISerialCollector
+from ding.worker.collector.base_serial_collector import ISerialCollector
+from datasets import load_dataset
+from ding.utils.data import OnlineRLDataset
+import copy
+import concurrent.futures
 
 
 class VllmActor:
-
-    def __init__(self, model_path: str, mm_processor_kwargs: dict) -> None:
+    def __init__(self, model_path: str,mm_processor_kwargs: dict,free_gpus:list) -> None:
         """
         Overview:
             Initialize the vLLM actor. For more details, please refer to https://docs.vllm.ai/en/stable.
         Arguments:
             - model_path (str): The path to the language model.
         """
-        self.free_gpus = self.get_free_gpus()
+        self.free_gpus = free_gpus
         self.num_gpus = len(self.free_gpus)
         assert self.num_gpus > 0, "No GPUs found"
         # Set CUDA_VISIBLE_DEVICES to use only free GPUs
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, self.free_gpus))
         self.model_path = model_path
-        self.mm_processor_kwargs = mm_processor_kwargs
+        self.mm_processor_kwargs=mm_processor_kwargs
         self._initialize()
-
-    def get_free_gpus(self) -> List[int]:
-        """
-        Overview:
-            Get IDs of GPUs with free memory.
-        Returns:
-            - List[int]: The IDs of the free GPUs.
-        """
-        try:
-            # Get GPU memory usage using nvidia-smi
-            gpu_stats = os.popen('nvidia-smi --query-gpu=memory.used,memory.total --format=csv,nounits,noheader')\
-                .readlines()
-            free_gpus = []
-
-            for gpu_id, stats in enumerate(gpu_stats):
-                mem_used, mem_total = map(int, stats.strip().split(','))
-                # Consider GPU as free if less than 5% memory is used
-                if mem_used / mem_total < 0.05:
-                    free_gpus.append(gpu_id)
-
-            return free_gpus if free_gpus else [0]  # Default to GPU 0 if no free GPUs found
-        except Exception:
-            logger.warning("Failed to get GPU stats, defaulting to GPU 0")
-            return [0]
 
     def _initialize(self) -> None:
         """
@@ -91,7 +72,7 @@ class VllmActor:
             max_tokens=max_tokens,
             temperature=temperature,
         )
-
+        
         # Using async iterator to handle vLLM's generation process
         # 1. vLLM's generate method is asynchronous to prevent blocking while waiting for model outputs
         # 2. async for allows streaming the generated outputs incrementally instead of waiting for all results
@@ -102,57 +83,6 @@ class VllmActor:
         ):
             final_output = oup
         return final_output
-
-
-class HuggingFaceModelGenerator:
-    """
-    Overview:
-        A LLM/VLM generator that uses Hugging Face models with vLLM as the backend.
-    """
-
-    def __init__(
-            self,
-            model_path: str,
-            max_tokens: int = 1024,
-            temperature: float = 0,
-            mm_processor_kwargs: dict = {
-                "min_pixels": 28 * 28,
-                "max_pixels": 1280 * 28 * 28,
-            }
-    ) -> None:
-        """
-        Overview:
-            Initialize the Hugging Face model generator.
-        Arguments:
-            - model_path (str): The path to the language model.
-            - max_tokens (int): The maximum number of tokens to generate, default to 1024.
-            - temperature (float): The temperature for the language model, default to 0.
-        """
-        self.vllm_actor = VllmActor(model_path, mm_processor_kwargs)
-        self.max_tokens = max_tokens
-        self.temperature = temperature
-
-    async def generate(
-            self,
-            prompt,
-            num_samples: int,
-    ) -> List[Tuple[str, float]]:
-        """
-        Overview:
-            Generate tactics for the current state.
-        Arguments:
-            - prompt : The prompt to generate tactics.
-            - num_samples (int): The number of tactics to generate.
-        Returns:
-            - List[Tuple[str, float]]: The generated tactics and their log-probabilities.
-
-        .. note::
-            This method is asynchronous and returns a coroutine.
-        """
-        response = await self.vllm_actor.generate(prompt, num_samples, self.max_tokens, self.temperature)
-        # Use raw logprobs as confidence scores
-        confidence_scores = [x.cumulative_logprob for x in response.outputs]
-        return [(x.text.strip(), conf) for x, conf in zip(response.outputs, confidence_scores)]
 
 
 @SERIAL_COLLECTOR_REGISTRY.register('vllm')
@@ -208,7 +138,7 @@ class VllmCollector(ISerialCollector):
             extra_input_keys=cfg.extra_input_keys
         )
 
-        self._model = VllmActor(model_path=cfg.model_path, mm_processor_kwargs=cfg.mm_processor_kwargs)
+        self._model = VllmActor(model_path=cfg.model_path, mm_processor_kwargs=cfg.mm_processor_kwargs,free_gpus=cfg.free_gpus)
         self.reset()
 
     def reset(self) -> None:
@@ -380,7 +310,7 @@ class VllmCollector(ISerialCollector):
         results_list = loop.run_until_complete(asyncio.gather(*tasks))
         for i,prompt in enumerate(prompts):
             results[prompt['prompt']]=[]
-            for result in results_list[i*4:(i+1)*4]:
+            for result in results_list[i*num_samples_per_prompt:(i+1)*num_samples_per_prompt]:
                 results[prompt['prompt']].append(result.outputs[0].text)
         return results    
 
@@ -417,3 +347,142 @@ class VllmCollector(ISerialCollector):
             Destructor for the collector.
         """
         self.close()
+        
+        
+        
+        
+def get_free_gpus() -> List[int]:
+    """
+    Overview:
+        Get IDs of GPUs with free memory.
+    Returns:
+        - List[int]: The IDs of the free GPUs.
+    """
+    try:
+        # Get GPU memory usage using nvidia-smi
+        gpu_stats = os.popen('nvidia-smi --query-gpu=memory.used,memory.total --format=csv,nounits,noheader')\
+            .readlines()
+        free_gpus = []
+
+        for gpu_id, stats in enumerate(gpu_stats):
+            mem_used, mem_total = map(int, stats.strip().split(','))
+            # Consider GPU as free if less than 5% memory is used
+            if mem_used / mem_total < 0.05:
+                free_gpus.append(gpu_id)
+
+        return free_gpus if free_gpus else [0]  # Default to GPU 0 if no free GPUs found
+    except Exception:
+        logger.warning("Failed to get GPU stats, defaulting to GPU 0")
+        return [0]
+    
+def chunk_list(original_list, t):
+    # chunk a list into sub_lists
+    new_list = [original_list[i:i + t] for i in range(0, len(original_list), t)]
+    return new_list
+
+
+# prepare dataset
+IMG_START_TOKEN = '<|vision_start|>'
+IMG_END_TOKEN = '<|vision_end|>'
+PLACE_HOLDER='<|image_pad|>'
+def dataset(num=None):
+    # Load the dataset
+    hf_dataset = load_dataset("/mnt/afs/wangqijian/data/rlhf_dataset_test/VL-RewardBench",split='test')
+    hf_dataset0 = hf_dataset.map(
+        lambda x: {
+            "query": f"{IMG_START_TOKEN}{PLACE_HOLDER}{IMG_END_TOKEN}{x['query']}",
+            "image": x["image"],
+        }
+    )
+    # shuffle the dataset
+    hf_dataset = hf_dataset0.shuffle(seed=42)
+    if num is None:
+        return hf_dataset
+    else:
+        ret_data=[]
+        for i in range(0,num):
+            ret_data.append(hf_dataset[i])
+        return ret_data
+
+
+def run_vllm_collector(config):
+    # set GPU for current process
+    gpu_ids = ",".join(map(str, config.free_gpus))
+    os.environ["CUDA_VISIBLE_DEVICES"] = gpu_ids
+    collector = VllmCollector(config)  # 实例化模型
+    #ret=collector.collect(n_samples=2,num_samples_per_prompt=4)
+    ret=collector.collect(n_samples=2,num_samples_per_prompt=4)
+    return ret
+
+
+def start_collector(config):
+    # collect within the process
+    # results:a dict, basic form:
+    #{"prompt_0":[ans_0,ans_1,...,ans_n],"prompt_1":[ans_0,ans_1,...,ans_n],...}
+    results = run_vllm_collector(config)
+    return results
+
+def main(tot_dataset, free_gpus,config):
+    num_tot=len(tot_dataset)
+    num_gpu=len(free_gpus)
+    num_per_gpu=num_tot//num_gpu
+    prompts_per_gpu=chunk_list(tot_dataset,num_per_gpu)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=len(free_gpus)) as executor:
+        futures = []
+        for gpu_id,prompts_gpu in zip(free_gpus,prompts_per_gpu):
+            config_per_gpu=copy.deepcopy(config)
+            config_per_gpu.dataset=prompts_gpu
+            config_per_gpu.free_gpus=[gpu_id]
+            futures.append(executor.submit(start_collector, config_per_gpu))
+
+        # collect all results
+        all_results = []
+        for future in concurrent.futures.as_completed(futures):
+            all_results.append(future.result())
+
+    # save results
+    with open(config.save_path, "w") as f:
+        for response in all_results:
+            print(response)
+            for prompt in list(response.keys()):
+                f.write(f"{prompt}:\n")
+                for i,output in enumerate(response[prompt].outputs):
+                    f.write(f'output_{i}:\n')
+                    f.write(f"{output.text}\n")
+                    
+                    
+test_dataset=dataset(num=96)
+free_gpus=get_free_gpus()                   
+config = EasyDict(
+        # (str) LLM/VLM model path
+        model_path='/mnt/afs/share/Qwen2-VL-7B',
+        # (int) Maximum number of tokens to generate per request
+        max_tokens=4096,
+        # (float) Temperature for sampling, 0 means greedy decoding
+        temperature=1.0,
+        # (dict) Multimodal processor kwargs for vision-language models
+        mm_processor_kwargs={
+            "min_pixels": 28 * 28,
+            "max_pixels": 1280 * 28 * 28,
+        },# defaul set to align with Qwen2-VL-7B
+        # Dataset related configs
+        # dataset=test_dataset,
+        # dataset is defined for each gpu respectively
+        # (str) Key to access the input data in the dataset
+        input_key='query',
+        # (bool) Whether to apply a chat template to the input
+        apply_chat_template=True,
+        # (str) Template for the input
+        input_template=None,
+        # (bool) Whether to shuffle the dataset
+        shuffle=True,
+        extra_input_keys=['image'],
+        # free_gpus is defined for each gpu respectively
+        # save_path is the file to store the output
+        save_path="your_save_path"
+    )
+
+
+
+
+main(test_dataset,free_gpus,config)

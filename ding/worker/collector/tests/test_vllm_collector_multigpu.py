@@ -244,12 +244,13 @@ def main(prompts: list, model_path: str, free_gpus: List[int], temperature: floa
         # get all results
         all_results = []
         for future in concurrent.futures.as_completed(futures):
-            all_results.extend(future.result())
+            all_results.append(future.result())
 
     # save results
     with open("/mnt/afs/wangqijian/tests/vllm_multi_gpu.txt", "w") as f:
-        for response in all_results:
-            f.write(f"{response}\n")
+        for responses in all_results:
+            for response in responses:
+                f.write(f"{response}\n")
 
 
 if __name__ == "__main__":
