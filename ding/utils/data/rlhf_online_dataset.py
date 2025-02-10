@@ -53,7 +53,7 @@ class OnlineRLDataset(Dataset):
             self.prompts.append(processed_data['prompt'])
             #maybe can be imporved later
             for key in extra_input_keys:
-                getattr(self, key).append(processed_data[key])  
+                getattr(self, key).append(processed_data[key])
         # self.prompts=np.array(self.prompts)
         # for key in extra_input_keys:
         #     setattr(self, key, np.array(getattr(self,key)))
