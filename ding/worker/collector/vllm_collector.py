@@ -233,6 +233,7 @@ class VllmCollector(ISerialCollector):
             Since LLM generation does not require a explicit policy and env, this function is empty.
         """
         pass
+
     async def _generate_for_prompt(self, prompt: str, num_samples_per_prompt: int) -> List[Tuple[str, float]]:
         return await self._model.generate(
             prompt=prompt,
@@ -240,6 +241,7 @@ class VllmCollector(ISerialCollector):
             max_tokens=self._cfg.max_tokens,
             temperature=self._cfg.temperature
         )
+
     def collect(
             self,
             n_samples: int = 100,
@@ -259,11 +261,11 @@ class VllmCollector(ISerialCollector):
         if self._model is None:
             raise RuntimeError("Model not initialized. Call `reset` method first.")
 
-        prompts=[]
+        prompts = []
         for id in self._index[:n_samples]:
             prompts.append(self._dataset[id])
         # recusively update the index
-        self._index = np.concatenate((self._index[n_samples:],self._index[:n_samples]))
+        self._index = np.concatenate((self._index[n_samples:], self._index[:n_samples]))
 
         self._envstep += n_samples
 
@@ -285,7 +287,7 @@ class VllmCollector(ISerialCollector):
         responses = {prompt["prompt"]: result for prompt, result in zip(prompts, results)}
 
         return responses
-    
+
     def sync_collect(
             self,
             n_samples: int = 100,
@@ -305,11 +307,11 @@ class VllmCollector(ISerialCollector):
         if self._model is None:
             raise RuntimeError("Model not initialized. Call `reset` method first.")
 
-        prompts=[]
+        prompts = []
         for id in self._index[:n_samples]:
             prompts.append(self._dataset[id])
         # recusively update the index
-        self._index = np.concatenate((self._index[n_samples:],self._index[:n_samples]))
+        self._index = np.concatenate((self._index[n_samples:], self._index[:n_samples]))
 
         self._envstep += n_samples
 
@@ -323,7 +325,7 @@ class VllmCollector(ISerialCollector):
         # Run the async generate method in the event loop
         results = {}
         for prompt in prompts:
-        # Run the async generate method in the event loop for each prompt
+            # Run the async generate method in the event loop for each prompt
             result = loop.run_until_complete(
                 self._model.generate(
                     prompt=prompt,
@@ -334,8 +336,8 @@ class VllmCollector(ISerialCollector):
             )
             results[prompt['prompt']] = result
 
-        return results    
-    
+        return results
+
     def collect_prompts(
             self,
             n_samples: int = 100,
@@ -355,11 +357,11 @@ class VllmCollector(ISerialCollector):
         if self._model is None:
             raise RuntimeError("Model not initialized. Call `reset` method first.")
 
-        prompts=[]
+        prompts = []
         for id in self._index[:n_samples]:
             prompts.append(self._dataset[id])
         # recusively update the index
-        self._index = np.concatenate((self._index[n_samples:],self._index[:n_samples]))
+        self._index = np.concatenate((self._index[n_samples:], self._index[:n_samples]))
 
         self._envstep += n_samples
 
@@ -372,19 +374,17 @@ class VllmCollector(ISerialCollector):
 
         # Run the async generate method in the event loop
         results = {}
-        tasks=[]
+        tasks = []
         for prompt in prompts:
-            for _ in range(num_samples_per_prompt): 
-            # Run the async generate method in the event loop for each prompt
+            for _ in range(num_samples_per_prompt):
+                # Run the async generate method in the event loop for each prompt
                 tasks.append(self._generate_for_prompt(prompt, num_samples_per_prompt=1))
         results_list = loop.run_until_complete(asyncio.gather(*tasks))
-        for i,prompt in enumerate(prompts):
-            results[prompt['prompt']]=[]
-            for result in results_list[i*4:(i+1)*4]:
+        for i, prompt in enumerate(prompts):
+            results[prompt['prompt']] = []
+            for result in results_list[i * 4:(i + 1) * 4]:
                 results[prompt['prompt']].append(result.outputs[0].text)
-        return results    
-
-
+        return results
 
     @property
     def envstep(self) -> int:

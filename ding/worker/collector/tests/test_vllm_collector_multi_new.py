@@ -16,7 +16,8 @@ import concurrent.futures
 
 
 class VllmActor:
-    def __init__(self, model_path: str,mm_processor_kwargs: dict,free_gpus:list) -> None:
+
+    def __init__(self, model_path: str, mm_processor_kwargs: dict, free_gpus: list) -> None:
         """
         Overview:
             Initialize the vLLM actor. For more details, please refer to https://docs.vllm.ai/en/stable.
@@ -29,7 +30,7 @@ class VllmActor:
         # Set CUDA_VISIBLE_DEVICES to use only free GPUs
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, self.free_gpus))
         self.model_path = model_path
-        self.mm_processor_kwargs=mm_processor_kwargs
+        self.mm_processor_kwargs = mm_processor_kwargs
         self._initialize()
 
     def _initialize(self) -> None:
@@ -68,7 +69,7 @@ class VllmActor:
             max_tokens=max_tokens,
             temperature=temperature,
         )
-        
+
         # Using async iterator to handle vLLM's generation process
         # 1. vLLM's generate method is asynchronous to prevent blocking while waiting for model outputs
         # 2. async for allows streaming the generated outputs incrementally instead of waiting for all results
@@ -134,7 +135,9 @@ class VllmCollector(ISerialCollector):
             extra_input_keys=cfg.extra_input_keys
         )
 
-        self._model = VllmActor(model_path=cfg.model_path, mm_processor_kwargs=cfg.mm_processor_kwargs,free_gpus=cfg.free_gpus)
+        self._model = VllmActor(
+            model_path=cfg.model_path, mm_processor_kwargs=cfg.mm_processor_kwargs, free_gpus=cfg.free_gpus
+        )
         self.reset()
 
     def reset(self) -> None:
@@ -159,6 +162,7 @@ class VllmCollector(ISerialCollector):
             Since LLM generation does not require a explicit policy and env, this function is empty.
         """
         pass
+
     async def _generate_for_prompt(self, prompt: str, num_samples_per_prompt: int) -> List[Tuple[str, float]]:
         return await self._model.generate(
             prompt=prompt,
@@ -166,6 +170,7 @@ class VllmCollector(ISerialCollector):
             max_tokens=self._cfg.max_tokens,
             temperature=self._cfg.temperature
         )
+
     def collect(
             self,
             n_samples: int = 100,
@@ -185,11 +190,11 @@ class VllmCollector(ISerialCollector):
         if self._model is None:
             raise RuntimeError("Model not initialized. Call `reset` method first.")
 
-        prompts=[]
+        prompts = []
         for id in self._index[:n_samples]:
             prompts.append(self._dataset[id])
         # recusively update the index
-        self._index = np.concatenate((self._index[n_samples:],self._index[:n_samples]))
+        self._index = np.concatenate((self._index[n_samples:], self._index[:n_samples]))
 
         self._envstep += n_samples
 
@@ -211,7 +216,7 @@ class VllmCollector(ISerialCollector):
         responses = {prompt["prompt"]: result for prompt, result in zip(prompts, results)}
 
         return responses
-    
+
     def sync_collect(
             self,
             n_samples: int = 100,
@@ -231,11 +236,11 @@ class VllmCollector(ISerialCollector):
         if self._model is None:
             raise RuntimeError("Model not initialized. Call `reset` method first.")
 
-        prompts=[]
+        prompts = []
         for id in self._index[:n_samples]:
             prompts.append(self._dataset[id])
         # recusively update the index
-        self._index = np.concatenate((self._index[n_samples:],self._index[:n_samples]))
+        self._index = np.concatenate((self._index[n_samples:], self._index[:n_samples]))
 
         self._envstep += n_samples
 
@@ -249,7 +254,7 @@ class VllmCollector(ISerialCollector):
         # Run the async generate method in the event loop
         results = {}
         for prompt in prompts:
-        # Run the async generate method in the event loop for each prompt
+            # Run the async generate method in the event loop for each prompt
             result = loop.run_until_complete(
                 self._model.generate(
                     prompt=prompt,
@@ -260,8 +265,8 @@ class VllmCollector(ISerialCollector):
             )
             results[prompt['prompt']] = result
 
-        return results    
-    
+        return results
+
     def collect_prompts(
             self,
             n_samples: int = 100,
@@ -281,11 +286,11 @@ class VllmCollector(ISerialCollector):
         if self._model is None:
             raise RuntimeError("Model not initialized. Call `reset` method first.")
 
-        prompts=[]
+        prompts = []
         for id in self._index[:n_samples]:
             prompts.append(self._dataset[id])
         # recusively update the index
-        self._index = np.concatenate((self._index[n_samples:],self._index[:n_samples]))
+        self._index = np.concatenate((self._index[n_samples:], self._index[:n_samples]))
 
         self._envstep += n_samples
 
@@ -298,19 +303,17 @@ class VllmCollector(ISerialCollector):
 
         # Run the async generate method in the event loop
         results = {}
-        tasks=[]
+        tasks = []
         for prompt in prompts:
-            for _ in range(num_samples_per_prompt): 
-            # Run the async generate method in the event loop for each prompt
+            for _ in range(num_samples_per_prompt):
+                # Run the async generate method in the event loop for each prompt
                 tasks.append(self._generate_for_prompt(prompt, num_samples_per_prompt=1))
         results_list = loop.run_until_complete(asyncio.gather(*tasks))
-        for i,prompt in enumerate(prompts):
-            results[prompt['prompt']]=[]
-            for result in results_list[i*num_samples_per_prompt:(i+1)*num_samples_per_prompt]:
+        for i, prompt in enumerate(prompts):
+            results[prompt['prompt']] = []
+            for result in results_list[i * num_samples_per_prompt:(i + 1) * num_samples_per_prompt]:
                 results[prompt['prompt']].append(result.outputs[0].text)
-        return results    
-
-
+        return results
 
     @property
     def envstep(self) -> int:
@@ -343,10 +346,8 @@ class VllmCollector(ISerialCollector):
             Destructor for the collector.
         """
         self.close()
-        
-        
-        
-        
+
+
 def get_free_gpus() -> List[int]:
     """
     Overview:
@@ -370,7 +371,8 @@ def get_free_gpus() -> List[int]:
     except Exception:
         logger.warning("Failed to get GPU stats, defaulting to GPU 0")
         return [0]
-    
+
+
 def chunk_list(original_list, t):
     # chunk a list into sub_lists
     new_list = [original_list[i:i + t] for i in range(0, len(original_list), t)]
@@ -380,10 +382,12 @@ def chunk_list(original_list, t):
 # prepare dataset
 IMG_START_TOKEN = '<|vision_start|>'
 IMG_END_TOKEN = '<|vision_end|>'
-PLACE_HOLDER='<|image_pad|>'
+PLACE_HOLDER = '<|image_pad|>'
+
+
 def dataset(num=None):
     # Load the dataset
-    hf_dataset = load_dataset("/mnt/afs/wangqijian/data/rlhf_dataset_test/VL-RewardBench",split='test')
+    hf_dataset = load_dataset("/mnt/afs/wangqijian/data/rlhf_dataset_test/VL-RewardBench", split='test')
     hf_dataset0 = hf_dataset.map(
         lambda x: {
             "query": f"{IMG_START_TOKEN}{PLACE_HOLDER}{IMG_END_TOKEN}{x['query']}",
@@ -395,8 +399,8 @@ def dataset(num=None):
     if num is None:
         return hf_dataset
     else:
-        ret_data=[]
-        for i in range(0,num):
+        ret_data = []
+        for i in range(0, num):
             ret_data.append(hf_dataset[i])
         return ret_data
 
@@ -407,7 +411,7 @@ def run_vllm_collector(config):
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu_ids
     collector = VllmCollector(config)  # 实例化模型
     #ret=collector.collect(n_samples=2,num_samples_per_prompt=4)
-    ret=collector.collect(n_samples=2,num_samples_per_prompt=4)
+    ret = collector.collect(n_samples=2, num_samples_per_prompt=4)
     return ret
 
 
@@ -418,17 +422,18 @@ def start_collector(config):
     results = run_vllm_collector(config)
     return results
 
-def main(tot_dataset, free_gpus,config):
-    num_tot=len(tot_dataset)
-    num_gpu=len(free_gpus)
-    num_per_gpu=num_tot//num_gpu
-    prompts_per_gpu=chunk_list(tot_dataset,num_per_gpu)
+
+def main(tot_dataset, free_gpus, config):
+    num_tot = len(tot_dataset)
+    num_gpu = len(free_gpus)
+    num_per_gpu = num_tot // num_gpu
+    prompts_per_gpu = chunk_list(tot_dataset, num_per_gpu)
     with concurrent.futures.ProcessPoolExecutor(max_workers=len(free_gpus)) as executor:
         futures = []
-        for gpu_id,prompts_gpu in zip(free_gpus,prompts_per_gpu):
-            config_per_gpu=copy.deepcopy(config)
-            config_per_gpu.dataset=prompts_gpu
-            config_per_gpu.free_gpus=[gpu_id]
+        for gpu_id, prompts_gpu in zip(free_gpus, prompts_per_gpu):
+            config_per_gpu = copy.deepcopy(config)
+            config_per_gpu.dataset = prompts_gpu
+            config_per_gpu.free_gpus = [gpu_id]
             futures.append(executor.submit(start_collector, config_per_gpu))
 
         # collect all results
@@ -442,43 +447,40 @@ def main(tot_dataset, free_gpus,config):
             print(response)
             for prompt in list(response.keys()):
                 f.write(f"{prompt}:\n")
-                for i,output in enumerate(response[prompt].outputs):
+                for i, output in enumerate(response[prompt].outputs):
                     f.write(f'output_{i}:\n')
                     f.write(f"{output.text}\n")
-                    
-                    
-test_dataset=dataset(num=16)
-free_gpus=get_free_gpus()                   
+
+
+test_dataset = dataset(num=16)
+free_gpus = get_free_gpus()
 config = EasyDict(
-        # (str) LLM/VLM model path
-        model_path='/mnt/afs/share/Qwen2-VL-7B',
-        # (int) Maximum number of tokens to generate per request
-        max_tokens=4096,
-        # (float) Temperature for sampling, 0 means greedy decoding
-        temperature=1.0,
-        # (dict) Multimodal processor kwargs for vision-language models
-        mm_processor_kwargs={
-            "min_pixels": 28 * 28,
-            "max_pixels": 1280 * 28 * 28,
-        },# defaul set to align with Qwen2-VL-7B
-        # Dataset related configs
-        # dataset=test_dataset,
-        # dataset is defined for each gpu respectively
-        # (str) Key to access the input data in the dataset
-        input_key='query',
-        # (bool) Whether to apply a chat template to the input
-        apply_chat_template=True,
-        # (str) Template for the input
-        input_template=None,
-        # (bool) Whether to shuffle the dataset
-        shuffle=True,
-        extra_input_keys=['image'],
-        # free_gpus is defined for each gpu respectively
-        # save_path is the file to store the output
-        save_path="your_save_path"
-    )
+    # (str) LLM/VLM model path
+    model_path='/mnt/afs/share/Qwen2-VL-7B',
+    # (int) Maximum number of tokens to generate per request
+    max_tokens=4096,
+    # (float) Temperature for sampling, 0 means greedy decoding
+    temperature=1.0,
+    # (dict) Multimodal processor kwargs for vision-language models
+    mm_processor_kwargs={
+        "min_pixels": 28 * 28,
+        "max_pixels": 1280 * 28 * 28,
+    },  # defaul set to align with Qwen2-VL-7B
+    # Dataset related configs
+    # dataset=test_dataset,
+    # dataset is defined for each gpu respectively
+    # (str) Key to access the input data in the dataset
+    input_key='query',
+    # (bool) Whether to apply a chat template to the input
+    apply_chat_template=True,
+    # (str) Template for the input
+    input_template=None,
+    # (bool) Whether to shuffle the dataset
+    shuffle=True,
+    extra_input_keys=['image'],
+    # free_gpus is defined for each gpu respectively
+    # save_path is the file to store the output
+    save_path="your_save_path"
+)
 
-
-
-
-main(test_dataset,free_gpus,config)
+main(test_dataset, free_gpus, config)

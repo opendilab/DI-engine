@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union, Callable, Iterable,List
+from typing import Any, Dict, Union, Callable, Iterable, List
 from tqdm import tqdm
 from torch.utils.data import Dataset
 from torch.distributed import get_rank
@@ -47,14 +47,16 @@ class OnlineRLDataset(Dataset):
         except ValueError:  # not initialized yet, which is the case in unit test
             rank = 0
         for data in tqdm(dataset, desc="Preprocessing data", disable=not rank == 0):
-            processed_data = self._preprocess_data(data, input_template, input_key,extra_input_keys, apply_chat_template)
+            processed_data = self._preprocess_data(
+                data, input_template, input_key, extra_input_keys, apply_chat_template
+            )
             self.prompts.append(processed_data['prompt'])
+            #maybe can be imporved later
             for key in extra_input_keys:
-                getattr(self, key).append(processed_data[key])  #maybe can be imporved later
+                getattr(self, key).append(processed_data[key])  
         # self.prompts=np.array(self.prompts)
         # for key in extra_input_keys:
         #     setattr(self, key, np.array(getattr(self,key)))
-        
 
     def __len__(self) -> int:
         """
@@ -65,7 +67,8 @@ class OnlineRLDataset(Dataset):
         """
         return len(self.prompts)
 
-    def __getitem__(self, idx: int) -> str: #can be improved later for list indexing instead of single indexing
+    def __getitem__(self, idx: int) -> str:
+        #can be improved later for list indexing instead of single indexing
         """
         Overview:
             Get the item at the given index.
@@ -79,12 +82,7 @@ class OnlineRLDataset(Dataset):
             extra_inputs = {key: getattr(self, key)[idx] for key in self.extra_input_keys}
         else:
             extra_inputs = {}
-        return {
-            "prompt": self.prompts[idx],
-            "multi_modal_data":{
-                **extra_inputs
-            }
-        }
+        return {"prompt": self.prompts[idx], "multi_modal_data": {**extra_inputs}}
 
     def _preprocess_data(
             self,
@@ -121,7 +119,4 @@ class OnlineRLDataset(Dataset):
             prompt = data[input_key]
             if input_template:
                 prompt = input_template.format(prompt)
-        return {
-            "prompt": prompt,
-            **extra_inputs
-        }
+        return {"prompt": prompt, **extra_inputs}
