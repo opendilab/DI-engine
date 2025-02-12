@@ -8,7 +8,7 @@ import torch
 import treetensor.torch as ttorch
 
 
-def get_shape0(data: Union[List, Dict, torch.Tensor, ttorch.Tensor]) -> int:
+def get_shape0(data: Union[List, Dict, np.ndarray, torch.Tensor, ttorch.Tensor]) -> int:
     """
     Overview:
         Get shape[0] of data's torch tensor or treetensor
@@ -34,6 +34,8 @@ def get_shape0(data: Union[List, Dict, torch.Tensor, ttorch.Tensor]) -> int:
                 return fn(item)
 
         return fn(data.shape)
+    elif isinstance(data, np.ndarray):
+        return data.shape[0]
     else:
         raise TypeError("Error in getting shape0, not support type: {}".format(data))
 
