@@ -104,17 +104,21 @@ def ppo_error(
     return ppo_loss(policy_output.policy_loss, value_loss, policy_output.entropy_loss), policy_info
 
 
-def ppo_policy_error(data: namedtuple,
-                     clip_ratio: float = 0.2,
-                     dual_clip: Optional[float] = None) -> Tuple[namedtuple, namedtuple]:
-    '''
+def ppo_policy_error(
+        data: namedtuple,
+        clip_ratio: float = 0.2,
+        dual_clip: Optional[float] = None,
+        entropy_bonus: bool = True
+) -> Tuple[namedtuple, namedtuple]:
+    """
     Overview:
-        Get PPO policy loss
+        Get PPO policy loss (both for classical RL in control/video games and LLM/VLM RLHF).
     Arguments:
-        - data (:obj:`namedtuple`): ppo input data with fieids shown in ``ppo_policy_data``
-        - clip_ratio (:obj:`float`): clip value for ratio
-        - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
-        defaults to 5.0, if you don't want to use it, set this parameter to None
+        - data (:obj:`namedtuple`): Ppo input data with fieids shown in ``ppo_policy_data``.
+        - clip_ratio (:obj:`float`): Clip value for ratio, defaults to 0.2.
+        - dual_clip (:obj:`float`): A parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf), \
+            defaults to 5.0, if you don't want to use it, set this parameter to None
+        - entropy_bonus (:obj:`bool`): Whether to use entropy bonus, defaults to True. LLM RLHF usually does not use it.
     Returns:
         - ppo_policy_loss (:obj:`namedtuple`): the ppo policy loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
@@ -136,7 +140,14 @@ def ppo_policy_error(data: namedtuple,
         >>>     weight=torch.ones(3),
         >>> )
         >>> loss, info = ppo_policy_error(data)
-    '''
+
+    .. note::
+        This function can be extended from `B` to more parallel dimensions, like `(B, S)`, where `S` is the 
+        sequence length in LLM/VLM.
+
+    .. note::
+        For the action mask often used in LLM/VLM, users can set the `weight` to the action mask.
+    """
     logit_new, logit_old, action, adv, weight = data
     if weight is None:
         weight = torch.ones_like(adv)
@@ -144,10 +155,14 @@ def ppo_policy_error(data: namedtuple,
     dist_old = torch.distributions.categorical.Categorical(logits=logit_old)
     logp_new = dist_new.log_prob(action)
     logp_old = dist_old.log_prob(action)
-    dist_new_entropy = dist_new.entropy()
-    if dist_new_entropy.shape != weight.shape:
-        dist_new_entropy = dist_new.entropy().mean(dim=1)
-    entropy_loss = (dist_new_entropy * weight).mean()
+
+    if entropy_bonus:
+        dist_new_entropy = dist_new.entropy()
+        if dist_new_entropy.shape != weight.shape:  # for the multi-agent rl case
+            dist_new_entropy = dist_new.entropy().mean(dim=1)
+        entropy_loss = (dist_new_entropy * weight).mean()
+    else:
+        entropy_loss = torch.tensor(0.0)
     # policy_loss
     ratio = torch.exp(logp_new - logp_old)
     if ratio.shape != adv.shape:
