@@ -142,7 +142,7 @@ def ppo_policy_error(
         >>> loss, info = ppo_policy_error(data)
 
     .. note::
-        This function can be extended from `B` to more parallel dimensions, like `(B, S)`, where `S` is the 
+        This function can be extended from `B` to more parallel dimensions, like `(B, S)`, where `S` is the
         sequence length in LLM/VLM.
 
     .. note::
