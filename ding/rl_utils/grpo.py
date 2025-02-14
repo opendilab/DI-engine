@@ -2,10 +2,7 @@ from typing import Tuple
 from collections import namedtuple
 import torch
 
-grpo_policy_data = namedtuple(
-    'grpo_policy_data',
-    ['logit_new', 'logit_old', 'logit_ref', 'action', 'adv', 'weight']
-)
+grpo_policy_data = namedtuple('grpo_policy_data', ['logit_new', 'logit_old', 'logit_ref', 'action', 'adv', 'weight'])
 
 
 def grpo_policy_error(
@@ -44,10 +41,7 @@ def grpo_policy_error(
 
     # Calculate KL divergence: exp(q-p) - (q-p) - 1,
     # where p is current policy and q is reference policy
-    per_token_kl = (
-        torch.exp(per_token_ref_logps - per_token_logps) -
-        (per_token_ref_logps - per_token_logps) - 1
-    )
+    per_token_kl = (torch.exp(per_token_ref_logps - per_token_logps) - (per_token_ref_logps - per_token_logps) - 1)
 
     # Calculate policy ratio
     ratio = torch.exp(per_token_logps - per_token_old_logps)
@@ -57,8 +51,7 @@ def grpo_policy_error(
     advantages = data.adv.unsqueeze(1)  # [B, 1]
     per_token_loss_unclipped = ratio * advantages
     per_token_loss_clipped = ratio_clipped * advantages
-    per_token_loss = -torch.min(per_token_loss_unclipped,
-                                per_token_loss_clipped)
+    per_token_loss = -torch.min(per_token_loss_unclipped, per_token_loss_clipped)
 
     # Add KL divergence regularization term
     per_token_loss = per_token_loss + beta * per_token_kl
@@ -70,13 +63,10 @@ def grpo_policy_error(
 
     # Calculate additional metrics
     metrics = {
-        'mean_kl': ((per_token_kl * weight).sum(dim=1) /
-                    weight.sum(dim=1)).mean().item(),
-        'mean_ratio': ((ratio * weight).sum(dim=1) /
-                       weight.sum(dim=1)).mean().item(),
+        'mean_kl': ((per_token_kl * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
+        'mean_ratio': ((ratio * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
         'mean_clipped': (
-            (ratio > (1 + clip_ratio)).float().mean().item() +
-            (ratio < (1 - clip_ratio)).float().mean().item()
+            (ratio > (1 + clip_ratio)).float().mean().item() + (ratio < (1 - clip_ratio)).float().mean().item()
         ),
     }
 

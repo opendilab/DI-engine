@@ -21,14 +21,10 @@ def dictionary_num():
 
 
 @pytest.mark.unittest
-def test_grpo_policy_loss_with_mask(
-        batch_size: int = 4,
-        seq_length: int = 8,
-        vocab_size: int = 1000):
+def test_grpo_policy_loss_with_mask(batch_size: int = 4, seq_length: int = 8, vocab_size: int = 1000):
     """Test GRPO policy loss calculation with mask"""
     # 1. Create test data
-    logit_new = (torch.randn(batch_size, seq_length,
-                             vocab_size).requires_grad_(True))
+    logit_new = (torch.randn(batch_size, seq_length, vocab_size).requires_grad_(True))
     logit_old = logit_new + torch.randn_like(logit_new) * 0.1
     logit_ref = logit_new + torch.randn_like(logit_new) * 0.2
     action = torch.randint(0, vocab_size, (batch_size, seq_length))
@@ -72,14 +68,10 @@ def test_grpo_policy_loss_with_mask(
 
 
 @pytest.mark.unittest
-def test_grpo_policy_loss_without_mask(
-        batch_size: int = 4,
-        seq_length: int = 8,
-        vocab_size: int = 1000):
+def test_grpo_policy_loss_without_mask(batch_size: int = 4, seq_length: int = 8, vocab_size: int = 1000):
     """Test GRPO policy loss calculation without mask"""
     # 1. Create test data
-    logit_new = torch.randn(batch_size,
-                            seq_length, vocab_size).requires_grad_(True)
+    logit_new = torch.randn(batch_size, seq_length, vocab_size).requires_grad_(True)
     logit_old = logit_new + torch.randn_like(logit_new) * 0.1
     logit_ref = logit_new + torch.randn_like(logit_new) * 0.2
     action = torch.randint(0, vocab_size, (batch_size, seq_length))

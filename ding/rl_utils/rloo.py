@@ -2,10 +2,7 @@ from typing import Tuple
 from collections import namedtuple
 import torch
 
-rloo_policy_data = namedtuple(
-    'rloo_policy_data',
-    ['logit_new', 'logit_old',
-     'action', 'adv', 'weight'])
+rloo_policy_data = namedtuple('rloo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight'])
 
 
 def rloo_policy_error(
@@ -45,20 +42,17 @@ def rloo_policy_error(
     advantages = data.adv.unsqueeze(1)  # [B, 1]
     per_token_loss_unclipped = ratio * advantages
     per_token_loss_clipped = ratio_clipped * advantages
-    per_token_loss = -torch.min(per_token_loss_unclipped,
-                                per_token_loss_clipped)
+    per_token_loss = -torch.min(per_token_loss_unclipped, per_token_loss_clipped)
 
     # Calculate average loss using weight mask
-    weight = data.weight if data.weight is not None else (
-        torch.ones_like(per_token_loss))
+    weight = data.weight if data.weight is not None else (torch.ones_like(per_token_loss))
     loss = ((per_token_loss * weight).sum(dim=1) / weight.sum(dim=1)).mean()
 
     # Calculate additional metrics
     metrics = {
-        'mean_ratio': ((ratio * weight).sum(dim=1) /
-                       weight.sum(dim=1)).mean().item(),
-        'mean_clipped': (ratio > (1 + clip_ratio)).float().mean().item() +
-                        (ratio < (1 - clip_ratio)).float().mean().item(),
+        'mean_ratio': ((ratio * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
+        'mean_clipped': (ratio > (1 + clip_ratio)).float().mean().item() + (ratio <
+                                                                            (1 - clip_ratio)).float().mean().item(),
         'mean_advantage': advantages.mean().item(),
     }
 
