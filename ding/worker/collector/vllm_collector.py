@@ -13,16 +13,46 @@ from ding.utils import SERIAL_COLLECTOR_REGISTRY
 from .base_serial_collector import ISerialCollector
 
 
+def get_free_gpus() -> List[int]:
+    """
+    Overview:
+        Get IDs of GPUs with free memory.
+    Returns:
+        - List[int]: The IDs of the free GPUs.
+    """
+    try:
+        # Get GPU memory usage using nvidia-smi
+        gpu_stats = os.popen('nvidia-smi --query-gpu=memory.used,memory.total --format=csv,nounits,noheader')\
+            .readlines()
+        free_gpus = []
+
+        for gpu_id, stats in enumerate(gpu_stats):
+            mem_used, mem_total = map(int, stats.strip().split(','))
+            # Consider GPU as free if less than 5% memory is used
+            if mem_used / mem_total < 0.05:
+                free_gpus.append(gpu_id)
+
+        return free_gpus if free_gpus else [0]  # Default to GPU 0 if no free GPUs found
+    except Exception:
+        logger.warning("Failed to get GPU stats, defaulting to GPU 0")
+        return [0]
+
+
 class VllmActor:
 
-    def __init__(self, model_path: str, mm_processor_kwargs: dict) -> None:
+    def __init__(self, model_path: str, mm_processor_kwargs: dict, free_gpus: list = None) -> None:
         """
         Overview:
             Initialize the vLLM actor. For more details, please refer to https://docs.vllm.ai/en/stable.
         Arguments:
             - model_path (str): The path to the language model.
+            - mm_processor_kwargs(dict): Multimodal processor kwargs for vision-language models
+            - free_gpus(list): gpus for the model
         """
-        self.free_gpus = self.get_free_gpus()
+        if free_gpus is None:
+            self.free_gpus = get_free_gpus()
+        else:
+            self.free_gpus = free_gpus
         self.num_gpus = len(self.free_gpus)
         assert self.num_gpus > 0, "No GPUs found"
         # Set CUDA_VISIBLE_DEVICES to use only free GPUs
@@ -30,30 +60,6 @@ class VllmActor:
         self.model_path = model_path
         self.mm_processor_kwargs = mm_processor_kwargs
         self._initialize()
-
-    def get_free_gpus(self) -> List[int]:
-        """
-        Overview:
-            Get IDs of GPUs with free memory.
-        Returns:
-            - List[int]: The IDs of the free GPUs.
-        """
-        try:
-            # Get GPU memory usage using nvidia-smi
-            gpu_stats = os.popen('nvidia-smi --query-gpu=memory.used,memory.total --format=csv,nounits,noheader')\
-                .readlines()
-            free_gpus = []
-
-            for gpu_id, stats in enumerate(gpu_stats):
-                mem_used, mem_total = map(int, stats.strip().split(','))
-                # Consider GPU as free if less than 5% memory is used
-                if mem_used / mem_total < 0.05:
-                    free_gpus.append(gpu_id)
-
-            return free_gpus if free_gpus else [0]  # Default to GPU 0 if no free GPUs found
-        except Exception:
-            logger.warning("Failed to get GPU stats, defaulting to GPU 0")
-            return [0]
 
     def _initialize(self) -> None:
         """
@@ -113,6 +119,7 @@ class HuggingFaceModelGenerator:
     def __init__(
             self,
             model_path: str,
+            free_gpus: list,
             max_tokens: int = 1024,
             temperature: float = 0,
             mm_processor_kwargs: dict = {
@@ -128,7 +135,7 @@ class HuggingFaceModelGenerator:
             - max_tokens (int): The maximum number of tokens to generate, default to 1024.
             - temperature (float): The temperature for the language model, default to 0.
         """
-        self.vllm_actor = VllmActor(model_path, mm_processor_kwargs)
+        self.vllm_actor = VllmActor(model_path, mm_processor_kwargs, free_gpus)
         self.max_tokens = max_tokens
         self.temperature = temperature
 
@@ -208,7 +215,9 @@ class VllmCollector(ISerialCollector):
             extra_input_keys=cfg.extra_input_keys
         )
 
-        self._model = VllmActor(model_path=cfg.model_path, mm_processor_kwargs=cfg.mm_processor_kwargs)
+        self._model = VllmActor(
+            model_path=cfg.model_path, mm_processor_kwargs=cfg.mm_processor_kwargs, free_gpus=cfg.free_gpus
+        )
         self.reset()
 
     def reset(self) -> None:
@@ -235,6 +244,16 @@ class VllmCollector(ISerialCollector):
         pass
 
     async def _generate_for_prompt(self, prompt: str, num_samples_per_prompt: int) -> List[Tuple[str, float]]:
+        """
+        Overview:
+            Generate response for the prompt.
+        Arguments:
+            - prompt(str) : The prompt to generate tactics.
+            - num_samples_per_prompt (int): The number of tactics to generate.
+        Returns:
+            - List[Tuple[str, float]]: The generated tactics and their log-probabilities.
+
+        """
         return await self._model.generate(
             prompt=prompt,
             num_samples=num_samples_per_prompt,
@@ -382,7 +401,7 @@ class VllmCollector(ISerialCollector):
         results_list = loop.run_until_complete(asyncio.gather(*tasks))
         for i, prompt in enumerate(prompts):
             results[prompt['prompt']] = []
-            for result in results_list[i * 4:(i + 1) * 4]:
+            for result in results_list[i * num_samples_per_prompt:(i + 1) * num_samples_per_prompt]:
                 results[prompt['prompt']].append(result.outputs[0].text)
         return results
 
