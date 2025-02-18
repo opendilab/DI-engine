@@ -2,7 +2,7 @@ from typing import Tuple
 from collections import namedtuple
 import torch
 
-rloo_policy_data = namedtuple('rloo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight'])
+rloo_policy_data = namedtuple('rloo_policy_data', ['logit_new', 'logit_old', 'action', 'reward', 'weight'])
 
 
 def rloo_policy_error(
@@ -16,7 +16,7 @@ def rloo_policy_error(
                - logit_new: Current policy logits [B, L, V]
                - logit_old: Old policy logits [B, L, V]
                - action: Actions taken [B, L]
-               - adv: Advantage values [B]
+               - reward: Advantage values [B]
                - weight: Attention mask [B, L]
            clip_ratio (float): PPO clipping ratio, default 0.2
 
@@ -25,6 +25,12 @@ def rloo_policy_error(
                - First namedtuple contains policy_loss
                - Second namedtuple contains additional metrics
        """
+    # Calculate advantage of each action
+    rloo_k = data.reward.size(0)
+    baseline = (data.reward.sum(0) - data.reward) / (rloo_k - 1)
+    adv = data.reward - baseline
+    adv = adv.flatten()
+
     # Calculate log probabilities for each token
     log_prob_new = torch.log_softmax(data.logit_new, dim=-1)
     log_prob_old = torch.log_softmax(data.logit_old, dim=-1)
@@ -39,7 +45,7 @@ def rloo_policy_error(
     ratio_clipped = torch.clamp(ratio, 1 - clip_ratio, 1 + clip_ratio)
 
     # Calculate loss for each token
-    advantages = data.adv.unsqueeze(1)  # [B, 1]
+    advantages = adv.unsqueeze(1)  # [B, 1]
     per_token_loss_unclipped = ratio * advantages
     per_token_loss_clipped = ratio_clipped * advantages
     per_token_loss = -torch.min(per_token_loss_unclipped, per_token_loss_clipped)

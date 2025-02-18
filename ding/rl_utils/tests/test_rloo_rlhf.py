@@ -26,10 +26,10 @@ def test_rloo_policy_loss_without_mask(batch_size, seq_length, dictionary_num):
     logit_new = torch.randn(batch_size, seq_length, dictionary_num).requires_grad_(True)
     logit_old = logit_new + torch.randn_like(logit_new) * 0.1
     action = torch.randint(0, dictionary_num, (batch_size, seq_length))
-    advantages = torch.randn(batch_size)
+    reward = torch.randn(batch_size)
 
     # Calculate loss
-    data = rloo_policy_data(logit_new=logit_new, logit_old=logit_old, action=action, adv=advantages, weight=None)
+    data = rloo_policy_data(logit_new=logit_new, logit_old=logit_old, action=action, reward=reward, weight=None)
     loss, info = rloo_policy_error(data, clip_ratio=0.2)
 
     # Verify outputs
@@ -50,12 +50,12 @@ def test_rloo_policy_loss_with_mask(batch_size, seq_length, dictionary_num):
     logit_new = torch.randn(batch_size, seq_length, dictionary_num).requires_grad_(True)
     logit_old = logit_new + torch.randn_like(logit_new) * 0.1
     action = torch.randint(0, dictionary_num, (batch_size, seq_length))
-    advantages = torch.randn(batch_size)
+    reward = torch.randn(batch_size)
     action_mask = torch.ones(batch_size, seq_length)
     action_mask[:, -2:] = 0
 
     # Calculate loss
-    data = rloo_policy_data(logit_new=logit_new, logit_old=logit_old, action=action, adv=advantages, weight=action_mask)
+    data = rloo_policy_data(logit_new=logit_new, logit_old=logit_old, action=action, reward=reward, weight=action_mask)
     loss, info = rloo_policy_error(data, clip_ratio=0.2)
 
     # Verify outputs
