@@ -3,42 +3,77 @@ from collections import namedtuple
 import torch
 
 rloo_policy_data = namedtuple('rloo_policy_data', ['logit_new', 'logit_old', 'action', 'reward', 'weight'])
+MetricInfo = namedtuple('MetricInfo', ['mean_ratio', 'mean_clipped', 'mean_advantage'])
+
+
+def naive_method(logits, index):
+    # Calculate log probabilities for each token
+    log_prob_new = torch.log_softmax(logits, dim=-1)
+    # Get log probabilities for selected actions
+    index = index.unsqueeze(-1)  # [B, L, 1]
+    per_token_logps = torch.gather(log_prob_new, -1, index).squeeze(-1)
+    return per_token_logps
+
+
+def efficient_method(logits, index):
+    if logits.dtype in [torch.float32, torch.float64]:
+        selected_logits = torch.gather(logits, dim=-1, index=index.unsqueeze(-1)).squeeze(-1)
+        # loop to reduce peak mem consumption
+        logsumexp_values = torch.stack([torch.logsumexp(lg, dim=-1) for lg in logits])
+        per_token_logps = selected_logits - logsumexp_values  # log_softmax(x_i) = x_i - logsumexp(x)
+    else:
+        # logsumexp approach is unstable with bfloat16, fall back to slightly less efficent approach
+        per_token_logps = []
+        for row_logits, row_labels in zip(logits, index):  # loop to reduce peak mem consumption
+            row_logps = torch.log_softmax(row_logits, dim=-1)
+            row_per_token_logps = row_logps.gather(dim=-1, index=row_labels.unsqueeze(-1)).squeeze(-1)
+            per_token_logps.append(row_per_token_logps)
+        per_token_logps = torch.stack(per_token_logps)
+    return per_token_logps
+
+
+def less_efficient_method(logits, action):
+    dist = torch.distributions.categorical.Categorical(logits=logits)
+    logp = dist.log_prob(action)
+    return logp
 
 
 def rloo_policy_error(
         data: namedtuple,
+        logpro_cal=efficient_method,  # Method to calculate the log probabilities
         clip_ratio: float = 0.2,
 ) -> Tuple[namedtuple, namedtuple]:
-    """Calculate the policy loss for RLOO
+    """
+    Overview:
+        Implementation of Rejection Learning with Optimistic Optimization (RLOO) for RLHF.
+    Arguments:
+        - data (:obj:`namedtuple`): the rloo input data with fields shown in ``rloo_policy_data``.
+        - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2.
+    Returns:
+         - loss (:obj:`torch.FloatTensor`): the rloo policy loss, a differentiable 0-dim tensor.
+        - rloo_info (:obj:`namedtuple`): the rloo optim information for monitoring, all of them are Python scalar.
+    Shapes:
+        - logit_new (:obj:`torch.FloatTensor`): :math:`(B, S, V)`, where B is batch size, S is sequence length,
+          and V is vocabulary size.
+        - logit_old (:obj:`torch.FloatTensor`): :math:`(B, S, V)`.
+        - action (:obj:`torch.LongTensor`): :math:`(B, S)`.
+        - reward (:obj:`torch.FloatTensor`): :math:`(K, B)`, where K is the number of samples per prompt.
+        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, S)`.
+        - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor.
+        - mean_ratio (:obj:`float`): mean probability ratio.
+        - mean_clipped (:obj:`float`): proportion of clipped probability ratios.
+        - mean_advantage (:obj:`float`): mean advantage value.
+    """
 
-       Args:
-           data (rloo_policy_data): Data containing the following fields:
-               - logit_new: Current policy logits [B, L, V]
-               - logit_old: Old policy logits [B, L, V]
-               - action: Actions taken [B, L]
-               - reward: Advantage values [B]
-               - weight: Attention mask [B, L]
-           clip_ratio (float): PPO clipping ratio, default 0.2
-
-       Returns:
-           Tuple[namedtuple, namedtuple]:
-               - First namedtuple contains policy_loss
-               - Second namedtuple contains additional metrics
-       """
     # Calculate advantage of each action
     rloo_k = data.reward.size(0)
     baseline = (data.reward.sum(0) - data.reward) / (rloo_k - 1)
     adv = data.reward - baseline
     adv = adv.flatten()
 
-    # Calculate log probabilities for each token
-    log_prob_new = torch.log_softmax(data.logit_new, dim=-1)
-    log_prob_old = torch.log_softmax(data.logit_old, dim=-1)
-
     # Get log probabilities for selected actions
-    action = data.action.unsqueeze(-1)  # [B, L, 1]
-    per_token_logps = torch.gather(log_prob_new, -1, action).squeeze(-1)
-    per_token_old_logps = torch.gather(log_prob_old, -1, action).squeeze(-1)
+    per_token_logps = logpro_cal(data.logit_new, data.action)
+    per_token_old_logps = logpro_cal(data.logit_old, data.action)
 
     # Calculate policy ratio
     ratio = torch.exp(per_token_logps - per_token_old_logps)
@@ -55,15 +90,11 @@ def rloo_policy_error(
     loss = ((per_token_loss * weight).sum(dim=1) / weight.sum(dim=1)).mean()
 
     # Calculate additional metrics
-    metrics = {
-        'mean_ratio': ((ratio * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
-        'mean_clipped': (ratio > (1 + clip_ratio)).float().mean().item() + (ratio <
-                                                                            (1 - clip_ratio)).float().mean().item(),
-        'mean_advantage': advantages.mean().item(),
-    }
+    metric_info = MetricInfo(
+        mean_ratio=((ratio * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
+        mean_clipped=(ratio > (1 + clip_ratio)).float().mean().item() + (ratio <
+                                                                         (1 - clip_ratio)).float().mean().item(),
+        mean_advantage=advantages.mean().item(),
+    )
 
-    # Create return namedtuples
-    loss_info = namedtuple('LossInfo', ['policy_loss'])(policy_loss=loss)
-    metric_info = namedtuple('MetricInfo', list(metrics.keys()))(**metrics)
-
-    return loss_info, metric_info
+    return loss, metric_info

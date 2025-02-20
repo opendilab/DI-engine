@@ -3,41 +3,75 @@ from collections import namedtuple
 import torch
 
 grpo_policy_data = namedtuple('grpo_policy_data', ['logit_new', 'logit_old', 'logit_ref', 'action', 'adv', 'weight'])
+MetricInfo = namedtuple('MetricInfo', ['mean_kl', 'mean_ratio', 'mean_clipped'])
+
+
+def naive_method(logits, index):
+    # Calculate log probabilities for each token
+    log_prob_new = torch.log_softmax(logits, dim=-1)
+    # Get log probabilities for selected actions
+    index = index.unsqueeze(-1)  # [B, L, 1]
+    per_token_logps = torch.gather(log_prob_new, -1, index).squeeze(-1)
+    return per_token_logps
+
+
+def efficient_method(logits, index):
+    if logits.dtype in [torch.float32, torch.float64]:
+        selected_logits = torch.gather(logits, dim=-1, index=index.unsqueeze(-1)).squeeze(-1)
+        # loop to reduce peak mem consumption
+        logsumexp_values = torch.stack([torch.logsumexp(lg, dim=-1) for lg in logits])
+        per_token_logps = selected_logits - logsumexp_values  # log_softmax(x_i) = x_i - logsumexp(x)
+    else:
+        # logsumexp approach is unstable with bfloat16, fall back to slightly less efficent approach
+        per_token_logps = []
+        for row_logits, row_labels in zip(logits, index):  # loop to reduce peak mem consumption
+            row_logps = torch.log_softmax(row_logits, dim=-1)
+            row_per_token_logps = row_logps.gather(dim=-1, index=row_labels.unsqueeze(-1)).squeeze(-1)
+            per_token_logps.append(row_per_token_logps)
+        per_token_logps = torch.stack(per_token_logps)
+    return per_token_logps
+
+
+def less_efficient_method(logits, action):
+    dist = torch.distributions.categorical.Categorical(logits=logits)
+    logp = dist.log_prob(action)
+    return logp
 
 
 def grpo_policy_error(
         data: namedtuple,
+        logpro_cal=efficient_method,  # Method to calculate the log probabilities
         clip_ratio: float = 0.2,
-        beta: float = 0.1,  # Weight coefficient for KL divergence
+        beta: float = 0.1  # Weight coefficient for KL divergence
 ) -> Tuple[namedtuple, namedtuple]:
-    """Calculate the policy loss for GRPO
-    Args:
-        data (grpo_policy_data): Data containing the following fields:
-            - logit_new: Current policy logits [B, L, V]
-            - logit_old: Old policy logits [B, L, V]
-            - logit_ref: Reference policy logits [B, L, V]
-            - action: Actions taken [B, L]
-            - adv: Advantage values [B]
-            - weight: Attention mask [B, L]
-        clip_ratio (float): PPO clipping ratio, default 0.2
-        beta (float): Weight coefficient for KL divergence, default 0.1
-
-    Returns:
-        Tuple[namedtuple, namedtuple]:
-            - First namedtuple contains policy_loss
-            - Second namedtuple contains additional metrics
     """
+        Overview:
+            Implementation of Generalized Reward-Conditioned Policy Optimization(	arXiv:2405.20304) .
+        Arguments:
+            - data (:obj:`namedtuple`): the grpo input data with fields shown in ``grpo_policy_data``.
+            - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2.
+            - beta (:obj:`float`): weight coefficient for KL divergence regularization, defaults to 0.1.
+        Returns:
+             - loss (:obj:`torch.FloatTensor`): the rloo policy loss, a differentiable 0-dim tensor.
+            - grpo_info (:obj:`namedtuple`): the grpo optim information for monitoring, all of them are Python scalar.
+        Shapes:
+            - logit_new (:obj:`torch.FloatTensor`): :math:`(B, S, V)`, where B is batch size, S is sequence length,
+              and V is vocabulary size.
+            - logit_old (:obj:`torch.FloatTensor`): :math:`(B, S, V)`.
+            - logit_ref (:obj:`torch.FloatTensor`): :math:`(B, S, V)`.
+            - action (:obj:`torch.LongTensor`): :math:`(B, S)`.
+            - adv (:obj:`torch.FloatTensor`): :math:`(B, )`.
+            - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, S)`.
+            - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor.
+            - mean_kl (:obj:`float`): mean KL divergence between current and reference policy.
+            - mean_ratio (:obj:`float`): mean probability ratio.
+            - mean_clipped (:obj:`float`): proportion of clipped probability ratios.
+        """
 
-    # Calculate log probabilities for each token
-    log_prob_new = torch.log_softmax(data.logit_new, dim=-1)
-    log_prob_old = torch.log_softmax(data.logit_old, dim=-1)
-    log_prob_ref = torch.log_softmax(data.logit_ref, dim=-1)
-
-    # Get log probabilities for selected actions
-    action = data.action.unsqueeze(-1)  # [B, L, 1]
-    per_token_logps = torch.gather(log_prob_new, -1, action).squeeze(-1)
-    per_token_old_logps = torch.gather(log_prob_old, -1, action).squeeze(-1)
-    per_token_ref_logps = torch.gather(log_prob_ref, -1, action).squeeze(-1)
+    # Calculate log probabilities for selected token
+    per_token_logps = logpro_cal(data.logit_new, data.action)
+    per_token_ref_logps = logpro_cal(data.logit_ref, data.action)
+    per_token_old_logps = logpro_cal(data.logit_old, data.action)
 
     # Calculate KL divergence: exp(q-p) - (q-p) - 1,
     # where p is current policy and q is reference policy
@@ -62,16 +96,11 @@ def grpo_policy_error(
     loss = ((per_token_loss * weight).sum(dim=1) / weight.sum(dim=1)).mean()
 
     # Calculate additional metrics
-    metrics = {
-        'mean_kl': ((per_token_kl * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
-        'mean_ratio': ((ratio * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
-        'mean_clipped': (
-            (ratio > (1 + clip_ratio)).float().mean().item() + (ratio < (1 - clip_ratio)).float().mean().item()
-        ),
-    }
+    metric_info = MetricInfo(
+        mean_kl=((per_token_kl * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
+        mean_ratio=((ratio * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
+        mean_clipped=(ratio > (1 + clip_ratio)).float().mean().item() + (ratio <
+                                                                         (1 - clip_ratio)).float().mean().item(),
+    )
 
-    # Create return namedtuples
-    loss_info = namedtuple('LossInfo', ['policy_loss'])(policy_loss=loss)
-    metric_info = namedtuple('MetricInfo', list(metrics.keys()))(**metrics)
-
-    return loss_info, metric_info
+    return loss, metric_info
