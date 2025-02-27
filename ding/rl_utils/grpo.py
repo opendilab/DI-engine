@@ -1,46 +1,15 @@
 from typing import Tuple
 from collections import namedtuple
 import torch
+from .log_prob_utils import efficient_method, naive_method, less_efficient_method
 
 grpo_policy_data = namedtuple('grpo_policy_data', ['logit_new', 'logit_old', 'logit_ref', 'action', 'adv', 'weight'])
-MetricInfo = namedtuple('MetricInfo', ['mean_kl', 'mean_ratio', 'mean_clipped'])
-
-
-def naive_method(logits, index):
-    # Calculate log probabilities for each token
-    log_prob_new = torch.log_softmax(logits, dim=-1)
-    # Get log probabilities for selected actions
-    index = index.unsqueeze(-1)  # [B, L, 1]
-    per_token_logps = torch.gather(log_prob_new, -1, index).squeeze(-1)
-    return per_token_logps
-
-
-def efficient_method(logits, index):
-    if logits.dtype in [torch.float32, torch.float64]:
-        selected_logits = torch.gather(logits, dim=-1, index=index.unsqueeze(-1)).squeeze(-1)
-        # loop to reduce peak mem consumption
-        logsumexp_values = torch.stack([torch.logsumexp(lg, dim=-1) for lg in logits])
-        per_token_logps = selected_logits - logsumexp_values  # log_softmax(x_i) = x_i - logsumexp(x)
-    else:
-        # logsumexp approach is unstable with bfloat16, fall back to slightly less efficent approach
-        per_token_logps = []
-        for row_logits, row_labels in zip(logits, index):  # loop to reduce peak mem consumption
-            row_logps = torch.log_softmax(row_logits, dim=-1)
-            row_per_token_logps = row_logps.gather(dim=-1, index=row_labels.unsqueeze(-1)).squeeze(-1)
-            per_token_logps.append(row_per_token_logps)
-        per_token_logps = torch.stack(per_token_logps)
-    return per_token_logps
-
-
-def less_efficient_method(logits, action):
-    dist = torch.distributions.categorical.Categorical(logits=logits)
-    logp = dist.log_prob(action)
-    return logp
+grpo_info = namedtuple('grpo_info', ['approx_kl', 'clipfrac'])
 
 
 def grpo_policy_error(
         data: namedtuple,
-        logpro_cal=efficient_method,  # Method to calculate the log probabilities
+        log_prob_fn=efficient_method,  # Method to calculate the log probabilities
         clip_ratio: float = 0.2,
         beta: float = 0.1  # Weight coefficient for KL divergence
 ) -> Tuple[namedtuple, namedtuple]:
@@ -51,6 +20,7 @@ def grpo_policy_error(
             - data (:obj:`namedtuple`): the grpo input data with fields shown in ``grpo_policy_data``.
             - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2.
             - beta (:obj:`float`): weight coefficient for KL divergence regularization, defaults to 0.1.
+            - logpro_cal (:obj:`function`): the method to calculate the log probabilities, defaults to efficient_method.
         Returns:
              - loss (:obj:`torch.FloatTensor`): the rloo policy loss, a differentiable 0-dim tensor.
             - grpo_info (:obj:`namedtuple`): the grpo optim information for monitoring, all of them are Python scalar.
@@ -69,9 +39,9 @@ def grpo_policy_error(
         """
 
     # Calculate log probabilities for selected token
-    per_token_logps = logpro_cal(data.logit_new, data.action)
-    per_token_ref_logps = logpro_cal(data.logit_ref, data.action)
-    per_token_old_logps = logpro_cal(data.logit_old, data.action)
+    per_token_logps = log_prob_fn(data.logit_new, data.action)
+    per_token_ref_logps = log_prob_fn(data.logit_ref, data.action)
+    per_token_old_logps = log_prob_fn(data.logit_old, data.action)
 
     # Calculate KL divergence: exp(q-p) - (q-p) - 1,
     # where p is current policy and q is reference policy
@@ -96,11 +66,9 @@ def grpo_policy_error(
     loss = ((per_token_loss * weight).sum(dim=1) / weight.sum(dim=1)).mean()
 
     # Calculate additional metrics
-    metric_info = MetricInfo(
-        mean_kl=((per_token_kl * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
-        mean_ratio=((ratio * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
-        mean_clipped=(ratio > (1 + clip_ratio)).float().mean().item() + (ratio <
-                                                                         (1 - clip_ratio)).float().mean().item(),
-    )
+    with torch.no_grad():
+        approx_kl = (per_token_old_logps - per_token_logps).mean().item()
+        clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
+        clipfrac = torch.as_tensor(clipped).float().mean().item()
 
-    return loss, metric_info
+    return loss, grpo_info(approx_kl=approx_kl, clipfrac=clipfrac)

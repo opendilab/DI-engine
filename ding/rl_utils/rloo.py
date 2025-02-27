@@ -1,41 +1,10 @@
 from typing import Tuple
 from collections import namedtuple
 import torch
+from .log_prob_utils import efficient_method, naive_method, less_efficient_method
 
 rloo_policy_data = namedtuple('rloo_policy_data', ['logit_new', 'logit_old', 'action', 'reward', 'weight'])
-MetricInfo = namedtuple('MetricInfo', ['mean_ratio', 'mean_clipped', 'mean_advantage'])
-
-
-def naive_method(logits, index):
-    # Calculate log probabilities for each token
-    log_prob_new = torch.log_softmax(logits, dim=-1)
-    # Get log probabilities for selected actions
-    index = index.unsqueeze(-1)  # [B, L, 1]
-    per_token_logps = torch.gather(log_prob_new, -1, index).squeeze(-1)
-    return per_token_logps
-
-
-def efficient_method(logits, index):
-    if logits.dtype in [torch.float32, torch.float64]:
-        selected_logits = torch.gather(logits, dim=-1, index=index.unsqueeze(-1)).squeeze(-1)
-        # loop to reduce peak mem consumption
-        logsumexp_values = torch.stack([torch.logsumexp(lg, dim=-1) for lg in logits])
-        per_token_logps = selected_logits - logsumexp_values  # log_softmax(x_i) = x_i - logsumexp(x)
-    else:
-        # logsumexp approach is unstable with bfloat16, fall back to slightly less efficent approach
-        per_token_logps = []
-        for row_logits, row_labels in zip(logits, index):  # loop to reduce peak mem consumption
-            row_logps = torch.log_softmax(row_logits, dim=-1)
-            row_per_token_logps = row_logps.gather(dim=-1, index=row_labels.unsqueeze(-1)).squeeze(-1)
-            per_token_logps.append(row_per_token_logps)
-        per_token_logps = torch.stack(per_token_logps)
-    return per_token_logps
-
-
-def less_efficient_method(logits, action):
-    dist = torch.distributions.categorical.Categorical(logits=logits)
-    logp = dist.log_prob(action)
-    return logp
+rloo_info = namedtuple('rloo_info', ['approx_kl', 'clipfrac'])
 
 
 def rloo_policy_error(
@@ -50,7 +19,7 @@ def rloo_policy_error(
         - data (:obj:`namedtuple`): the rloo input data with fields shown in ``rloo_policy_data``.
         - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2.
     Returns:
-         - loss (:obj:`torch.FloatTensor`): the rloo policy loss, a differentiable 0-dim tensor.
+        - loss (:obj:`torch.FloatTensor`): the rloo policy loss, a differentiable 0-dim tensor.
         - rloo_info (:obj:`namedtuple`): the rloo optim information for monitoring, all of them are Python scalar.
     Shapes:
         - logit_new (:obj:`torch.FloatTensor`): :math:`(B, S, V)`, where B is batch size, S is sequence length,
@@ -90,11 +59,9 @@ def rloo_policy_error(
     loss = ((per_token_loss * weight).sum(dim=1) / weight.sum(dim=1)).mean()
 
     # Calculate additional metrics
-    metric_info = MetricInfo(
-        mean_ratio=((ratio * weight).sum(dim=1) / weight.sum(dim=1)).mean().item(),
-        mean_clipped=(ratio > (1 + clip_ratio)).float().mean().item() + (ratio <
-                                                                         (1 - clip_ratio)).float().mean().item(),
-        mean_advantage=advantages.mean().item(),
-    )
+    with torch.no_grad():
+        approx_kl = (per_token_old_logps - per_token_logps).mean().item()
+        clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
+        clipfrac = torch.as_tensor(clipped).float().mean().item()
 
-    return loss, metric_info
+    return loss, rloo_info(approx_kl=approx_kl, clipfrac=clipfrac)
