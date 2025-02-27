@@ -1,7 +1,7 @@
 from typing import Tuple
 from collections import namedtuple
 import torch
-from .log_prob_utils import efficient_method, naive_method, less_efficient_method
+from .log_prob_utils import efficient_method, naive_method, less_efficient_method, LogProbFunction
 
 rloo_policy_data = namedtuple('rloo_policy_data', ['logit_new', 'logit_old', 'action', 'reward', 'weight'])
 rloo_info = namedtuple('rloo_info', ['approx_kl', 'clipfrac'])
@@ -9,21 +9,23 @@ rloo_info = namedtuple('rloo_info', ['approx_kl', 'clipfrac'])
 
 def rloo_policy_error(
         data: namedtuple,
-        logpro_cal=efficient_method,  # Method to calculate the log probabilities
+        log_prob_fn: LogProbFunction = efficient_method,  # Method to calculate the log probabilities
         clip_ratio: float = 0.2,
 ) -> Tuple[namedtuple, namedtuple]:
     """
     Overview:
-        Implementation of Rejection Learning with Optimistic Optimization (RLOO) for RLHF.
+        Implementation of Rejection Learning with Optimistic Optimization (arXiv:2402.14740)
     Arguments:
         - data (:obj:`namedtuple`): the rloo input data with fields shown in ``rloo_policy_data``.
         - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2.
+        - log_prob_fn (:obj:`LogProbFunction`): The method to calculate the log probabilities, \
+             defaults to `efficient_method`.
     Returns:
         - loss (:obj:`torch.FloatTensor`): the rloo policy loss, a differentiable 0-dim tensor.
         - rloo_info (:obj:`namedtuple`): the rloo optim information for monitoring, all of them are Python scalar.
     Shapes:
-        - logit_new (:obj:`torch.FloatTensor`): :math:`(B, S, V)`, where B is batch size, S is sequence length,
-          and V is vocabulary size.
+        - logit_new (:obj:`torch.FloatTensor`): :math:`(B, S, V)`, where B is batch size, S is sequence length,\
+              and V is vocabulary size.
         - logit_old (:obj:`torch.FloatTensor`): :math:`(B, S, V)`.
         - action (:obj:`torch.LongTensor`): :math:`(B, S)`.
         - reward (:obj:`torch.FloatTensor`): :math:`(K, B)`, where K is the number of samples per prompt.
@@ -41,8 +43,8 @@ def rloo_policy_error(
     adv = adv.flatten()
 
     # Get log probabilities for selected actions
-    per_token_logps = logpro_cal(data.logit_new, data.action)
-    per_token_old_logps = logpro_cal(data.logit_old, data.action)
+    per_token_logps = log_prob_fn(data.logit_new, data.action)
+    per_token_old_logps = log_prob_fn(data.logit_old, data.action)
 
     # Calculate policy ratio
     ratio = torch.exp(per_token_logps - per_token_old_logps)

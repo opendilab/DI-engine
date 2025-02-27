@@ -1,7 +1,7 @@
 from typing import Tuple
 from collections import namedtuple
 import torch
-from .log_prob_utils import efficient_method, naive_method, less_efficient_method
+from .log_prob_utils import efficient_method, naive_method, less_efficient_method, LogProbFunction
 
 grpo_policy_data = namedtuple('grpo_policy_data', ['logit_new', 'logit_old', 'logit_ref', 'action', 'adv', 'weight'])
 grpo_info = namedtuple('grpo_info', ['approx_kl', 'clipfrac'])
@@ -9,24 +9,25 @@ grpo_info = namedtuple('grpo_info', ['approx_kl', 'clipfrac'])
 
 def grpo_policy_error(
         data: namedtuple,
-        log_prob_fn=efficient_method,  # Method to calculate the log probabilities
+        log_prob_fn: LogProbFunction = efficient_method,  # Method to calculate the log probabilities
         clip_ratio: float = 0.2,
         beta: float = 0.1  # Weight coefficient for KL divergence
 ) -> Tuple[namedtuple, namedtuple]:
     """
         Overview:
-            Implementation of Generalized Reward-Conditioned Policy Optimization(	arXiv:2405.20304) .
+            Implementation of Generalized Reward-Conditioned Policy Optimization(	arxiv:2402.03300) .
         Arguments:
             - data (:obj:`namedtuple`): the grpo input data with fields shown in ``grpo_policy_data``.
             - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2.
             - beta (:obj:`float`): weight coefficient for KL divergence regularization, defaults to 0.1.
-            - logpro_cal (:obj:`function`): the method to calculate the log probabilities, defaults to efficient_method.
+            - log_prob_fn (:obj:`LogProbFunction`): The method to calculate the log probabilities, \
+                  defaults to `efficient_method`.
         Returns:
-             - loss (:obj:`torch.FloatTensor`): the rloo policy loss, a differentiable 0-dim tensor.
+            - loss (:obj:`torch.FloatTensor`): the rloo policy loss, a differentiable 0-dim tensor.
             - grpo_info (:obj:`namedtuple`): the grpo optim information for monitoring, all of them are Python scalar.
         Shapes:
-            - logit_new (:obj:`torch.FloatTensor`): :math:`(B, S, V)`, where B is batch size, S is sequence length,
-              and V is vocabulary size.
+            - logit_new (:obj:`torch.FloatTensor`): :math:`(B, S, V)`, where B is batch size, S is sequence length, \
+                   and V is vocabulary size.
             - logit_old (:obj:`torch.FloatTensor`): :math:`(B, S, V)`.
             - logit_ref (:obj:`torch.FloatTensor`): :math:`(B, S, V)`.
             - action (:obj:`torch.LongTensor`): :math:`(B, S)`.

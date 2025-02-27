@@ -1,4 +1,4 @@
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Any
 import torch
 from torch import Tensor
 
@@ -62,7 +62,7 @@ def efficient_method(logits: Tensor, index: Tensor) -> Tensor:
     return per_token_logps
 
 
-def less_efficient_method(logits: Tensor, action: Tensor) -> Tensor:
+def less_efficient_method(logits: Tensor, index: Tensor) -> Tensor:
     """Calculate per-token log probabilities using categorical distribution.
 
     Args:
@@ -70,11 +70,18 @@ def less_efficient_method(logits: Tensor, action: Tensor) -> Tensor:
                B = batch size
                S = sequence length
                V = vocabulary size
-        action: Selected token indices of shape [B, S] or [S]
+        index: Selected token indices of shape [B, S] or [S]
 
     Returns:
         Tensor: Log probabilities for selected tokens of shape [B, S] or [S]
     """
     dist = torch.distributions.categorical.Categorical(logits=logits)
-    logp: Tensor = dist.log_prob(action)
+    logp: Tensor = dist.log_prob(index)
     return logp
+
+
+# 定义一个统一的类型
+LogProbFunction = Callable[[Tensor, Tensor], Tensor]
+
+# 导出所有方法
+__all__ = ['naive_method', 'efficient_method', 'less_efficient_method', 'LogProbFunction']
