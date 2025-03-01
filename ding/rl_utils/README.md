@@ -98,6 +98,6 @@ Peak GPU Memory: 2560.27 MB
 To run the tests:
 
 ```bash
-pytest -v -s test_log_prob_fn.py
+pytest -v -s tests/test_log_prob_utils.py
 ```
 
