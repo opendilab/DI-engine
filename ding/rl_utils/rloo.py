@@ -14,7 +14,7 @@ def rloo_policy_error(
 ) -> Tuple[namedtuple, namedtuple]:
     """
     Overview:
-        Implementation of Rejection Learning with Optimistic Optimization (arXiv:2402.14740)
+        REINFORCE Leave-One-Out(arXiv:2402.14740)
     Arguments:
         - data (:obj:`namedtuple`): the rloo input data with fields shown in ``rloo_policy_data``.
         - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2.
