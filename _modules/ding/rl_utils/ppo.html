@@ -408,17 +408,21 @@
     <span class="k">return</span> <span class="n">ppo_loss</span><span class="p">(</span><span class="n">policy_output</span><span class="o">.</span><span class="n">policy_loss</span><span class="p">,</span> <span class="n">value_loss</span><span class="p">,</span> <span class="n">policy_output</span><span class="o">.</span><span class="n">entropy_loss</span><span class="p">),</span> <span class="n">policy_info</span></div>
 
 
-<div class="viewcode-block" id="ppo_policy_error"><a class="viewcode-back" href="../../../12_policies/ppo.html#ding.rl_utils.ppo.ppo_policy_error">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">ppo_policy_error</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
-                     <span class="n">clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
-                     <span class="n">dual_clip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">namedtuple</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<div class="viewcode-block" id="ppo_policy_error"><a class="viewcode-back" href="../../../12_policies/ppo.html#ding.rl_utils.ppo.ppo_policy_error">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">ppo_policy_error</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
+        <span class="n">clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">dual_clip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">entropy_bonus</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">namedtuple</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Get PPO policy loss</span>
+<span class="sd">        Get PPO policy loss (both for classical RL in control/video games and LLM/VLM RLHF).</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - data (:obj:`namedtuple`): ppo input data with fieids shown in ``ppo_policy_data``</span>
-<span class="sd">        - clip_ratio (:obj:`float`): clip value for ratio</span>
-<span class="sd">        - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\</span>
-<span class="sd">        defaults to 5.0, if you don&#39;t want to use it, set this parameter to None</span>
+<span class="sd">        - data (:obj:`namedtuple`): Ppo input data with fieids shown in ``ppo_policy_data``.</span>
+<span class="sd">        - clip_ratio (:obj:`float`): Clip value for ratio, defaults to 0.2.</span>
+<span class="sd">        - dual_clip (:obj:`float`): A parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf), \</span>
+<span class="sd">            defaults to 5.0, if you don&#39;t want to use it, set this parameter to None</span>
+<span class="sd">        - entropy_bonus (:obj:`bool`): Whether to use entropy bonus, defaults to True. LLM RLHF usually does not use it.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - ppo_policy_loss (:obj:`namedtuple`): the ppo policy loss item, all of them are the differentiable 0-dim tensor</span>
 <span class="sd">        - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar</span>
@@ -440,7 +444,14 @@
 <span class="sd">        &gt;&gt;&gt;     weight=torch.ones(3),</span>
 <span class="sd">        &gt;&gt;&gt; )</span>
 <span class="sd">        &gt;&gt;&gt; loss, info = ppo_policy_error(data)</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This function can be extended from `B` to more parallel dimensions, like `(B, S)`, where `S` is the</span>
+<span class="sd">        sequence length in LLM/VLM.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        For the action mask often used in LLM/VLM, users can set the `weight` to the action mask.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logit_new</span><span class="p">,</span> <span class="n">logit_old</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">adv</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">data</span>
     <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">adv</span><span class="p">)</span>
@@ -448,10 +459,14 @@
     <span class="n">dist_old</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">categorical</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logit_old</span><span class="p">)</span>
     <span class="n">logp_new</span> <span class="o">=</span> <span class="n">dist_new</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
     <span class="n">logp_old</span> <span class="o">=</span> <span class="n">dist_old</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
-    <span class="n">dist_new_entropy</span> <span class="o">=</span> <span class="n">dist_new</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">dist_new_entropy</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">weight</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-        <span class="n">dist_new_entropy</span> <span class="o">=</span> <span class="n">dist_new</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">entropy_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist_new_entropy</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">entropy_bonus</span><span class="p">:</span>
+        <span class="n">dist_new_entropy</span> <span class="o">=</span> <span class="n">dist_new</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">dist_new_entropy</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">weight</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>  <span class="c1"># for the multi-agent rl case</span>
+            <span class="n">dist_new_entropy</span> <span class="o">=</span> <span class="n">dist_new</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">entropy_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist_new_entropy</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">entropy_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
     <span class="c1"># policy_loss</span>
     <span class="n">ratio</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logp_new</span> <span class="o">-</span> <span class="n">logp_old</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ratio</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">adv</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
