@@ -63,4 +63,3 @@ if __name__ == "__main__":
     from ding.entry import serial_pipeline
     with DDPContext():
         serial_pipeline((main_config, create_config), seed=0)
-
