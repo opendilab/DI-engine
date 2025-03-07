@@ -875,7 +875,291 @@ class D4RLTrajectoryDataset(Dataset):
             traj_mask = torch.ones(self.context_len, dtype=torch.long)
             return timesteps, states, actions, rtgs, traj_mask
 
+@DATASET_REGISTRY.register('edt_d4rl_trajectory')
+class EDTTrajectoryDataset(D4RLTrajectoryDataset):
+    """
+    Overview:
+        D4RL trajectory dataset for EDT, which is used for offline RL algorithms.
+    Interfaces:
+        ``__init__``, ``__len__``, ``__getitem__``
+    """
+    def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Initialization method.
+        Arguments:
+            - cfg (:obj:`dict`): Config dict.
+        """
+        dataset_path = cfg.dataset.data_dir_prefix
+        rtg_scale = cfg.dataset.rtg_scale
+        self.context_len = cfg.dataset.context_len
+        self.env_type = cfg.dataset.env_type
+        
+        if 'hdf5' in dataset_path:  # for mujoco env
+            try:
+                import h5py
+                import collections
+            except ImportError:
+                import sys
+                logging.warning("not found h5py package, please install it trough `pip install h5py ")
+                sys.exit(1)
+            dataset = h5py.File(dataset_path, 'r')
+            
+            N = dataset['rewards'].shape[0]
+            data_ = collections.defaultdict(list)
+            
+            use_timeouts = False
+            if 'timeouts' in dataset:
+                use_timeouts = True
+                
+            episode_step = 0
+            paths = []
+            for i in range(N):
+                done_bool = bool(dataset['terminals'][i])
+                if use_timeouts:
+                    final_timestep = dataset['timeouts'][i]
+                else:
+                    final_timestep = (episode_step == 1000 - 1)
+                for k in ['observations', 'actions', 'rewards', 'terminals']:
+                    data_[k].append(dataset[k][i])
+                if done_bool or final_timestep:
+                    episode_step = 0
+                    episode_data = {}
+                    for k in data_:
+                        episode_data[k] = np.array(data_[k])
+                    paths.append(episode_data)
+                    data_ = collections.defaultdict(list)
+                episode_step += 1
+                
+            self.trajectories = paths
+            
+            
+            # calculate state mean and variance and returns_to_go for all traj
+            states = []
+            for traj in self.trajectories:
+                traj_len = traj['observations'].shape[0]
+                states.append(traj['observations'])
+                # calculate returns to go and rescale them
+                traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
 
+            # used for input normalization
+            states = np.concatenate(states, axis=0)
+            self.state_mean, self.state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
+
+            # normalize states
+            for traj in self.trajectories:
+                traj['observations'] = (traj['observations'] - self.state_mean) / self.state_std
+                traj['next_observations'] = (traj['next_observations'] - self.state_mean) / self.state_std
+            
+        elif 'pkl' in dataset_path:
+            if 'dqn' in dataset_path:
+                # load dataset
+                with open(dataset_path, 'rb') as f:
+                    self.trajectories = pickle.load(f)
+
+                if isinstance(self.trajectories[0], list):
+                    # for our collected dataset, e.g. cartpole/lunarlander case
+                    trajectories_tmp = []
+
+                    original_keys = ['obs', 'next_obs', 'action', 'reward']
+                    keys = ['observations', 'next_observations', 'actions', 'rewards']
+                    trajectories_tmp = [
+                        {
+                            key: np.stack(
+                                [
+                                    self.trajectories[eps_index][transition_index][o_key]
+                                    for transition_index in range(len(self.trajectories[eps_index]))
+                                ],
+                                axis=0
+                            )
+                            for key, o_key in zip(keys, original_keys)
+                        } for eps_index in range(len(self.trajectories))
+                    ]
+                    self.trajectories = trajectories_tmp
+
+                states = []
+                for traj in self.trajectories:
+                    # traj_len = traj['observations'].shape[0]
+                    states.append(traj['observations'])
+                    # calculate returns to go and rescale them
+                    traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
+
+                # used for input normalization
+                states = np.concatenate(states, axis=0)
+                self.state_mean, self.state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
+
+                # normalize states
+                for traj in self.trajectories:
+                    traj['observations'] = (traj['observations'] - self.state_mean) / self.state_std
+                    traj['next_observations'] = (traj['next_observations'] - self.state_mean) / self.state_std
+            else:
+                # load dataset
+                with open(dataset_path, 'rb') as f:
+                    self.trajectories = pickle.load(f)
+
+                states = []
+                for traj in self.trajectories:
+                    states.append(traj['observations'])
+                    # calculate returns to go and rescale them
+                    traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
+
+                # used for input normalization
+                states = np.concatenate(states, axis=0)
+                self.state_mean, self.state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
+
+                # normalize states
+                for traj in self.trajectories:
+                    traj['observations'] = (traj['observations'] - self.state_mean) / self.state_std
+                    traj['next_observations'] = (traj['next_observations'] - self.state_mean) / self.state_std
+        else:
+            # -- load data from memory (make more efficient)
+            obss = []
+            actions = []
+            returns = [0]
+            done_idxs = []
+            stepwise_returns = []
+
+            transitions_per_buffer = np.zeros(50, dtype=int)
+            num_trajectories = 0
+            while len(obss) < cfg.dataset.num_steps:
+                buffer_num = np.random.choice(np.arange(50 - cfg.dataset.num_buffers, 50), 1)[0]
+                i = transitions_per_buffer[buffer_num]
+                frb = FixedReplayBuffer(
+                    data_dir=cfg.dataset.data_dir_prefix + '/1/replay_logs',
+                    replay_suffix=buffer_num,
+                    observation_shape=(84, 84),
+                    stack_size=4,
+                    update_horizon=1,
+                    gamma=0.99,
+                    observation_dtype=np.uint8,
+                    batch_size=32,
+                    replay_capacity=100000
+                )
+                if frb._loaded_buffers:
+                    done = False
+                    curr_num_transitions = len(obss)
+                    trajectories_to_load = cfg.dataset.trajectories_per_buffer
+                    while not done:
+                        states, ac, ret, next_states, next_action, next_reward, terminal, indices = \
+                        frb.sample_transition_batch(batch_size=1, indices=[i])
+                        states = states.transpose((0, 3, 1, 2))[0]  # (1, 84, 84, 4) --> (4, 84, 84)
+                        obss.append(states)
+                        actions.append(ac[0])
+                        stepwise_returns.append(ret[0])
+                        if terminal[0]:
+                            done_idxs.append(len(obss))
+                            returns.append(0)
+                            if trajectories_to_load == 0:
+                                done = True
+                            else:
+                                trajectories_to_load -= 1
+                        returns[-1] += ret[0]
+                        i += 1
+                        if i >= 100000:
+                            obss = obss[:curr_num_transitions]
+                            actions = actions[:curr_num_transitions]
+                            stepwise_returns = stepwise_returns[:curr_num_transitions]
+                            returns[-1] = 0
+                            i = transitions_per_buffer[buffer_num]
+                            done = True
+                    num_trajectories += (cfg.dataset.trajectories_per_buffer - trajectories_to_load)
+                    transitions_per_buffer[buffer_num] = i
+
+            actions = np.array(actions)
+            returns = np.array(returns)
+            stepwise_returns = np.array(stepwise_returns)
+            done_idxs = np.array(done_idxs)
+
+            # -- create reward-to-go dataset
+            start_index = 0
+            rtg = np.zeros_like(stepwise_returns)
+            for i in done_idxs:
+                i = int(i)
+                curr_traj_returns = stepwise_returns[start_index:i]
+                for j in range(i - 1, start_index - 1, -1):  # start from i-1
+                    rtg_j = curr_traj_returns[j - start_index:i - start_index]
+                    rtg[j] = sum(rtg_j)
+                start_index = i
+
+            # -- create timestep dataset
+            start_index = 0
+            timesteps = np.zeros(len(actions) + 1, dtype=int)
+            for i in done_idxs:
+                i = int(i)
+                timesteps[start_index:i + 1] = np.arange(i + 1 - start_index)
+                start_index = i + 1
+
+            self.obss = obss
+            self.actions = actions
+            self.done_idxs = done_idxs
+            self.rtgs = rtg
+            self.timesteps = timesteps
+            
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Overview:
+            Get the item of the dataset.
+        Arguments:
+            - idx (:obj:`int`): The index of the dataset.
+        """
+        if self.env_type != 'atari':
+            traj = self.trajectories[idx]
+            traj_len = traj['observations'].shape[0]
+            
+            if traj_len > self.context_len:
+                si = np.random.randint(0, traj_len - self.context_len)
+                states = torch.from_numpy(traj['observations'][si:si + self.context_len])
+                next_states = torch.from_numpy(traj["next_observations"][si:si + self.context_len])
+                actions = torch.from_numpy(traj['actions'][si:si + self.context_len])
+                returns_to_go = torch.from_numpy(traj['returns_to_go'][si:si + self.context_len])
+                rewards = torch.from_numpy(traj["rewards"][si : si + self.context_len])
+                timesteps = torch.arange(start=si, end=si + self.context_len, step=1)
+                
+                # all ones since no padding
+                traj_mask = torch.ones(self.context_len, dtype=torch.long)
+            else:
+                padding_len = self.context_len - traj_len
+
+                # padding with zeros
+                states = torch.from_numpy(traj['observations'])
+                states = torch.cat(
+                    [states, torch.zeros(([padding_len] + list(states.shape[1:])), dtype=states.dtype)], dim=0
+                )
+                
+                next_states = torch.from_numpy(traj['next_observations'])
+                next_states = torch.cat(
+                    [next_states, torch.zeros(([padding_len] + list(next_states.shape[1:])), dtype=states.dtype)], dim=0
+                )
+                
+                actions = torch.from_numpy(traj['actions'])
+                actions = torch.cat(
+                    [actions, torch.zeros(([padding_len] + list(actions.shape[1:])), dtype=actions.dtype)], dim=0
+                )
+
+                returns_to_go = torch.from_numpy(traj['returns_to_go'])
+                returns_to_go = torch.cat(
+                    [
+                        returns_to_go,
+                        torch.zeros(([padding_len] + list(returns_to_go.shape[1:])), dtype=returns_to_go.dtype)
+                    ],
+                    dim=0
+                )
+                
+                rewards = torch.from_numpy(traj["rewards"])
+                rewards = torch.cat(
+                    [
+                        rewards,
+                        torch.zeros(([padding_len] + list(rewards.shape[1:])), dtype=rewards.dtype,),
+                    ],
+                    dim=0
+                )
+                timesteps = torch.arange(start=0, end=self.context_len, step=1)
+
+                traj_mask = torch.cat(
+                    [torch.ones(traj_len, dtype=torch.long),
+                     torch.zeros(padding_len, dtype=torch.long)], dim=0
+                )
+            return timesteps, states, next_states, actions, returns_to_go, rewards, traj_mask 
 @DATASET_REGISTRY.register('d4rl_diffuser')
 class D4RLDiffuserDataset(Dataset):
     """
