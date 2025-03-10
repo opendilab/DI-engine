@@ -41,7 +41,8 @@ class MathRuleRewardModel(BaseRewardModel):
         """
         # 1. parse the query to get question and predicted answer
         # 2. get the ground truth answer according to the question
-        # 3. calculate the reward based on the predicted answer and the ground truth answer (format error -2, answer error -1, correct 1)
+        # 3. calculate the reward based on the predicted answer and the ground truth answer
+        # (format error -2, answer error -1, correct 1)
         pass
 
     # rule-based reward model does not need training, thus the following methods are empty
