@@ -81,6 +81,8 @@ setup(
         'einops',
         'transformers',
         'datasets',
+        'loguru',
+        'vllm'
     ],
     extras_require={
         'test': [
