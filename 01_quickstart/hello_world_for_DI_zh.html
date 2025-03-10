@@ -325,7 +325,7 @@
 <p>智能体形式上是一个可以与环境自由互动的对象，其本质上是一个接受输入，反馈输出的数学模型。它的模型由一个模型结构和一组模型参数构成。
 通常，我们会把模型写入存放在一个文件中，或是从一个文件中读出所需要的智能体模型。
 这里我们提供了一个由 DI-engine 框架使用 DQN 算法训练的智能体模型：
-<a class="reference external" href="https://opendilab.net/download/DI-engine-docs/01_quickstart/final.pth.tar">final.pth.tar</a> 只需要使用以下的代码，就可以让智能体动起来，记得要把函数中的模型地址 <code class="docutils literal notranslate"><span class="pre">ckpt_path='./final.pth.tar'</span></code> 换成本地保存的地址（例如 <code class="docutils literal notranslate"><span class="pre">ckpt_path='~/Download/final.pth.tar'</span></code> ）</p>
+<a class="reference external" href="https://huggingface.co/OpenDILabCommunity/DI-engine-docs/blob/main/01_quickstart/final.pth.tar">final.pth.tar</a> 只需要使用以下的代码，就可以让智能体动起来，记得要把函数中的模型地址 <code class="docutils literal notranslate"><span class="pre">ckpt_path='./final.pth.tar'</span></code> 换成本地保存的地址（例如 <code class="docutils literal notranslate"><span class="pre">ckpt_path='~/Download/final.pth.tar'</span></code> ）</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span> <span class="c1"># 载入 gym 库，用于标准化强化学习环境</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span> <span class="c1"># 载入 PyTorch 库，用于加载 Tensor 模型，定义计算网络</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span> <span class="c1"># 载入 EasyDict，用于实例化配置文件</span>

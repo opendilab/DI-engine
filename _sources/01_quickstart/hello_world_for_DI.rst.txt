@@ -23,7 +23,7 @@ An agent is an object that can interact with the environment freely, and is esse
 Its model consists of a model structure and a set of model parameters.
 In general, we will write the model into a file for saving, or read the model from that file for deploying.
 Here we provide an agent model trained by the DI-engine framework using the DQN algorithm:
-`final.pth.tar <https://opendilab.net/download/DI-engine-docs/01_quickstart/final.pth.tar>`_ \
+`final.pth.tar <https://huggingface.co/OpenDILabCommunity/DI-engine-docs/blob/main/01_quickstart/final.pth.tar>`_ \
 Just use the following code to make the agent run, remember to replace the model address in the function ("ckpt_path='./final.pth.tar'"), with the locally saved model file path, such as "'~/Download/final.pth.tar'":
 
 .. code-block:: python
