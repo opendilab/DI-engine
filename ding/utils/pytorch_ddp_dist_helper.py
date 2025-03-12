@@ -46,6 +46,7 @@ def allreduce(x: torch.Tensor) -> None:
     dist.all_reduce(x)
     x.div_(get_world_size())
 
+
 def allreduce_with_indicator(grad: torch.Tensor, indicator: torch.Tensor) -> None:
     """
     Overview:

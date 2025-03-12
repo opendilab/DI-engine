@@ -246,7 +246,7 @@ class VAC(nn.Module):
         Overview:
             VAC forward computation graph for actor part, input observation tensor to predict action logit.
         Arguments:
-            - x (:obj:`torch.Tensor` or :obj:`Dict`): The input observation tensor data. If a dictionary is provided, \
+            - x (:obj:`Union[torch.Tensor, Dict]`): The input observation tensor data. If a dictionary is provided, \
                 it should contain keys 'observation' and optionally 'action_mask'.
         Returns:
             - outputs (:obj:`Dict`): The output dict of VAC's forward computation graph for actor, including ``logit`` \
@@ -287,12 +287,12 @@ class VAC(nn.Module):
             action_args = self.actor_head[1](x)
             return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}}
 
-    def compute_critic(self, x: torch.Tensor) -> Dict:
+    def compute_critic(self, x: Union[torch.Tensor, Dict]) -> Dict:
         """
         Overview:
             VAC forward computation graph for critic part, input observation tensor to predict state value.
         Arguments:
-            - x (:obj:`torch.Tensor` or :obj:`Dict`): The input observation tensor data. If a dictionary is provided, \
+            - x (:obj:`Union[torch.Tensor, Dict]`): The input observation tensor data. If a dictionary is provided, \
                 it should contain the key 'observation'.
         Returns:
             - outputs (:obj:`Dict`): The output dict of VAC's forward computation graph for critic, including ``value``.
@@ -314,13 +314,13 @@ class VAC(nn.Module):
         x = self.critic_head(x)
         return {'value': x['pred']}
 
-    def compute_actor_critic(self, x: torch.Tensor) -> Dict:
+    def compute_actor_critic(self, x: Union[torch.Tensor, Dict]) -> Dict:
         """
         Overview:
             VAC forward computation graph for both actor and critic part, input observation tensor to predict action \
             logit and state value.
         Arguments:
-            - x (:obj:`torch.Tensor` or :obj:`Dict`): The input observation tensor data. If a dictionary is provided, \
+            - x (:obj:`Union[torch.Tensor, Dict]`): The input observation tensor data. If a dictionary is provided, \
                 it should contain keys 'observation' and optionally 'action_mask'.
         Returns:
             - outputs (:obj:`Dict`): The output dict of VAC's forward computation graph for both actor and critic, \

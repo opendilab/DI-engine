@@ -441,7 +441,7 @@ class Policy(ABC):
                         # create a zero tensor for the gradient and set the indicator to 0.
                         grad_tensor = torch.zeros_like(param.data)
                         indicator = torch.tensor(0.0, device=grad_tensor.device)
-                        
+
                         # Assign the zero gradient to param.grad to ensure that all GPUs
                         # participate in the subsequent allreduce call (avoiding deadlock).
                         param.grad = grad_tensor
