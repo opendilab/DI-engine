@@ -117,9 +117,6 @@ class LoadCkptHook(LearnerHook):
         if 'last_iter' in state_dict:
             last_iter = state_dict.pop('last_iter')
             engine.last_iter.update(last_iter)
-        if 'last_step' in state_dict:
-            last_step = state_dict.pop('last_step')
-            engine._collector_envstep = last_step
         engine.policy.load_state_dict(state_dict)
         engine.info('{} load ckpt in {}'.format(engine.instance_name, path))
 
@@ -169,7 +166,6 @@ class SaveCkptHook(LearnerHook):
             path = os.path.join(dirname, ckpt_name)
             state_dict = engine.policy.state_dict()
             state_dict.update({'last_iter': engine.last_iter.val})
-            state_dict.update({'last_step': engine.collector_envstep})
             save_file(path, state_dict)
             engine.info('{} save ckpt in {}'.format(engine.instance_name, path))
 
@@ -206,10 +202,11 @@ class LogShowHook(LearnerHook):
             - engine (:obj:`BaseLearner`): the BaseLearner
         """
         # Only show log for rank 0 learner
-        if engine.rank != 0:
-            for k in engine.log_buffer:
-                engine.log_buffer[k].clear()
-            return
+        # if engine.rank != 0:
+        #     for k in engine.log_buffer:
+        #         engine.log_buffer[k].clear()
+        #     return
+
         # For 'scalar' type variables: log_buffer -> tick_monitor -> monitor_time.step
         for k, v in engine.log_buffer['scalar'].items():
             setattr(engine.monitor, k, v)
@@ -277,8 +274,21 @@ class LogReduceHook(LearnerHook):
             Returns:
                 - new_data (:obj:`dict`): data after reduce
             """
+            # if isinstance(data, dict):
+            #     new_data = {k: aggregate(v) for k, v in data.items()}
+            
+            def should_reduce(key):
+                # 检查 key 是否以 "noreduce_" 前缀开头
+                return not key.startswith("noreduce_")
+
             if isinstance(data, dict):
-                new_data = {k: aggregate(v) for k, v in data.items()}
+                new_data = {}
+                for k, v in data.items():
+                    if should_reduce(k):
+                        new_data[k] = aggregate(v)  # 对需要 reduce 的数据执行 allreduce
+                    else:
+                        new_data[k] = v  # 不需要 reduce 的数据直接保留
+
             elif isinstance(data, list) or isinstance(data, tuple):
                 new_data = [aggregate(t) for t in data]
             elif isinstance(data, torch.Tensor):

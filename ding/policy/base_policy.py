@@ -93,10 +93,6 @@ class Policy(ABC):
         traj_len_inf=False,
         # neural network model config
         model=dict(),
-        # If resume_training is True, the environment step count (collector.envstep) and training iteration (train_iter)
-        # will be loaded from the pretrained checkpoint, allowing training to resume seamlessly
-        # from where the ckpt left off.
-        learn=dict(resume_training=False),
     )
 
     def __init__(
@@ -425,10 +421,22 @@ class Policy(ABC):
             gradients allreduce and optimizer updates.
         """
 
+        # if self._bp_update_sync:
+        #     for name, param in model.named_parameters():
+        #         if param.requires_grad:
+        #             if param.grad is not None:
+        #                 allreduce(param.grad.data)
+        # else:
+        #     synchronize()
         if self._bp_update_sync:
             for name, param in model.named_parameters():
                 if param.requires_grad:
-                    allreduce(param.grad.data)
+                    if param.grad is not None:
+                        allreduce(param.grad.data)
+                    else:
+                        # 如果梯度为 None，则创建一个与 param.grad_size 相同的零张量，并执行 allreduce
+                        zero_grad = torch.zeros_like(param.data)
+                        allreduce(zero_grad)
         else:
             synchronize()
 

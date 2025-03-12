@@ -107,7 +107,11 @@ class BaseLearner(object):
             self._logger, _ = build_logger(
                 './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
             )
-            self._tb_logger = None
+            # self._tb_logger = None
+            # ========== TODO: unizero_multitask ddp_v2 ========
+            self._tb_logger = tb_logger
+
+
         self._log_buffer = {
             'scalar': build_log_buffer(),
             'scalars': build_log_buffer(),
@@ -122,8 +126,6 @@ class BaseLearner(object):
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
         # Last iteration. Used to record current iter.
         self._last_iter = CountVar(init_val=0)
-        # Collector envstep. Used to record current envstep.
-        self._collector_envstep = 0
 
         # Setup time wrapper and hook.
         self._setup_wrapper()
@@ -178,26 +180,6 @@ class BaseLearner(object):
             - hook (:obj:`LearnerHook`): The hook to be addedr.
         """
         add_learner_hook(self._hooks, hook)
-
-    @property
-    def collector_envstep(self) -> int:
-        """
-        Overview:
-            Get current collector envstep.
-        Returns:
-            - collector_envstep (:obj:`int`): Current collector envstep.
-        """
-        return self._collector_envstep
-
-    @collector_envstep.setter
-    def collector_envstep(self, value: int) -> None:
-        """
-        Overview:
-            Set current collector envstep.
-        Arguments:
-            - value (:obj:`int`): Current collector envstep.
-        """
-        self._collector_envstep = value
 
     def train(self, data: dict, envstep: int = -1, policy_kwargs: Optional[dict] = None) -> None:
         """
@@ -454,8 +436,11 @@ class BaseLearner(object):
             Policy variable monitor is set alongside with policy, because variables are determined by specific policy.
         """
         self._policy = _policy
-        if self._rank == 0:
-            self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
+        # if self._rank == 0:
+        #     self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
+        
+        self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
+
         if self._cfg.log_policy:
             self.info(self._policy.info())
 
