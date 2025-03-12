@@ -52,10 +52,9 @@ def allreduce_with_indicator(grad: torch.Tensor, indicator: torch.Tensor) -> Non
     Overview:
         Custom allreduce: Sum both the gradient and indicator tensors across all processes.
         Then, if at least one process contributed (i.e., the summation of indicator > 0),
-        divide the gradient by the summed indicator. This ensures that if only a subset of 
+        divide the gradient by the summed indicator. This ensures that if only a subset of
         GPUs contributed a gradient, the averaging is performed based on the actual number
         of contributors rather than the total number of GPUs.
-    
     Arguments:
         - grad (torch.Tensor): Local gradient tensor to be reduced.
         - indicator (torch.Tensor): A tensor flag (1 if the gradient is computed, 0 otherwise).
