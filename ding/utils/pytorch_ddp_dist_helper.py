@@ -5,6 +5,7 @@ import os
 import numpy as np
 import torch
 import torch.distributed as dist
+import datetime
 
 from .default_helper import error_wrapper
 
@@ -142,16 +143,19 @@ def dist_init(backend: str = 'nccl',
               addr: str = None,
               port: str = None,
               rank: int = None,
-              world_size: int = None) -> Tuple[int, int]:
+              world_size: int = None,
+              timeout: datetime.timedelta = datetime.timedelta(seconds=60000)) -> Tuple[int, int]:
     """
     Overview:
-        Initialize the distributed training setting
+        Initialize the distributed training setting.
     Arguments:
-        - backend (:obj:`str`): The backend of the distributed training, support ``['nccl', 'gloo']``
-        - addr (:obj:`str`): The address of the master node
-        - port (:obj:`str`): The port of the master node
-        - rank (:obj:`int`): The rank of current process
-        - world_size (:obj:`int`): The total number of processes
+        - backend (:obj:`str`): The backend of the distributed training, supports ``['nccl', 'gloo']``.
+        - addr (:obj:`str`): The address of the master node.
+        - port (:obj:`str`): The port of the master node.
+        - rank (:obj:`int`): The rank of the current process.
+        - world_size (:obj:`int`): The total number of processes.
+        - timeout (:obj:`datetime.timedelta`): The timeout for operations executed against the process group. \
+            Default is 60000 seconds.
     """
 
     assert backend in ['nccl', 'gloo'], backend
@@ -171,10 +175,7 @@ def dist_init(backend: str = 'nccl',
         else:
             world_size = int(ntasks)
 
-    # dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
-    # TODO： 
-    import datetime
-    dist.init_process_group(backend=backend, rank=rank, world_size=world_size, timeout=datetime.timedelta(seconds=60000))
+    dist.init_process_group(backend=backend, rank=rank, world_size=world_size, timeout=timeout)
 
     num_gpus = torch.cuda.device_count()
     torch.cuda.set_device(rank % num_gpus)

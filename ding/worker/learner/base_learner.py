@@ -59,7 +59,9 @@ class BaseLearner(object):
         Overview:
             Initialization method, build common learner components according to cfg, such as hook, wrapper and so on.
         Arguments:
-            - cfg (:obj:`EasyDict`): Learner config, you can refer cls.config for details.
+            - cfg (:obj:`EasyDict`): Learner config, you can refer cls.config for details. It should include \
+                `is_unizero_multitask_pipeline` to indicate if the pipeline is unizero multitask, default is False, \
+                and `only_monitor_rank0` to control whether only rank 0 needs monitor and tb_logger, default is True.
             - policy (:obj:`namedtuple`): A collection of policy function of learn mode. And policy can also be \
                 initialized when runtime.
             - tb_logger (:obj:`SummaryWriter`): Tensorboard summary writer.
@@ -78,6 +80,12 @@ class BaseLearner(object):
         self._instance_name = instance_name
         self._ckpt_name = None
         self._timer = EasyTimer()
+        self._is_unizero_multitask_pipeline = self._cfg.get('is_unizero_multitask_pipeline', False)
+        self._only_monitor_rank0 = self._cfg.get('only_monitor_rank0', True)
+
+        # Adjust only_monitor_rank0 based on is_unizero_multitask_pipeline
+        if self._is_unizero_multitask_pipeline:
+            self._only_monitor_rank0 = False
 
         # These 2 attributes are only used in parallel mode.
         self._end_flag = False
@@ -92,8 +100,9 @@ class BaseLearner(object):
             self._cfg.hook.log_reduce_after_iter = True
 
         # Logger (Monitor will be initialized in policy setter)
-        # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
-        if self._rank == 0:
+        # In the unizero multitask pipeline, each rank needs its own tb_logger.
+        # Otherwise, only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
+        if self._rank == 0 or self._is_unizero_multitask_pipeline:
             if tb_logger is not None:
                 self._logger, _ = build_logger(
                     './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
@@ -107,9 +116,7 @@ class BaseLearner(object):
             self._logger, _ = build_logger(
                 './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
             )
-            # self._tb_logger = None
-            # ========== TODO: unizero_multitask ddp_v2 ========
-            self._tb_logger = tb_logger
+            self._tb_logger = None
 
 
         self._log_buffer = {
@@ -436,11 +443,8 @@ class BaseLearner(object):
             Policy variable monitor is set alongside with policy, because variables are determined by specific policy.
         """
         self._policy = _policy
-        # if self._rank == 0:
-        #     self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
-        
-        self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
-
+        if self._rank == 0 or not self._only_monitor_rank0:
+            self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
         if self._cfg.log_policy:
             self.info(self._policy.info())
 

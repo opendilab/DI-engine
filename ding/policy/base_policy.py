@@ -416,25 +416,18 @@ class Policy(ABC):
             - model (:obj:`torch.nn.Module`): The model to synchronize gradients.
 
         .. note::
-            This method is only used in multi-gpu training, and it should be called after ``backward`` method and \
-            before ``step`` method. The user can also use ``bp_update_sync`` config to control whether to synchronize \
-            gradients allreduce and optimizer updates.
+            This method is only used in multi-gpu training, and it should be called after the ``backward`` method and \
+            before the ``step`` method. The user can also use the ``bp_update_sync`` config to control whether to \
+            synchronize gradients allreduce and optimizer updates.
         """
 
-        # if self._bp_update_sync:
-        #     for name, param in model.named_parameters():
-        #         if param.requires_grad:
-        #             if param.grad is not None:
-        #                 allreduce(param.grad.data)
-        # else:
-        #     synchronize()
         if self._bp_update_sync:
             for name, param in model.named_parameters():
                 if param.requires_grad:
                     if param.grad is not None:
                         allreduce(param.grad.data)
                     else:
-                        # 如果梯度为 None，则创建一个与 param.grad_size 相同的零张量，并执行 allreduce
+                        # If the gradient is None, create a zero tensor with the same size as param.grad and perform allreduce
                         zero_grad = torch.zeros_like(param.data)
                         allreduce(zero_grad)
         else:
