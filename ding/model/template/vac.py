@@ -272,6 +272,7 @@ class VAC(nn.Module):
             action_mask = x['action_mask']
             x = self.encoder(x['observation']) if self.share_encoder else self.actor_encoder(x['observation'])
         else:
+            action_mask = None
             x = self.encoder(x) if self.share_encoder else self.actor_encoder(x)
 
         if self.action_space == 'discrete':
@@ -356,6 +357,7 @@ class VAC(nn.Module):
                 x['observation']
             ) if self.share_encoder else self.actor_encoder(x['observation'])
         else:
+            action_mask = None
             actor_embedding = critic_embedding = self.encoder(x) if self.share_encoder else self.actor_encoder(x)
 
         value = self.critic_head(critic_embedding)['pred']
