@@ -447,7 +447,7 @@ class Policy(ABC):
                         param.grad = grad_tensor
 
                     # Use the custom allreduce function to reduce the gradient using the indicator.
-                    allreduce_with_indicator(grad_tensor, indicator)
+                    allreduce_with_indicator(param.grad, indicator)
         else:
             synchronize()
 
