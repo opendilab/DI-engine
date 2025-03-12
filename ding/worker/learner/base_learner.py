@@ -118,7 +118,6 @@ class BaseLearner(object):
             )
             self._tb_logger = None
 
-
         self._log_buffer = {
             'scalar': build_log_buffer(),
             'scalars': build_log_buffer(),
@@ -207,7 +206,7 @@ class BaseLearner(object):
             - value (:obj:`int`): Current collector envstep.
         """
         self._collector_envstep = value
-        
+
     def train(self, data: dict, envstep: int = -1, policy_kwargs: Optional[dict] = None) -> None:
         """
         Overview:

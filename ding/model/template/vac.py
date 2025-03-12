@@ -352,7 +352,9 @@ class VAC(nn.Module):
         """
         if isinstance(x, dict):
             action_mask = x.get('action_mask', None)
-            actor_embedding = critic_embedding = self.encoder(x['observation']) if self.share_encoder else self.actor_encoder(x['observation'])
+            actor_embedding = critic_embedding = self.encoder(
+                x['observation']
+            ) if self.share_encoder else self.actor_encoder(x['observation'])
         else:
             actor_embedding = critic_embedding = self.encoder(x) if self.share_encoder else self.actor_encoder(x)
 

@@ -273,7 +273,7 @@ class LogReduceHook(LearnerHook):
             Returns:
                 - new_data (:obj:`dict`): Data after reduction.
             """
-            
+
             def should_reduce(key):
                 # Check if the key starts with the "noreduce_" prefix.
                 # The "noreduce_" prefix is used in the unizero_multitask ddp pipeline to indicate data that should not be reduced.

@@ -139,12 +139,14 @@ def dist_mode(func: Callable) -> Callable:
     return wrapper
 
 
-def dist_init(backend: str = 'nccl',
-              addr: str = None,
-              port: str = None,
-              rank: int = None,
-              world_size: int = None,
-              timeout: datetime.timedelta = datetime.timedelta(seconds=60000)) -> Tuple[int, int]:
+def dist_init(
+        backend: str = 'nccl',
+        addr: str = None,
+        port: str = None,
+        rank: int = None,
+        world_size: int = None,
+        timeout: datetime.timedelta = datetime.timedelta(seconds=60000)
+) -> Tuple[int, int]:
     """
     Overview:
         Initialize the distributed training setting.
