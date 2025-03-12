@@ -427,7 +427,8 @@ class Policy(ABC):
                     if param.grad is not None:
                         allreduce(param.grad.data)
                     else:
-                        # If the gradient is None, create a zero tensor with the same size as param.grad and perform allreduce
+                        # If the gradient is None, create a zero tensor
+                        # with the same size as param.grad and perform allreduce
                         zero_grad = torch.zeros_like(param.data)
                         allreduce(zero_grad)
         else:

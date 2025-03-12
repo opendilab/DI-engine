@@ -101,7 +101,8 @@ class BaseLearner(object):
 
         # Logger (Monitor will be initialized in policy setter)
         # In the unizero multitask pipeline, each rank needs its own tb_logger.
-        # Otherwise, only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
+        # Otherwise, only rank == 0 learner needs monitor and tb_logger,
+        # others only need text_logger to display terminal output.
         if self._rank == 0 or self._is_unizero_multitask_pipeline:
             if tb_logger is not None:
                 self._logger, _ = build_logger(

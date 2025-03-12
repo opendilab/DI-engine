@@ -276,7 +276,8 @@ class LogReduceHook(LearnerHook):
 
             def should_reduce(key):
                 # Check if the key starts with the "noreduce_" prefix.
-                # The "noreduce_" prefix is used in the unizero_multitask ddp pipeline to indicate data that should not be reduced.
+                # The "noreduce_" prefix is used in the unizero_multitask ddp pipeline
+                # to indicate data that should not be reduced.
                 return not key.startswith("noreduce_")
 
             if isinstance(data, dict):
