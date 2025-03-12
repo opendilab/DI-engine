@@ -241,7 +241,7 @@ class VAC(nn.Module):
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(x)
 
-    def compute_actor(self, x: torch.Tensor) -> Dict:
+    def compute_actor(self, x: Union[torch.Tensor, Dict]) -> Dict:
         """
         Overview:
             VAC forward computation graph for actor part, input observation tensor to predict action logit.
@@ -257,7 +257,7 @@ class VAC(nn.Module):
                 space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the \
                 same as the number of continuous actions. Hybrid action space is a kind of combination of discrete \
                 and continuous action space, so the logit will be a dict with ``action_type`` and ``action_args``.
-            - action_mask (:obj:`torch.Tensor`, optional): The action mask tensor, included if the input is a \
+            - action_mask (:obj:`Optional[torch.Tensor]`): The action mask tensor, included if the input is a \
                 dictionary containing 'action_mask'.
         Shapes:
             - logit (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
@@ -269,7 +269,7 @@ class VAC(nn.Module):
             >>> assert actor_outputs['logit'].shape == torch.Size([4, 64])
         """
         if isinstance(x, dict):
-            action_mask = x.get('action_mask', None)
+            action_mask = x['action_mask']
             x = self.encoder(x['observation']) if self.share_encoder else self.actor_encoder(x['observation'])
         else:
             x = self.encoder(x) if self.share_encoder else self.actor_encoder(x)
@@ -351,7 +351,7 @@ class VAC(nn.Module):
             dict output.
         """
         if isinstance(x, dict):
-            action_mask = x.get('action_mask', None)
+            action_mask = x['action_mask']
             actor_embedding = critic_embedding = self.encoder(
                 x['observation']
             ) if self.share_encoder else self.actor_encoder(x['observation'])

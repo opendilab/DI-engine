@@ -46,6 +46,27 @@ def allreduce(x: torch.Tensor) -> None:
     dist.all_reduce(x)
     x.div_(get_world_size())
 
+def allreduce_with_indicator(grad: torch.Tensor, indicator: torch.Tensor) -> None:
+    """
+    Overview:
+        Custom allreduce: Sum both the gradient and indicator tensors across all processes.
+        Then, if at least one process contributed (i.e., the summation of indicator > 0),
+        divide the gradient by the summed indicator. This ensures that if only a subset of 
+        GPUs contributed a gradient, the averaging is performed based on the actual number
+        of contributors rather than the total number of GPUs.
+    
+    Arguments:
+        - grad (torch.Tensor): Local gradient tensor to be reduced.
+        - indicator (torch.Tensor): A tensor flag (1 if the gradient is computed, 0 otherwise).
+    """
+    # Allreduce (sum) the gradient and indicator
+    dist.all_reduce(grad)
+    dist.all_reduce(indicator)
+
+    # Avoid division by zero. If indicator == 0 (extreme case), grad remains zeros.
+    if indicator.item() > 0:
+        grad.div_(indicator.item())
+
 
 def allreduce_async(name: str, x: torch.Tensor) -> None:
     """

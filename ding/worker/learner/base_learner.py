@@ -60,7 +60,7 @@ class BaseLearner(object):
             Initialization method, build common learner components according to cfg, such as hook, wrapper and so on.
         Arguments:
             - cfg (:obj:`EasyDict`): Learner config, you can refer cls.config for details. It should include \
-                `is_unizero_multitask_pipeline` to indicate if the pipeline is unizero multitask, default is False, \
+                `is_multitask_pipeline` to indicate if the pipeline is multitask, default is False, \
                 and `only_monitor_rank0` to control whether only rank 0 needs monitor and tb_logger, default is True.
             - policy (:obj:`namedtuple`): A collection of policy function of learn mode. And policy can also be \
                 initialized when runtime.
@@ -80,11 +80,11 @@ class BaseLearner(object):
         self._instance_name = instance_name
         self._ckpt_name = None
         self._timer = EasyTimer()
-        self._is_unizero_multitask_pipeline = self._cfg.get('is_unizero_multitask_pipeline', False)
+        self._is_multitask_pipeline = self._cfg.get('is_multitask_pipeline', False)
         self._only_monitor_rank0 = self._cfg.get('only_monitor_rank0', True)
 
-        # Adjust only_monitor_rank0 based on is_unizero_multitask_pipeline
-        if self._is_unizero_multitask_pipeline:
+        # Adjust only_monitor_rank0 based on is_multitask_pipeline
+        if self._is_multitask_pipeline:
             self._only_monitor_rank0 = False
 
         # These 2 attributes are only used in parallel mode.
@@ -100,10 +100,10 @@ class BaseLearner(object):
             self._cfg.hook.log_reduce_after_iter = True
 
         # Logger (Monitor will be initialized in policy setter)
-        # In the unizero multitask pipeline, each rank needs its own tb_logger.
+        # In the multitask pipeline, each rank needs its own tb_logger.
         # Otherwise, only rank == 0 learner needs monitor and tb_logger,
         # others only need text_logger to display terminal output.
-        if self._rank == 0 or self._is_unizero_multitask_pipeline:
+        if self._rank == 0 or not self._only_monitor_rank0:
             if tb_logger is not None:
                 self._logger, _ = build_logger(
                     './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
