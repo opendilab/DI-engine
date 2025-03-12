@@ -188,6 +188,26 @@ class BaseLearner(object):
         """
         add_learner_hook(self._hooks, hook)
 
+    @property
+    def collector_envstep(self) -> int:
+        """
+        Overview:
+            Get current collector envstep.
+        Returns:
+            - collector_envstep (:obj:`int`): Current collector envstep.
+        """
+        return self._collector_envstep
+
+    @collector_envstep.setter
+    def collector_envstep(self, value: int) -> None:
+        """
+        Overview:
+            Set current collector envstep.
+        Arguments:
+            - value (:obj:`int`): Current collector envstep.
+        """
+        self._collector_envstep = value
+        
     def train(self, data: dict, envstep: int = -1, policy_kwargs: Optional[dict] = None) -> None:
         """
         Overview:
