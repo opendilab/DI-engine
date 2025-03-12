@@ -7,8 +7,8 @@ import copy
 import torch
 
 from ding.model import create_model
-from ding.utils import import_module, allreduce, allreduce_with_indicator, broadcast, get_rank, allreduce_async, synchronize, deep_merge_dicts, \
-    POLICY_REGISTRY
+from ding.utils import import_module, allreduce, allreduce_with_indicator, broadcast, get_rank, allreduce_async, synchronize, \
+    deep_merge_dicts, POLICY_REGISTRY
 
 
 class Policy(ABC):
