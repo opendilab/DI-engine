@@ -137,7 +137,7 @@ class BaseLearner(object):
         self._last_iter = CountVar(init_val=0)
         # Collector envstep. Used to record current envstep.
         self._collector_envstep = 0
-        
+
         # Setup time wrapper and hook.
         self._setup_wrapper()
         self._setup_hook()
