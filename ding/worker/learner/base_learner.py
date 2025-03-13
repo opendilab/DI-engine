@@ -35,6 +35,8 @@ class BaseLearner(object):
         train_iterations=int(1e9),
         dataloader=dict(num_workers=0, ),
         log_policy=True,
+        is_multitask_pipeline=False,
+        only_monitor_rank0=True,
         # --- Hooks ---
         hook=dict(
             load_ckpt_before_run='',
@@ -80,12 +82,12 @@ class BaseLearner(object):
         self._instance_name = instance_name
         self._ckpt_name = None
         self._timer = EasyTimer()
-        self._is_multitask_pipeline = self._cfg.get('is_multitask_pipeline', False)
-        self._only_monitor_rank0 = self._cfg.get('only_monitor_rank0', True)
+        self._is_multitask_pipeline = self._cfg.is_multitask_pipeline
+        self.only_monitor_rank0 = self._cfg.only_monitor_rank0
 
         # Adjust only_monitor_rank0 based on is_multitask_pipeline
         if self._is_multitask_pipeline:
-            self._only_monitor_rank0 = False
+            self.only_monitor_rank0 = False
 
         # These 2 attributes are only used in parallel mode.
         self._end_flag = False
@@ -103,7 +105,7 @@ class BaseLearner(object):
         # In the multitask pipeline, each rank needs its own tb_logger.
         # Otherwise, only rank == 0 learner needs monitor and tb_logger,
         # others only need text_logger to display terminal output.
-        if self._rank == 0 or not self._only_monitor_rank0:
+        if self._rank == 0 or not self.only_monitor_rank0:
             if tb_logger is not None:
                 self._logger, _ = build_logger(
                     './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
@@ -463,7 +465,7 @@ class BaseLearner(object):
             Policy variable monitor is set alongside with policy, because variables are determined by specific policy.
         """
         self._policy = _policy
-        if self._rank == 0 or not self._only_monitor_rank0:
+        if self._rank == 0 or not self.only_monitor_rank0:
             self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
         if self._cfg.log_policy:
             self.info(self._policy.info())

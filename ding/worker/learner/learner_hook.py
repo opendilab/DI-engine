@@ -169,6 +169,7 @@ class SaveCkptHook(LearnerHook):
             path = os.path.join(dirname, ckpt_name)
             state_dict = engine.policy.state_dict()
             state_dict.update({'last_iter': engine.last_iter.val})
+            state_dict.update({'last_step': engine.collector_envstep})
             save_file(path, state_dict)
             engine.info('{} save ckpt in {}'.format(engine.instance_name, path))
 
@@ -192,8 +193,11 @@ class LogShowHook(LearnerHook):
                 ext_args.only_monitor_rank0 to control if only rank 0 should monitor, default is True.
         """
         super().__init__(*args, **kwargs)
-        self._freq = ext_args.get('freq', 1)
-        self._only_monitor_rank0 = ext_args.get('only_monitor_rank0', True)
+        if ext_args == {}:
+            self._freq = 1
+        else:
+            self._freq = ext_args.freq
+        self._only_monitor_rank0 = None  
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         """
@@ -203,6 +207,7 @@ class LogShowHook(LearnerHook):
         Arguments:
             - engine (:obj:`BaseLearner`): The BaseLearner.
         """
+        self._only_monitor_rank0 = engine.only_monitor_rank0
         # Only show log for rank 0 learner if _only_monitor_rank0 is True
         if engine.rank != 0 and self._only_monitor_rank0:
             for k in engine.log_buffer:
