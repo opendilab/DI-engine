@@ -339,6 +339,8 @@
         <span class="n">train_iterations</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span><span class="p">),</span>
         <span class="n">dataloader</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="p">),</span>
         <span class="n">log_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">is_multitask_pipeline</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">only_monitor_rank0</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="c1"># --- Hooks ---</span>
         <span class="n">hook</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="n">load_ckpt_before_run</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
@@ -363,7 +365,9 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization method, build common learner components according to cfg, such as hook, wrapper and so on.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - cfg (:obj:`EasyDict`): Learner config, you can refer cls.config for details.</span>
+<span class="sd">            - cfg (:obj:`EasyDict`): Learner config, you can refer cls.config for details. It should include \</span>
+<span class="sd">                `is_multitask_pipeline` to indicate if the pipeline is multitask, default is False, \</span>
+<span class="sd">                and `only_monitor_rank0` to control whether only rank 0 needs monitor and tb_logger, default is True.</span>
 <span class="sd">            - policy (:obj:`namedtuple`): A collection of policy function of learn mode. And policy can also be \</span>
 <span class="sd">                initialized when runtime.</span>
 <span class="sd">            - tb_logger (:obj:`SummaryWriter`): Tensorboard summary writer.</span>
@@ -382,6 +386,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ckpt_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="n">EasyTimer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_multitask_pipeline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">is_multitask_pipeline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">only_monitor_rank0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">only_monitor_rank0</span>
+
+        <span class="c1"># Adjust only_monitor_rank0 based on is_multitask_pipeline</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_multitask_pipeline</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">only_monitor_rank0</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="c1"># These 2 attributes are only used in parallel mode.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">False</span>
@@ -396,8 +406,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">log_reduce_after_iter</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="c1"># Logger (Monitor will be initialized in policy setter)</span>
-        <span class="c1"># Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># In the multitask pipeline, each rank needs its own tb_logger.</span>
+        <span class="c1"># Otherwise, only rank == 0 learner needs monitor and tb_logger,</span>
+        <span class="c1"># others only need text_logger to display terminal output.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_monitor_rank0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">tb_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
                     <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span>
@@ -412,6 +424,7 @@
                 <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_log_buffer</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;scalar&#39;</span><span class="p">:</span> <span class="n">build_log_buffer</span><span class="p">(),</span>
             <span class="s1">&#39;scalars&#39;</span><span class="p">:</span> <span class="n">build_log_buffer</span><span class="p">(),</span>
@@ -758,7 +771,7 @@
 <span class="sd">            Policy variable monitor is set alongside with policy, because variables are determined by specific policy.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span> <span class="o">=</span> <span class="n">_policy</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_monitor_rank0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span> <span class="o">=</span> <span class="n">get_simple_monitor_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">monitor_vars</span><span class="p">())(</span><span class="n">TickTime</span><span class="p">(),</span> <span class="n">expire</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">log_policy</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>

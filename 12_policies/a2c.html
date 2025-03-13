@@ -389,20 +389,21 @@ GAE is proposed in <a class="reference external" href="https://arxiv.org/abs/150
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">compute_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.compute_actor"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="sig-name descname"><span class="pre">compute_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.compute_actor"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>VAC forward computation graph for actor part, input observation tensor to predict action logit.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input observation tensor data.</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">Dict]</span></code>): The input observation tensor data. If a dictionary is provided,                 it should contain keys ‘observation’ and optionally ‘action_mask’.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): The output dict of VAC’s forward computation graph for actor, including <code class="docutils literal notranslate"><span class="pre">logit</span></code>.</p></li>
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): The output dict of VAC’s forward computation graph for actor, including <code class="docutils literal notranslate"><span class="pre">logit</span></code>                 and optionally <code class="docutils literal notranslate"><span class="pre">action_mask</span></code> if the input is a dictionary.</p></li>
 </ul>
 </dd>
 <dt>ReturnsKeys:</dt><dd><ul class="simple">
 <li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The predicted action logit tensor, for discrete action space, it will be                 the same dimension real-value ranged tensor of possible action choices, and for continuous action                 space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the                 same as the number of continuous actions. Hybrid action space is a kind of combination of discrete                 and continuous action space, so the logit will be a dict with <code class="docutils literal notranslate"><span class="pre">action_type</span></code> and <code class="docutils literal notranslate"><span class="pre">action_args</span></code>.</p></li>
+<li><p>action_mask (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): The action mask tensor, included if the input is a                 dictionary containing ‘action_mask’.</p></li>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
@@ -421,21 +422,22 @@ GAE is proposed in <a class="reference external" href="https://arxiv.org/abs/150
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">compute_actor_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.compute_actor_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="sig-name descname"><span class="pre">compute_actor_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.compute_actor_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>VAC forward computation graph for both actor and critic part, input observation tensor to predict action             logit and state value.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input observation tensor data.</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">Dict]</span></code>): The input observation tensor data. If a dictionary is provided,                 it should contain keys ‘observation’ and optionally ‘action_mask’.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): The output dict of VAC’s forward computation graph for both actor and critic,                 including <code class="docutils literal notranslate"><span class="pre">logit</span></code> and <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p></li>
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): The output dict of VAC’s forward computation graph for both actor and critic,                 including <code class="docutils literal notranslate"><span class="pre">logit</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code>, and optionally <code class="docutils literal notranslate"><span class="pre">action_mask</span></code> if the input is a dictionary.</p></li>
 </ul>
 </dd>
 <dt>ReturnsKeys:</dt><dd><ul class="simple">
 <li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The predicted action logit tensor, for discrete action space, it will be                 the same dimension real-value ranged tensor of possible action choices, and for continuous action                 space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the                 same as the number of continuous actions. Hybrid action space is a kind of combination of discrete                 and continuous action space, so the logit will be a dict with <code class="docutils literal notranslate"><span class="pre">action_type</span></code> and <code class="docutils literal notranslate"><span class="pre">action_args</span></code>.</p></li>
 <li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The predicted state value tensor.</p></li>
+<li><p>action_mask (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>, optional): The action mask tensor, included if the input is a                 dictionary containing ‘action_mask’.</p></li>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
@@ -460,12 +462,12 @@ GAE is proposed in <a class="reference external" href="https://arxiv.org/abs/150
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">compute_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.compute_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="sig-name descname"><span class="pre">compute_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.compute_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>VAC forward computation graph for critic part, input observation tensor to predict state value.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input observation tensor data.</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">Dict]</span></code>): The input observation tensor data. If a dictionary is provided,                 it should contain the key ‘observation’.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">

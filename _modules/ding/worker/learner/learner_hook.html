@@ -491,29 +491,33 @@
 <div class="viewcode-block" id="LogShowHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogShowHook.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            init LogShowHook</span>
+<span class="sd">            Init LogShowHook.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - ext_args (:obj:`EasyDict`): extended_args, use ext_args.freq to set freq</span>
+<span class="sd">            - ext_args (:obj:`EasyDict`): Extended arguments, use ext_args.freq to set frequency and \</span>
+<span class="sd">                ext_args.only_monitor_rank0 to control if only rank 0 should monitor, default is True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ext_args</span> <span class="o">==</span> <span class="p">{}:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">ext_args</span><span class="o">.</span><span class="n">freq</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">ext_args</span><span class="o">.</span><span class="n">freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_only_monitor_rank0</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="LogShowHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogShowHook.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Show log, update record and tb_logger if rank is 0 and at interval iterations,</span>
-<span class="sd">            clear the log buffer for all learners regardless of rank</span>
+<span class="sd">            clear the log buffer for all learners regardless of rank.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - engine (:obj:`BaseLearner`): the BaseLearner</span>
+<span class="sd">            - engine (:obj:`BaseLearner`): The BaseLearner.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Only show log for rank 0 learner</span>
-        <span class="k">if</span> <span class="n">engine</span><span class="o">.</span><span class="n">rank</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_only_monitor_rank0</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">only_monitor_rank0</span>
+        <span class="c1"># Only show log for rank 0 learner if _only_monitor_rank0 is True</span>
+        <span class="k">if</span> <span class="n">engine</span><span class="o">.</span><span class="n">rank</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_only_monitor_rank0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">:</span>
                 <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
             <span class="k">return</span>
+
         <span class="c1"># For &#39;scalar&#39; type variables: log_buffer -&gt; tick_monitor -&gt; monitor_time.step</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">[</span><span class="s1">&#39;scalar&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">monitor</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
@@ -547,7 +551,7 @@
 <div class="viewcode-block" id="LogReduceHook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogReduceHook">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LogReduceHook</span><span class="p">(</span><span class="n">LearnerHook</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Hook to reduce the distributed(multi-gpu) logs</span>
+<span class="sd">        Hook to reduce the distributed (multi-gpu) logs.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        __init__, __call__</span>
 <span class="sd">    Property:</span>
@@ -557,32 +561,45 @@
 <div class="viewcode-block" id="LogReduceHook.__init__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogReduceHook.__init__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ext_args</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            init LogReduceHook</span>
+<span class="sd">            Initialize LogReduceHook.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - ext_args (:obj:`EasyDict`): extended_args, use ext_args.freq to set log_reduce_freq</span>
+<span class="sd">            - ext_args (:obj:`EasyDict`): Extended arguments, use ext_args.freq to set log_reduce_freq.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LogReduceHook.__call__"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LogReduceHook.__call__">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            reduce the logs from distributed(multi-gpu) learners</span>
+<span class="sd">            Reduce the logs from distributed (multi-gpu) learners.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - engine (:obj:`BaseLearner`): the BaseLearner</span>
+<span class="sd">            - engine (:obj:`BaseLearner`): The BaseLearner.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 <span class="w">            </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Overview:</span>
-<span class="sd">                aggregate the information from all ranks(usually use sync allreduce)</span>
+<span class="sd">                Aggregate the information from all ranks (usually using sync allreduce).</span>
 <span class="sd">            Arguments:</span>
 <span class="sd">                - data (:obj:`dict`): Data that needs to be reduced. \</span>
-<span class="sd">                    Could be dict, torch.Tensor, numbers.Integral or numbers.Real.</span>
+<span class="sd">                    Could be dict, torch.Tensor, numbers.Integral, or numbers.Real.</span>
 <span class="sd">            Returns:</span>
-<span class="sd">                - new_data (:obj:`dict`): data after reduce</span>
+<span class="sd">                - new_data (:obj:`dict`): Data after reduction.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">should_reduce</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="c1"># Check if the key starts with the &quot;noreduce_&quot; prefix.</span>
+                <span class="c1"># The &quot;noreduce_&quot; prefix is used in the unizero_multitask ddp pipeline</span>
+                <span class="c1"># to indicate data that should not be reduced.</span>
+                <span class="k">return</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;noreduce_&quot;</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="n">new_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">aggregate</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="n">new_data</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">should_reduce</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+                        <span class="n">new_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggregate</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>  <span class="c1"># Perform allreduce on data that needs reduction.</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">new_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>  <span class="c1"># Retain data that does not need reduction.</span>
+
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                 <span class="n">new_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">aggregate</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
@@ -603,7 +620,7 @@
                     <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
                 <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid type in reduce: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)))</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid type in reduce: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)))</span>
             <span class="k">return</span> <span class="n">new_data</span>
 
         <span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span> <span class="o">=</span> <span class="n">aggregate</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">log_buffer</span><span class="p">)</span></div></div>

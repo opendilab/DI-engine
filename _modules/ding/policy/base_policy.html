@@ -311,8 +311,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">ding.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_model</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">allreduce</span><span class="p">,</span> <span class="n">broadcast</span><span class="p">,</span> <span class="n">get_rank</span><span class="p">,</span> <span class="n">allreduce_async</span><span class="p">,</span> <span class="n">synchronize</span><span class="p">,</span> <span class="n">deep_merge_dicts</span><span class="p">,</span> \
-    <span class="n">POLICY_REGISTRY</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">allreduce</span><span class="p">,</span> <span class="n">allreduce_with_indicator</span><span class="p">,</span> <span class="n">broadcast</span><span class="p">,</span> <span class="n">get_rank</span><span class="p">,</span> <span class="n">allreduce_async</span><span class="p">,</span> \
+    <span class="n">synchronize</span><span class="p">,</span> <span class="n">deep_merge_dicts</span><span class="p">,</span> <span class="n">POLICY_REGISTRY</span>
 
 
 <div class="viewcode-block" id="Policy"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Policy</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
@@ -719,20 +719,39 @@
 <div class="viewcode-block" id="Policy.sync_gradients"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy.sync_gradients">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Synchronize (allreduce) gradients of model parameters in data-parallel multi-gpu training.</span>
+<span class="sd">            Synchronize (allreduce) gradients of model parameters in data-parallel multi-GPU training.</span>
+<span class="sd">            For parameters that did not participate in the forward/backward pass in some GPUs,</span>
+<span class="sd">            assign a zero gradient with an indicator of 0. This ensures that only GPUs which contributed</span>
+<span class="sd">            to the gradient computation are considered when averaging, thereby avoiding an incorrect</span>
+<span class="sd">            division by the total number of GPUs.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - model (:obj:`torch.nn.Module`): The model to synchronize gradients.</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">            This method is only used in multi-gpu training, and it should be called after ``backward`` method and \</span>
-<span class="sd">            before ``step`` method. The user can also use ``bp_update_sync`` config to control whether to synchronize \</span>
-<span class="sd">            gradients allreduce and optimizer updates.</span>
+<span class="sd">            This method is only used in multi-gpu training, and it should be called after the ``backward`` method and \</span>
+<span class="sd">            before the ``step`` method. The user can also use the ``bp_update_sync`` config to control whether to \</span>
+<span class="sd">            synchronize gradients allreduce and optimizer updates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bp_update_sync</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
-                    <span class="n">allreduce</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                    <span class="c1"># Create an indicator tensor on the same device as the parameter (or its gradient)</span>
+                    <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="c1"># If the gradient exists, extract its data and set indicator to 1.</span>
+                        <span class="n">grad_tensor</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span>
+                        <span class="n">indicator</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">grad_tensor</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># If the parameter did not participate in the computation (grad is None),</span>
+                        <span class="c1"># create a zero tensor for the gradient and set the indicator to 0.</span>
+                        <span class="n">grad_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                        <span class="n">indicator</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">grad_tensor</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+                        <span class="c1"># Assign the zero gradient to param.grad to ensure that all GPUs</span>
+                        <span class="c1"># participate in the subsequent allreduce call (avoiding deadlock).</span>
+                        <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">grad_tensor</span>
+
+                    <span class="c1"># Use the custom allreduce function to reduce the gradient using the indicator.</span>
+                    <span class="n">allreduce_with_indicator</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">indicator</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">synchronize</span><span class="p">()</span></div>
 

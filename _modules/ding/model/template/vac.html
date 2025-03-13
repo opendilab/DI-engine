@@ -545,20 +545,24 @@
         <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="VAC.compute_actor"><a class="viewcode-back" href="../../../../12_policies/ppo.html#ding.model.VAC.compute_actor">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="VAC.compute_actor"><a class="viewcode-back" href="../../../../12_policies/ppo.html#ding.model.VAC.compute_actor">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            VAC forward computation graph for actor part, input observation tensor to predict action logit.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): The input observation tensor data.</span>
+<span class="sd">            - x (:obj:`Union[torch.Tensor, Dict]`): The input observation tensor data. If a dictionary is provided, \</span>
+<span class="sd">                it should contain keys &#39;observation&#39; and optionally &#39;action_mask&#39;.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): The output dict of VAC&#39;s forward computation graph for actor, including ``logit``.</span>
+<span class="sd">            - outputs (:obj:`Dict`): The output dict of VAC&#39;s forward computation graph for actor, including ``logit`` \</span>
+<span class="sd">                and optionally ``action_mask`` if the input is a dictionary.</span>
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - logit (:obj:`torch.Tensor`): The predicted action logit tensor, for discrete action space, it will be \</span>
 <span class="sd">                the same dimension real-value ranged tensor of possible action choices, and for continuous action \</span>
 <span class="sd">                space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the \</span>
 <span class="sd">                same as the number of continuous actions. Hybrid action space is a kind of combination of discrete \</span>
 <span class="sd">                and continuous action space, so the logit will be a dict with ``action_type`` and ``action_args``.</span>
+<span class="sd">            - action_mask (:obj:`Optional[torch.Tensor]`): The action mask tensor, included if the input is a \</span>
+<span class="sd">                dictionary containing &#39;action_mask&#39;.</span>
 <span class="sd">        Shapes:</span>
 <span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``</span>
 
@@ -568,13 +572,18 @@
 <span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;logit&#39;].shape == torch.Size([4, 64])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">action_mask</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;observation&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;observation&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">action_mask</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]}</span>
+            <span class="k">if</span> <span class="n">action_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">action_mask</span>
+            <span class="k">return</span> <span class="n">result</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># mu, sigma</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span>
@@ -583,12 +592,13 @@
             <span class="n">action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">x</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;action_type&#39;</span><span class="p">:</span> <span class="n">action_type</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="s1">&#39;action_args&#39;</span><span class="p">:</span> <span class="n">action_args</span><span class="p">}}</span></div>
 
-<div class="viewcode-block" id="VAC.compute_critic"><a class="viewcode-back" href="../../../../12_policies/ppo.html#ding.model.VAC.compute_critic">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="VAC.compute_critic"><a class="viewcode-back" href="../../../../12_policies/ppo.html#ding.model.VAC.compute_critic">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            VAC forward computation graph for critic part, input observation tensor to predict state value.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): The input observation tensor data.</span>
+<span class="sd">            - x (:obj:`Union[torch.Tensor, Dict]`): The input observation tensor data. If a dictionary is provided, \</span>
+<span class="sd">                it should contain the key &#39;observation&#39;.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`): The output dict of VAC&#39;s forward computation graph for critic, including ``value``.</span>
 <span class="sd">        ReturnsKeys:</span>
@@ -602,23 +612,24 @@
 <span class="sd">            &gt;&gt;&gt; critic_outputs = model(inputs,&#39;compute_critic&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; assert critic_outputs[&#39;value&#39;].shape == torch.Size([4])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;observation&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;observation&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span></div>
 
-<div class="viewcode-block" id="VAC.compute_actor_critic"><a class="viewcode-back" href="../../../../12_policies/ppo.html#ding.model.VAC.compute_actor_critic">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_actor_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="VAC.compute_actor_critic"><a class="viewcode-back" href="../../../../12_policies/ppo.html#ding.model.VAC.compute_actor_critic">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_actor_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            VAC forward computation graph for both actor and critic part, input observation tensor to predict action \</span>
 <span class="sd">            logit and state value.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): The input observation tensor data.</span>
+<span class="sd">            - x (:obj:`Union[torch.Tensor, Dict]`): The input observation tensor data. If a dictionary is provided, \</span>
+<span class="sd">                it should contain keys &#39;observation&#39; and optionally &#39;action_mask&#39;.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`): The output dict of VAC&#39;s forward computation graph for both actor and critic, \</span>
-<span class="sd">                including ``logit`` and ``value``.</span>
+<span class="sd">                including ``logit``, ``value``, and optionally ``action_mask`` if the input is a dictionary.</span>
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - logit (:obj:`torch.Tensor`): The predicted action logit tensor, for discrete action space, it will be \</span>
 <span class="sd">                the same dimension real-value ranged tensor of possible action choices, and for continuous action \</span>
@@ -626,6 +637,8 @@
 <span class="sd">                same as the number of continuous actions. Hybrid action space is a kind of combination of discrete \</span>
 <span class="sd">                and continuous action space, so the logit will be a dict with ``action_type`` and ``action_args``.</span>
 <span class="sd">            - value (:obj:`torch.Tensor`): The predicted state value tensor.</span>
+<span class="sd">            - action_mask (:obj:`torch.Tensor`, optional): The action mask tensor, included if the input is a \</span>
+<span class="sd">                dictionary containing &#39;action_mask&#39;.</span>
 <span class="sd">        Shapes:</span>
 <span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``</span>
 <span class="sd">            - value (:obj:`torch.Tensor`): :math:`(B, )`, where B is batch size, (B, 1) is squeezed to (B, ).</span>
@@ -642,17 +655,29 @@
 <span class="sd">            ``compute_actor_critic`` interface aims to save computation when shares encoder and return the combination \</span>
 <span class="sd">            dict output.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span><span class="p">:</span>
-            <span class="n">actor_embedding</span> <span class="o">=</span> <span class="n">critic_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">action_mask</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span><span class="p">:</span>
+                <span class="n">actor_embedding</span> <span class="o">=</span> <span class="n">critic_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;observation&#39;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">actor_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;observation&#39;</span><span class="p">])</span>
+                <span class="n">critic_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;observation&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">actor_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-            <span class="n">critic_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">action_mask</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span><span class="p">:</span>
+                <span class="n">actor_embedding</span> <span class="o">=</span> <span class="n">critic_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">actor_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="n">critic_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
         <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">(</span><span class="n">critic_embedding</span><span class="p">)[</span><span class="s1">&#39;pred&#39;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
             <span class="n">logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">(</span><span class="n">actor_embedding</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">action_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">action_mask</span>
+            <span class="k">return</span> <span class="n">result</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">(</span><span class="n">actor_embedding</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>

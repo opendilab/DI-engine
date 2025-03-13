@@ -309,6 +309,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.distributed</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dist</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.default_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">error_wrapper</span>
 
@@ -348,6 +349,27 @@
 
     <span class="n">dist</span><span class="o">.</span><span class="n">all_reduce</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="n">x</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="n">get_world_size</span><span class="p">())</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">allreduce_with_indicator</span><span class="p">(</span><span class="n">grad</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">indicator</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Custom allreduce: Sum both the gradient and indicator tensors across all processes.</span>
+<span class="sd">        Then, if at least one process contributed (i.e., the summation of indicator &gt; 0),</span>
+<span class="sd">        divide the gradient by the summed indicator. This ensures that if only a subset of</span>
+<span class="sd">        GPUs contributed a gradient, the averaging is performed based on the actual number</span>
+<span class="sd">        of contributors rather than the total number of GPUs.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - grad (torch.Tensor): Local gradient tensor to be reduced.</span>
+<span class="sd">        - indicator (torch.Tensor): A tensor flag (1 if the gradient is computed, 0 otherwise).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Allreduce (sum) the gradient and indicator</span>
+    <span class="n">dist</span><span class="o">.</span><span class="n">all_reduce</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
+    <span class="n">dist</span><span class="o">.</span><span class="n">all_reduce</span><span class="p">(</span><span class="n">indicator</span><span class="p">)</span>
+
+    <span class="c1"># Avoid division by zero. If indicator is close to 0 (extreme case), grad remains zeros.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">indicator</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)):</span>
+        <span class="n">grad</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="n">indicator</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
 
 
 <div class="viewcode-block" id="allreduce_async"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.allreduce_async">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">allreduce_async</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -442,20 +464,25 @@
     <span class="k">return</span> <span class="n">wrapper</span></div>
 
 
-<div class="viewcode-block" id="dist_init"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.dist_init">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dist_init</span><span class="p">(</span><span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;nccl&#39;</span><span class="p">,</span>
-              <span class="n">addr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="n">port</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<div class="viewcode-block" id="dist_init"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.pytorch_ddp_dist_helper.dist_init">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">dist_init</span><span class="p">(</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;nccl&#39;</span><span class="p">,</span>
+        <span class="n">addr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">port</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">60000</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Initialize the distributed training setting</span>
+<span class="sd">        Initialize the distributed training setting.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - backend (:obj:`str`): The backend of the distributed training, support ``[&#39;nccl&#39;, &#39;gloo&#39;]``</span>
-<span class="sd">        - addr (:obj:`str`): The address of the master node</span>
-<span class="sd">        - port (:obj:`str`): The port of the master node</span>
-<span class="sd">        - rank (:obj:`int`): The rank of current process</span>
-<span class="sd">        - world_size (:obj:`int`): The total number of processes</span>
+<span class="sd">        - backend (:obj:`str`): The backend of the distributed training, supports ``[&#39;nccl&#39;, &#39;gloo&#39;]``.</span>
+<span class="sd">        - addr (:obj:`str`): The address of the master node.</span>
+<span class="sd">        - port (:obj:`str`): The port of the master node.</span>
+<span class="sd">        - rank (:obj:`int`): The rank of the current process.</span>
+<span class="sd">        - world_size (:obj:`int`): The total number of processes.</span>
+<span class="sd">        - timeout (:obj:`datetime.timedelta`): The timeout for operations executed against the process group. \</span>
+<span class="sd">            Default is 60000 seconds.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">assert</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;nccl&#39;</span><span class="p">,</span> <span class="s1">&#39;gloo&#39;</span><span class="p">],</span> <span class="n">backend</span>
@@ -475,7 +502,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">world_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ntasks</span><span class="p">)</span>
 
-    <span class="n">dist</span><span class="o">.</span><span class="n">init_process_group</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">,</span> <span class="n">world_size</span><span class="o">=</span><span class="n">world_size</span><span class="p">)</span>
+    <span class="n">dist</span><span class="o">.</span><span class="n">init_process_group</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">,</span> <span class="n">world_size</span><span class="o">=</span><span class="n">world_size</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
 
     <span class="n">num_gpus</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">device_count</span><span class="p">()</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">set_device</span><span class="p">(</span><span class="n">rank</span> <span class="o">%</span> <span class="n">num_gpus</span><span class="p">)</span>

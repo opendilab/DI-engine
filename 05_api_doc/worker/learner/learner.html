@@ -481,10 +481,10 @@ Checkpoint info includes policy state_dict and iter num.</p>
 <span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ding.worker.learner.base_learner.BaseLearner" title="ding.worker.learner.base_learner.BaseLearner"><span class="pre">BaseLearner</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/learner/learner_hook.html#LogShowHook.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.learner_hook.LogShowHook.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Show log, update record and tb_logger if rank is 0 and at interval iterations,
-clear the log buffer for all learners regardless of rank</p>
+clear the log buffer for all learners regardless of rank.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>engine (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseLearner</span></code>): the BaseLearner</p></li>
+<li><p>engine (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseLearner</span></code>): The BaseLearner.</p></li>
 </ul>
 </dd>
 </dl>
@@ -494,10 +494,10 @@ clear the log buffer for all learners regardless of rank</p>
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.LogShowHook.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EasyDict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/learner/learner_hook.html#LogShowHook.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.learner_hook.LogShowHook.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>init LogShowHook</p>
+<dt>Overview:</dt><dd><p>Init LogShowHook.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>ext_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): extended_args, use ext_args.freq to set freq</p></li>
+<li><p>ext_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Extended arguments, use ext_args.freq to set frequency and                 ext_args.only_monitor_rank0 to control if only rank 0 should monitor, default is True.</p></li>
 </ul>
 </dd>
 </dl>
@@ -512,7 +512,7 @@ clear the log buffer for all learners regardless of rank</p>
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.LogReduceHook">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ding.worker.learner.learner_hook.</span></span><span class="sig-name descname"><span class="pre">LogReduceHook</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EasyDict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/learner/learner_hook.html#LogReduceHook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.learner_hook.LogReduceHook" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Hook to reduce the distributed(multi-gpu) logs</p>
+<dt>Overview:</dt><dd><p>Hook to reduce the distributed (multi-gpu) logs.</p>
 </dd>
 <dt>Interfaces:</dt><dd><p>__init__, __call__</p>
 </dd>
@@ -523,10 +523,10 @@ clear the log buffer for all learners regardless of rank</p>
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.LogReduceHook.__call__">
 <span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ding.worker.learner.base_learner.BaseLearner" title="ding.worker.learner.base_learner.BaseLearner"><span class="pre">BaseLearner</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/learner/learner_hook.html#LogReduceHook.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.learner_hook.LogReduceHook.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>reduce the logs from distributed(multi-gpu) learners</p>
+<dt>Overview:</dt><dd><p>Reduce the logs from distributed (multi-gpu) learners.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>engine (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseLearner</span></code>): the BaseLearner</p></li>
+<li><p>engine (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseLearner</span></code>): The BaseLearner.</p></li>
 </ul>
 </dd>
 </dl>
@@ -536,10 +536,10 @@ clear the log buffer for all learners regardless of rank</p>
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.LogReduceHook.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EasyDict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/learner/learner_hook.html#LogReduceHook.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.learner_hook.LogReduceHook.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>init LogReduceHook</p>
+<dt>Overview:</dt><dd><p>Initialize LogReduceHook.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>ext_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): extended_args, use ext_args.freq to set log_reduce_freq</p></li>
+<li><p>ext_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Extended arguments, use ext_args.freq to set log_reduce_freq.</p></li>
 </ul>
 </dd>
 </dl>
@@ -636,7 +636,7 @@ monitor, log_buffer, logger, tb_logger, ckpt_name, exp_name, instance_name</p>
 <dt>Overview:</dt><dd><p>Initialization method, build common learner components according to cfg, such as hook, wrapper and so on.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Learner config, you can refer cls.config for details.</p></li>
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Learner config, you can refer cls.config for details. It should include                 <cite>is_multitask_pipeline</cite> to indicate if the pipeline is multitask, default is False,                 and <cite>only_monitor_rank0</cite> to control whether only rank 0 needs monitor and tb_logger, default is True.</p></li>
 <li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): A collection of policy function of learn mode. And policy can also be                 initialized when runtime.</p></li>
 <li><p>tb_logger (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SummaryWriter</span></code>): Tensorboard summary writer.</p></li>
 <li><p>dist_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[int,</span> <span class="pre">int]</span></code>): Multi-GPU distributed training information.</p></li>
