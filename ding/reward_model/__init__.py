@@ -13,3 +13,6 @@ from .rnd_reward_model import RndRewardModel
 from .guided_cost_reward_model import GuidedCostRewardModel
 from .ngu_reward_model import RndNGURewardModel, EpisodicNGURewardModel
 from .icm_reward_model import ICMRewardModel
+# LLM/VLM reward model and verifier
+from .math_reward_model import MathRewardModel
+from .math_rule_reward_model import MathRuleRewardModel
