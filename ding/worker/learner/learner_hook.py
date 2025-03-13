@@ -197,7 +197,7 @@ class LogShowHook(LearnerHook):
             self._freq = 1
         else:
             self._freq = ext_args.freq
-        self._only_monitor_rank0 = None  
+        self._only_monitor_rank0 = None
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         """
