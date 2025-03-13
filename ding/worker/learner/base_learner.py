@@ -135,7 +135,9 @@ class BaseLearner(object):
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
         # Last iteration. Used to record current iter.
         self._last_iter = CountVar(init_val=0)
-
+        # Collector envstep. Used to record current envstep.
+        self._collector_envstep = 0
+        
         # Setup time wrapper and hook.
         self._setup_wrapper()
         self._setup_hook()
