@@ -5,6 +5,7 @@ import os
 import numpy as np
 import torch
 import torch.distributed as dist
+import datetime
 
 from .default_helper import error_wrapper
 
@@ -44,6 +45,27 @@ def allreduce(x: torch.Tensor) -> None:
 
     dist.all_reduce(x)
     x.div_(get_world_size())
+
+
+def allreduce_with_indicator(grad: torch.Tensor, indicator: torch.Tensor) -> None:
+    """
+    Overview:
+        Custom allreduce: Sum both the gradient and indicator tensors across all processes.
+        Then, if at least one process contributed (i.e., the summation of indicator > 0),
+        divide the gradient by the summed indicator. This ensures that if only a subset of
+        GPUs contributed a gradient, the averaging is performed based on the actual number
+        of contributors rather than the total number of GPUs.
+    Arguments:
+        - grad (torch.Tensor): Local gradient tensor to be reduced.
+        - indicator (torch.Tensor): A tensor flag (1 if the gradient is computed, 0 otherwise).
+    """
+    # Allreduce (sum) the gradient and indicator
+    dist.all_reduce(grad)
+    dist.all_reduce(indicator)
+
+    # Avoid division by zero. If indicator is close to 0 (extreme case), grad remains zeros.
+    if not torch.isclose(indicator, torch.tensor(0.0)):
+        grad.div_(indicator.item())
 
 
 def allreduce_async(name: str, x: torch.Tensor) -> None:
@@ -138,20 +160,25 @@ def dist_mode(func: Callable) -> Callable:
     return wrapper
 
 
-def dist_init(backend: str = 'nccl',
-              addr: str = None,
-              port: str = None,
-              rank: int = None,
-              world_size: int = None) -> Tuple[int, int]:
+def dist_init(
+        backend: str = 'nccl',
+        addr: str = None,
+        port: str = None,
+        rank: int = None,
+        world_size: int = None,
+        timeout: datetime.timedelta = datetime.timedelta(seconds=60000)
+) -> Tuple[int, int]:
     """
     Overview:
-        Initialize the distributed training setting
+        Initialize the distributed training setting.
     Arguments:
-        - backend (:obj:`str`): The backend of the distributed training, support ``['nccl', 'gloo']``
-        - addr (:obj:`str`): The address of the master node
-        - port (:obj:`str`): The port of the master node
-        - rank (:obj:`int`): The rank of current process
-        - world_size (:obj:`int`): The total number of processes
+        - backend (:obj:`str`): The backend of the distributed training, supports ``['nccl', 'gloo']``.
+        - addr (:obj:`str`): The address of the master node.
+        - port (:obj:`str`): The port of the master node.
+        - rank (:obj:`int`): The rank of the current process.
+        - world_size (:obj:`int`): The total number of processes.
+        - timeout (:obj:`datetime.timedelta`): The timeout for operations executed against the process group. \
+            Default is 60000 seconds.
     """
 
     assert backend in ['nccl', 'gloo'], backend
@@ -171,7 +198,7 @@ def dist_init(backend: str = 'nccl',
         else:
             world_size = int(ntasks)
 
-    dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
+    dist.init_process_group(backend=backend, rank=rank, world_size=world_size, timeout=timeout)
 
     num_gpus = torch.cuda.device_count()
     torch.cuda.set_device(rank % num_gpus)

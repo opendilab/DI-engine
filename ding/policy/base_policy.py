@@ -7,8 +7,8 @@ import copy
 import torch
 
 from ding.model import create_model
-from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_async, synchronize, deep_merge_dicts, \
-    POLICY_REGISTRY
+from ding.utils import import_module, allreduce, allreduce_with_indicator, broadcast, get_rank, allreduce_async, \
+    synchronize, deep_merge_dicts, POLICY_REGISTRY
 
 
 class Policy(ABC):
@@ -415,20 +415,39 @@ class Policy(ABC):
     def sync_gradients(self, model: torch.nn.Module) -> None:
         """
         Overview:
-            Synchronize (allreduce) gradients of model parameters in data-parallel multi-gpu training.
+            Synchronize (allreduce) gradients of model parameters in data-parallel multi-GPU training.
+            For parameters that did not participate in the forward/backward pass in some GPUs,
+            assign a zero gradient with an indicator of 0. This ensures that only GPUs which contributed
+            to the gradient computation are considered when averaging, thereby avoiding an incorrect
+            division by the total number of GPUs.
         Arguments:
             - model (:obj:`torch.nn.Module`): The model to synchronize gradients.
 
         .. note::
-            This method is only used in multi-gpu training, and it should be called after ``backward`` method and \
-            before ``step`` method. The user can also use ``bp_update_sync`` config to control whether to synchronize \
-            gradients allreduce and optimizer updates.
+            This method is only used in multi-gpu training, and it should be called after the ``backward`` method and \
+            before the ``step`` method. The user can also use the ``bp_update_sync`` config to control whether to \
+            synchronize gradients allreduce and optimizer updates.
         """
-
         if self._bp_update_sync:
             for name, param in model.named_parameters():
                 if param.requires_grad:
-                    allreduce(param.grad.data)
+                    # Create an indicator tensor on the same device as the parameter (or its gradient)
+                    if param.grad is not None:
+                        # If the gradient exists, extract its data and set indicator to 1.
+                        grad_tensor = param.grad.data
+                        indicator = torch.tensor(1.0, device=grad_tensor.device)
+                    else:
+                        # If the parameter did not participate in the computation (grad is None),
+                        # create a zero tensor for the gradient and set the indicator to 0.
+                        grad_tensor = torch.zeros_like(param.data)
+                        indicator = torch.tensor(0.0, device=grad_tensor.device)
+
+                        # Assign the zero gradient to param.grad to ensure that all GPUs
+                        # participate in the subsequent allreduce call (avoiding deadlock).
+                        param.grad = grad_tensor
+
+                    # Use the custom allreduce function to reduce the gradient using the indicator.
+                    allreduce_with_indicator(param.grad, indicator)
         else:
             synchronize()
 
