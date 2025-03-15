@@ -13,6 +13,11 @@ ENV LANG        en_US.UTF-8
 ENV LANGUAGE    en_US:UTF-8
 ENV LC_ALL      en_US.UTF-8
 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && . $HOME/.cargo/env
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 ADD setup.py setup.py
 ADD dizoo dizoo
 ADD ding ding
@@ -42,6 +47,13 @@ RUN apt update \
 ENV LANG        en_US.UTF-8
 ENV LANGUAGE    en_US:UTF-8
 ENV LC_ALL      en_US.UTF-8
+
+# 安装 Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && . $HOME/.cargo/env
+
+# 添加 Rust 到 PATH
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 ADD setup.py setup.py
 ADD dizoo dizoo
