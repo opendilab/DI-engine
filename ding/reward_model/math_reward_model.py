@@ -1,11 +1,9 @@
-from typing import Tuple, Optional, List, Dict
+from typing import List, Dict
 from easydict import EasyDict
 from torch.utils.tensorboard import SummaryWriter
 from transformers import AutoTokenizer, AutoModel
 import torch
 import torch.nn.functional as F
-import re
-
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 

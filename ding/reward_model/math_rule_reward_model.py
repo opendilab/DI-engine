@@ -1,28 +1,28 @@
-from typing import Tuple, Optional, List, Dict, Union, Any
+from typing import Tuple, Optional, List, Dict
 from easydict import EasyDict
 from torch.utils.tensorboard import SummaryWriter
 from transformers import AutoTokenizer
 import re
 import math
 import json
-
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 
 
-@REWARD_MODEL_REGISTRY.register('math_rule')
+@REWARD_MODEL_REGISTRY.register("math_rule")
 class MathRuleRewardModel(BaseRewardModel):
     """
     Math rule-based reward model for evaluating mathematical answers.
     Supports various mathematical expression formats including LaTeX, fractions, percentages, etc.
     """
+
     config = dict(
         # (str) The type of the reward model.
-        type='math_rule',
+        type="math_rule",
         # (str) The name of the dataset, usually the huggingface dataset name.
-        dataset_name='',
+        dataset_name="",
         # (str) The name of the tokenizer, usually the huggingface tokenizer name.
-        tokenizer_name='',
+        tokenizer_name="",
         # (float) The score of format error.
         format_error_reward=-2,
         # (float) The score of answer error.
@@ -38,9 +38,9 @@ class MathRuleRewardModel(BaseRewardModel):
     def __init__(
             self,
             config: EasyDict,
-            device: str = 'cpu',
+            device: str = "cpu",
             logger=None,
-            tb_logger: 'SummaryWriter' = None
+            tb_logger: "SummaryWriter" = None,
     ) -> None:  # noqa
         """Initialize the math rule reward model"""
         self.cfg = config
@@ -49,10 +49,10 @@ class MathRuleRewardModel(BaseRewardModel):
         self.tb_logger = tb_logger
 
         # Initialize tokenizer
-        if hasattr(config, 'tokenizer_name') and config.tokenizer_name:
+        if hasattr(config, "tokenizer_name") and config.tokenizer_name:
             self.tokenizer = AutoTokenizer.from_pretrained(config.tokenizer_name)
-            self.pad_token = self.tokenizer.pad_token if self.tokenizer.pad_token else "[PAD]"
-            self.eos_token = self.tokenizer.eos_token if self.tokenizer.eos_token else "[EOS]"
+            self.pad_token = (self.tokenizer.pad_token if self.tokenizer.pad_token else "[PAD]")
+            self.eos_token = (self.tokenizer.eos_token if self.tokenizer.eos_token else "[EOS]")
         else:
             self.tokenizer = None
             self.pad_token = "[PAD]"
@@ -62,7 +62,6 @@ class MathRuleRewardModel(BaseRewardModel):
         """Process target answer text and convert to numerical value"""
         if text is None or not text.strip():
             return None
-
         # Clean and normalize text
         if self.tokenizer:
             text = strip_sequence(text, self.pad_token, self.eos_token)
@@ -122,7 +121,10 @@ class MathRuleRewardModel(BaseRewardModel):
             return False
         try:
             return math.isclose(
-                pred, target, rel_tol=self.cfg.get('rel_tol', 1e-5), abs_tol=self.cfg.get('abs_tol', 1e-8)
+                pred,
+                target,
+                rel_tol=self.cfg.get("rel_tol", 1e-5),
+                abs_tol=self.cfg.get("abs_tol", 1e-8),
             )
         except Exception as e:
             if self.logger:
@@ -141,47 +143,47 @@ class MathRuleRewardModel(BaseRewardModel):
         6. Last LaTeX expression like \\frac{a}{b}, \\sqrt{x}, etc.
         """
         # Try to extract boxed content
-        boxed_match = re.search(r'\\boxed\{([^}]+)\}', text)
+        boxed_match = re.search(r"\\boxed\{([^}]+)\}", text)
         if boxed_match:
             return boxed_match.group(0)
 
         # Try to extract "the answer is X" format
-        answer_match = re.search(r'(?:the\s+)?answer\s+is\s+([^\.]+)', text, re.IGNORECASE)
+        answer_match = re.search(r"(?:the\s+)?answer\s+is\s+([^\.]+)", text, re.IGNORECASE)
         if answer_match:
             answer_text = answer_match.group(1).strip()
             # Check if the extracted answer contains a LaTeX expression
-            latex_match = re.search(r'(\\frac\{[^}]+\}\{[^}]+\}|\\sqrt\{[^}]+\})', answer_text)
+            latex_match = re.search(r"(\\frac\{[^}]+\}\{[^}]+\}|\\sqrt\{[^}]+\})", answer_text)
             if latex_match:
                 return latex_match.group(0)
             return answer_text
 
         # Try to extract "therefore, X is the answer" format
-        therefore_match = re.search(r'therefore,?\s+([^\.]+)\s+is\s+the\s+answer', text, re.IGNORECASE)
+        therefore_match = re.search(r"therefore,?\s+([^\.]+)\s+is\s+the\s+answer", text, re.IGNORECASE)
         if therefore_match:
             therefore_text = therefore_match.group(1).strip()
             # Check if the extracted answer contains a LaTeX expression
-            latex_match = re.search(r'(\\frac\{[^}]+\}\{[^}]+\}|\\sqrt\{[^}]+\})', therefore_text)
+            latex_match = re.search(r"(\\frac\{[^}]+\}\{[^}]+\}|\\sqrt\{[^}]+\})", therefore_text)
             if latex_match:
                 return latex_match.group(0)
             return therefore_text
 
         # Try to extract expression after equals sign
-        equals_matches = re.findall(r'=\s*([^\.=]+?)(?:\.|$|=)', text)
+        equals_matches = re.findall(r"=\s*([^\.=]+?)(?:\.|$|=)", text)
         if equals_matches:
             last_eq = equals_matches[-1].strip()
             # Check if there's a LaTeX expression after the equals sign
-            latex_match = re.search(r'(\\frac\{[^}]+\}\{[^}]+\}|\\sqrt\{[^}]+\})', last_eq)
+            latex_match = re.search(r"(\\frac\{[^}]+\}\{[^}]+\}|\\sqrt\{[^}]+\})", last_eq)
             if latex_match:
                 return latex_match.group(0)
             return last_eq
 
         # Try to directly extract LaTeX fraction expression
-        frac_matches = re.findall(r'(\\frac\{[^}]+\}\{[^}]+\})', text)
+        frac_matches = re.findall(r"(\\frac\{[^}]+\}\{[^}]+\})", text)
         if frac_matches:
             return frac_matches[-1]
 
         # Try to directly extract LaTeX square root expression
-        sqrt_matches = re.findall(r'(\\sqrt\{[^}]+\})', text)
+        sqrt_matches = re.findall(r"(\\sqrt\{[^}]+\})", text)
         if sqrt_matches:
             return sqrt_matches[-1]
 
@@ -191,7 +193,7 @@ class MathRuleRewardModel(BaseRewardModel):
             return pi_expr
 
         # If there's only one number, return it directly
-        numbers = re.findall(r'-?\d*\.?\d+', text)
+        numbers = re.findall(r"-?\d*\.?\d+", text)
         if len(numbers) == 1:
             return numbers[0]
 
@@ -204,34 +206,34 @@ class MathRuleRewardModel(BaseRewardModel):
     def _extract_pi_expressions(self, text: str) -> Optional[str]:
         """Extract pi-related expressions from text"""
         # Try to extract expressions like \frac{a\pi}{b}
-        pi_frac_matches = re.findall(r'(\\frac\{[^}]*\\pi[^}]*\}\{[^}]+\})', text)
+        pi_frac_matches = re.findall(r"(\\frac\{[^}]*\\pi[^}]*\}\{[^}]+\})", text)
         if pi_frac_matches:
             return pi_frac_matches[-1]
 
         # Try to extract expressions like \frac{a}{b}\pi
-        frac_pi_matches = re.findall(r'(\\frac\{[^}]+\}\{[^}]+\}\\pi)', text)
+        frac_pi_matches = re.findall(r"(\\frac\{[^}]+\}\{[^}]+\}\\pi)", text)
         if frac_pi_matches:
             return frac_pi_matches[-1]
 
         # Try to extract expressions like 11π/6
         text_with_pi = text.replace("\\pi", "π")
-        pi_div_matches = re.findall(r'(\d+π/\d+)', text_with_pi)
+        pi_div_matches = re.findall(r"(\d+π/\d+)", text_with_pi)
         if pi_div_matches:
             return pi_div_matches[-1]
 
         # Try to extract expressions like π/2
-        pi_simple_div_matches = re.findall(r'(π/\d+)', text_with_pi)
+        pi_simple_div_matches = re.findall(r"(π/\d+)", text_with_pi)
         if pi_simple_div_matches:
             return pi_simple_div_matches[-1]
 
         # Try to extract expressions like 2π
-        pi_mult_matches = re.findall(r'(\d+π)', text_with_pi)
+        pi_mult_matches = re.findall(r"(\d+π)", text_with_pi)
         if pi_mult_matches:
             return pi_mult_matches[-1]
 
         # Check for standalone π
         if "π" in text_with_pi or "\\pi" in text:
-            pi_standalone = re.search(r'(^|[^a-zA-Z0-9])π($|[^a-zA-Z0-9])', text_with_pi)
+            pi_standalone = re.search(r"(^|[^a-zA-Z0-9])π($|[^a-zA-Z0-9])", text_with_pi)
             if pi_standalone:
                 return "π"
 
@@ -243,19 +245,19 @@ class MathRuleRewardModel(BaseRewardModel):
         text = text.replace("\\pi", "π")
 
         # Process expressions like 11π/6
-        pi_match = re.search(r'(\d+)π/(\d+)', text)
+        pi_match = re.search(r"(\d+)π/(\d+)", text)
         if pi_match:
             num, denom = map(int, pi_match.groups())
             return (num * math.pi) / denom
 
         # Process expressions like π/2
-        pi_div_match = re.search(r'π/(\d+)', text)
+        pi_div_match = re.search(r"π/(\d+)", text)
         if pi_div_match:
             denom = int(pi_div_match.group(1))
             return math.pi / denom
 
         # Process expressions like 2π
-        pi_mult_match = re.search(r'(\d+)π', text)
+        pi_mult_match = re.search(r"(\d+)π", text)
         if pi_mult_match:
             num = int(pi_mult_match.group(1))
             return num * math.pi
@@ -297,7 +299,7 @@ class MathRuleRewardModel(BaseRewardModel):
                 return float(text.replace("%", "")) / 100
 
             # Process LaTeX square roots \sqrt{...}
-            sqrt_match = re.search(r'\\sqrt\{([^}]+)\}', text)
+            sqrt_match = re.search(r"\\sqrt\{([^}]+)\}", text)
             if sqrt_match:
                 inner_expr = sqrt_match.group(1)
                 inner_value = self._process_math_expression(inner_expr)
@@ -305,7 +307,7 @@ class MathRuleRewardModel(BaseRewardModel):
                     return math.sqrt(inner_value)
 
             # Process LaTeX fractions \frac{...}{...}
-            frac_match = re.search(r'\\frac\{([^}]+)\}\{([^}]+)\}', text)
+            frac_match = re.search(r"\\frac\{([^}]+)\}\{([^}]+)\}", text)
             if frac_match:
                 num = frac_match.group(1)
                 denom = frac_match.group(2)
@@ -314,11 +316,11 @@ class MathRuleRewardModel(BaseRewardModel):
                 num_value = self._process_math_expression(num)
                 denom_value = self._process_math_expression(denom)
 
-                if num_value is not None and denom_value is not None and denom_value != 0:
+                if (num_value is not None and denom_value is not None and denom_value != 0):
                     return num_value / denom_value
 
             # Process mixed fractions 1\frac{1}{2}
-            mixed_frac_match = re.search(r'(\d+)\\frac\{([^}]+)\}\{([^}]+)\}', text)
+            mixed_frac_match = re.search(r"(\d+)\\frac\{([^}]+)\}\{([^}]+)\}", text)
             if mixed_frac_match:
                 whole = int(mixed_frac_match.group(1))
                 num = mixed_frac_match.group(2)
@@ -328,14 +330,14 @@ class MathRuleRewardModel(BaseRewardModel):
                 num_value = self._process_math_expression(num)
                 denom_value = self._process_math_expression(denom)
 
-                if num_value is not None and denom_value is not None and denom_value != 0:
+                if (num_value is not None and denom_value is not None and denom_value != 0):
                     return whole + (num_value / denom_value)
 
             # Process max function \max(a,b,c)
-            max_match = re.search(r'\\max\(([^)]+)\)', text)
+            max_match = re.search(r"\\max\(([^)]+)\)", text)
             if max_match:
                 values_str = max_match.group(1)
-                values = values_str.split(',')
+                values = values_str.split(",")
                 processed_values = []
                 for val in values:
                     processed_val = self._process_math_expression(val)
@@ -345,10 +347,10 @@ class MathRuleRewardModel(BaseRewardModel):
                     return max(processed_values)
 
             # Process min function \min(a,b,c)
-            min_match = re.search(r'\\min\(([^)]+)\)', text)
+            min_match = re.search(r"\\min\(([^)]+)\)", text)
             if min_match:
                 values_str = min_match.group(1)
-                values = values_str.split(',')
+                values = values_str.split(",")
                 processed_values = []
                 for val in values:
                     processed_val = self._process_math_expression(val)
@@ -358,13 +360,13 @@ class MathRuleRewardModel(BaseRewardModel):
                     return min(processed_values)
 
             # Process simple arithmetic operations
-            if any(op in text for op in ['+', '-', '*', '/']):
+            if any(op in text for op in ["+", "-", "*", "/"]):
                 # Safe eval, only allowing basic operations
                 safe_dict = {"__builtins__": None}
                 return float(eval(text, safe_dict))
 
             # Process scientific notation
-            if 'e' in text.lower() and re.match(r'-?\d+\.?\d*e[+-]?\d+', text.lower()):
+            if "e" in text.lower() and re.match(r"-?\d+\.?\d*e[+-]?\d+", text.lower()):
                 return float(text)
 
             # Process regular numbers
@@ -407,16 +409,16 @@ class MathRuleRewardModel(BaseRewardModel):
 
         for item in data:
             result = {
-                'reward': self.cfg.format_error_reward,
-                'metadata': {
-                    'reason': 'format_error',
-                    'response_value': None,
-                    'target_value': None,
-                    'match_result': False,
-                    'extracted_code': None,
-                    'final_answer': None,
-                    'extracted_expressions': []
-                }
+                "reward": self.cfg.format_error_reward,
+                "metadata": {
+                    "reason": "format_error",
+                    "response_value": None,
+                    "target_value": None,
+                    "match_result": False,
+                    "extracted_code": None,
+                    "final_answer": None,
+                    "extracted_expressions": [],
+                },
             }
 
             try:
@@ -430,26 +432,26 @@ class MathRuleRewardModel(BaseRewardModel):
 
                 # Process target answer
                 target_value = self._process_target_answer(gt_answer)
-                result['metadata']['target_value'] = target_value
+                result["metadata"]["target_value"] = target_value
 
                 # Process response answer
                 response_value, final_answer = self._process_response_answer(response)
-                result['metadata']['response_value'] = response_value
-                result['metadata']['final_answer'] = final_answer
+                result["metadata"]["response_value"] = response_value
+                result["metadata"]["final_answer"] = final_answer
 
                 # Extract Python code (if any)
                 extracted_code = self._extract_python_code(response)
-                result['metadata']['extracted_code'] = extracted_code
+                result["metadata"]["extracted_code"] = extracted_code
 
                 # Extract all possible expressions (for debugging)
                 expressions = self._extract_all_expressions(response)
-                result['metadata']['extracted_expressions'] = expressions
+                result["metadata"]["extracted_expressions"] = expressions
 
                 # Determine reward based on answer comparison
                 result = self._determine_reward(result, target_value, response_value)
 
             except Exception as e:
-                result['metadata']['reason'] = f'error: {str(e)}'
+                result["metadata"]["reason"] = f"error: {str(e)}"
                 if self.logger:
                     self.logger.error(f"Error evaluating data: {str(e)}")
 
@@ -460,27 +462,24 @@ class MathRuleRewardModel(BaseRewardModel):
     def _extract_item_data(self, item) -> Optional[Tuple[str, str, str]]:
         """Extract question, answer and response from data item"""
         if isinstance(item, dict):
-            question = item.get('question', '')
-            gt_answer = item.get('answer', '')
-            response = item.get('response', '')
-            system = item.get('system', '')
-            query = item.get('query', '')
+            question = item.get("question", "")
+            gt_answer = item.get("answer", "")
+            response = item.get("response", "")
+            query = item.get("query", "")
         elif isinstance(item, str):
             # If input is a string, try to parse as JSON
             try:
                 item_dict = json.loads(item)
-                question = item_dict.get('question', '')
-                gt_answer = item_dict.get('answer', '')
-                response = item_dict.get('response', '')
-                system = item_dict.get('system', '')
-                query = item_dict.get('query', '')
+                question = item_dict.get("question", "")
+                gt_answer = item_dict.get("answer", "")
+                response = item_dict.get("response", "")
+                query = item_dict.get("query", "")
             except:
                 # If parsing fails, assume the entire string is the response
-                question = ''
-                gt_answer = ''
+                question = ""
+                gt_answer = ""
                 response = item
-                system = ''
-                query = ''
+                query = ""
         else:
             # Unsupported input type
             return None
@@ -491,25 +490,30 @@ class MathRuleRewardModel(BaseRewardModel):
 
         return question, gt_answer, response
 
-    def _determine_reward(self, result: Dict, target_value: Optional[float], response_value: Optional[float]) -> Dict:
+    def _determine_reward(
+            self,
+            result: Dict,
+            target_value: Optional[float],
+            response_value: Optional[float],
+    ) -> Dict:
         """Determine reward based on answer comparison"""
         if target_value is None:
-            result['reward'] = self.cfg.format_error_reward
-            result['metadata']['reason'] = 'invalid_target_format'
+            result["reward"] = self.cfg.format_error_reward
+            result["metadata"]["reason"] = "invalid_target_format"
         elif response_value is None:
-            result['reward'] = self.cfg.format_error_reward
-            result['metadata']['reason'] = 'invalid_response_format'
+            result["reward"] = self.cfg.format_error_reward
+            result["metadata"]["reason"] = "invalid_response_format"
         else:
             # Compare answers
             is_match = self._check_answer_match(response_value, target_value)
-            result['metadata']['match_result'] = is_match
+            result["metadata"]["match_result"] = is_match
 
             if is_match:
-                result['reward'] = self.cfg.correct_reward
-                result['metadata']['reason'] = 'correct_answer'
+                result["reward"] = self.cfg.correct_reward
+                result["metadata"]["reason"] = "correct_answer"
             else:
-                result['reward'] = self.cfg.answer_error_reward
-                result['metadata']['reason'] = 'wrong_answer'
+                result["reward"] = self.cfg.answer_error_reward
+                result["metadata"]["reason"] = "wrong_answer"
 
         return result
 
@@ -552,48 +556,48 @@ class MathRuleRewardModel(BaseRewardModel):
     def _extract_latex_environments(self, text: str, expressions: List[str]) -> None:
         """Extract expressions from LaTeX math environments"""
         # Match \(...\) or $...$ format LaTeX expressions
-        latex_envs = re.findall(r'\\\\?\((.+?)\\\\?\)', text) + re.findall(r'\$(.+?)\$', text)
+        latex_envs = re.findall(r"\\\\?\((.+?)\\\\?\)", text) + re.findall(r"\$(.+?)\$", text)
         for latex_env in latex_envs:
             expressions.append(latex_env.strip())
 
     def _extract_boxed_content(self, text: str, expressions: List[str]) -> None:
         """Extract boxed content"""
-        boxed_matches = re.findall(r'\\boxed\{([^}]+)\}', text)
+        boxed_matches = re.findall(r"\\boxed\{([^}]+)\}", text)
         for match in boxed_matches:
             expressions.append(match.strip())
 
     def _extract_equals_expressions(self, text: str, expressions: List[str]) -> None:
         """Extract expressions after equals sign"""
-        equals_matches = re.findall(r'=\s*([^\.=]+?)(?:\.|$|=)', text)
+        equals_matches = re.findall(r"=\s*([^\.=]+?)(?:\.|$|=)", text)
         for match in equals_matches:
             expressions.append(match.strip())
 
     def _extract_answer_phrases(self, text: str, expressions: List[str]) -> None:
         """Extract expressions from answer phrases"""
         # Extract "the answer is X" format
-        answer_match = re.search(r'(?:the\s+)?answer\s+is\s+([^\.]+)', text, re.IGNORECASE)
+        answer_match = re.search(r"(?:the\s+)?answer\s+is\s+([^\.]+)", text, re.IGNORECASE)
         if answer_match:
             expressions.append(answer_match.group(1).strip())
 
         # Extract "therefore, X is the answer" format
-        therefore_match = re.search(r'therefore,?\s+([^\.]+)\s+is\s+the\s+answer', text, re.IGNORECASE)
+        therefore_match = re.search(r"therefore,?\s+([^\.]+)\s+is\s+the\s+answer", text, re.IGNORECASE)
         if therefore_match:
             expressions.append(therefore_match.group(1).strip())
 
     def _extract_latex_expressions(self, text: str, expressions: List[str]) -> None:
         """Extract LaTeX expressions"""
         # Extract LaTeX fraction expressions
-        frac_matches = re.findall(r'\\frac\{([^}]+)\}\{([^}]+)\}', text)
+        frac_matches = re.findall(r"\\frac\{([^}]+)\}\{([^}]+)\}", text)
         for num, denom in frac_matches:
             expressions.append(f"\\frac{{{num}}}{{{denom}}}")
 
         # Extract LaTeX square root expressions
-        sqrt_matches = re.findall(r'\\sqrt\{([^}]+)\}', text)
+        sqrt_matches = re.findall(r"\\sqrt\{([^}]+)\}", text)
         for inner in sqrt_matches:
             expressions.append(f"\\sqrt{{{inner}}}")
 
         # Extract all LaTeX expressions
-        latex_expressions = re.findall(r'\\[a-zA-Z]+(?:\{[^}]*\})+', text)
+        latex_expressions = re.findall(r"\\[a-zA-Z]+(?:\{[^}]*\})+", text)
         for expr in latex_expressions:
             if expr not in expressions:
                 expressions.append(expr)
@@ -604,17 +608,17 @@ class MathRuleRewardModel(BaseRewardModel):
         text_with_pi = text.replace("\\pi", "π")
 
         # Extract expressions like 11π/6
-        pi_div_matches = re.findall(r'(\d+)π/(\d+)', text_with_pi)
+        pi_div_matches = re.findall(r"(\d+)π/(\d+)", text_with_pi)
         for num, denom in pi_div_matches:
             expressions.append(f"{num}π/{denom}")
 
         # Extract expressions like π/2
-        pi_simple_div_matches = re.findall(r'π/(\d+)', text_with_pi)
+        pi_simple_div_matches = re.findall(r"π/(\d+)", text_with_pi)
         for denom in pi_simple_div_matches:
             expressions.append(f"π/{denom}")
 
         # Extract expressions like 2π
-        pi_mult_matches = re.findall(r'(\d+)π', text_with_pi)
+        pi_mult_matches = re.findall(r"(\d+)π", text_with_pi)
         for num in pi_mult_matches:
             expressions.append(f"{num}π")
 
@@ -624,7 +628,7 @@ class MathRuleRewardModel(BaseRewardModel):
 
     def _extract_numbers(self, text: str, expressions: List[str]) -> None:
         """Extract all numbers"""
-        numbers = re.findall(r'-?\d*\.?\d+', text)
+        numbers = re.findall(r"-?\d*\.?\d+", text)
         expressions.extend(numbers)
 
     # rule-based reward model does not need training, thus the following methods are empty
@@ -644,14 +648,12 @@ class MathRuleRewardModel(BaseRewardModel):
         """Extract Python code blocks from text"""
         if text is None or not text.strip():
             return None
-
         # Match code between ```python and ```
-        code_blocks = re.findall(r'```python\s*(.*?)\s*```', text, re.DOTALL)
+        code_blocks = re.findall(r"```python\s*(.*?)\s*```", text, re.DOTALL)
         if code_blocks:
-            return code_blocks[-1].strip()  # Return the last code block
-
+            return code_blocks[-1].strip()
         # Match code between ``` and ``` (without specified language)
-        code_blocks = re.findall(r'```\s*(.*?)\s*```', text, re.DOTALL)
+        code_blocks = re.findall(r"```\s*(.*?)\s*```", text, re.DOTALL)
         if code_blocks:
             return code_blocks[-1].strip()
 
@@ -660,15 +662,29 @@ class MathRuleRewardModel(BaseRewardModel):
 
 def strip_sequence(text: str, pad_token: str, eos_token: str) -> str:
     """
-    Remove leading and trailing sequences of padding/eos tokens from text.
-    
-    Args:
-        text: Input text
-        pad_token: Padding token
-        eos_token: End-of-sequence token
-        
+    Overview:
+        Remove leading and trailing sequences of padding/eos tokens from a text.
+    .. note::
+        This function uses regular expressions to strip all consecutive occurrences
+        of the specified padding and end-of-sequence tokens from both the beginning
+        and end of the input text. Tokens in the middle of the text are preserved.
+    Arguments:
+        - text (str): The input text to be processed.
+        - pad_token (str): The padding token to be stripped (e.g., "<PAD>").
+        - eos_token (str): The end-of-sequence token to be stripped (e.g., "<EOS>").
     Returns:
-        Cleaned text
+        - cleaned_text (str): The cleaned text with leading/trailing padding/eos tokens removed.
+    Examples:
+        >>> strip_sequence("<PAD><EOS>Hello<EOS><PAD>", "<PAD>", "<EOS>")
+        'Hello'
+        >>> strip_sequence("Test<EOS>Middle<PAD>Keep", "<PAD>", "<EOS>")
+        'Test<EOS>Middle<PAD>Keep'
+        >>> strip_sequence("<EOS><EOS><PAD>Full removal<PAD><EOS>", "<PAD>", "<EOS>")
+        'Full removal'
+        >>> strip_sequence("No tokens here", "<PAD>", "<EOS>")
+        'No tokens here'
+        >>> strip_sequence("<PAD><PAD>", "<PAD>", "<EOS>")
+        ''
     """
     pad_token_escaped = re.escape(pad_token)
     eos_token_escaped = re.escape(eos_token)
@@ -685,20 +701,18 @@ def strip_sequence(text: str, pad_token: str, eos_token: str) -> str:
 
 def normalize_text(text: str) -> str:
     """
-    Standardize text:
-    - Convert to lowercase
-    - Replace punctuation and special characters with spaces
-    - Remove import statements
-    - Normalize whitespace
-    - Strip leading and trailing whitespace
-    
-    Args:
-        text: Input text
-        
+    Overview:
+        This function is designed to standardize text by:
+        - Converting all text to lowercase
+        - Replacing various punctuation marks and special characters with spaces
+        - Removing import statements
+        - Normalizing whitespace by replacing multiple spaces with a single space
+        - Stripping leading and trailing whitespace
+    Arguments:
+        - text (str): The input text to be processed.
     Returns:
-        Normalized text
+        - normalized_text (str): The normalized text.
     """
-    # text = re.sub(r"[,.:\"\'\[\]\-=\+\\|!@#$%^&*();<>?/！￥…（）—\{\}：""《》？]", " ", text.lower())
     text = re.sub(r"import\s[a-zA-Z\.]+(\sas\s[a-zA-Z\.]+)\n", " ", text)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
