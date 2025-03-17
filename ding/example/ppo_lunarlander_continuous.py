@@ -9,7 +9,7 @@ from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, \
     gae_estimator, online_logger
 from ding.utils import set_pkg_seed
-from dizoo.box2d.lunarlander.config.lunarlander_ppo_config import main_config, create_config
+from dizoo.box2d.lunarlander.config.lunarlander_ppo_continuous_config import main_config, create_config
 
 
 def main():
@@ -18,11 +18,15 @@ def main():
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("LunarLander-v2")) for _ in range(cfg.env.collector_env_num)],
+            env_fn=[
+                lambda: DingEnvWrapper(gym.make("LunarLanderContinuous-v2")) for _ in range(cfg.env.collector_env_num)
+            ],
             cfg=cfg.env.manager
         )
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("LunarLander-v2")) for _ in range(cfg.env.evaluator_env_num)],
+            env_fn=[
+                lambda: DingEnvWrapper(gym.make("LunarLanderContinuous-v2")) for _ in range(cfg.env.evaluator_env_num)
+            ],
             cfg=cfg.env.manager
         )
 
@@ -30,6 +34,7 @@ def main():
 
         model = VAC(**cfg.policy.model)
         policy = PPOPolicy(cfg.policy, model=model)
+        logging.info(model)
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
