@@ -49,21 +49,21 @@ class MathRewardModel(BaseRewardModel):
             Estimate rewards for mathematical reasoning steps using Qwen2.5-Math-PRM-7B model.
         Arguments:
             - data (:obj:`List[Dict]`): List of dictionaries containing:
-                - system (:obj:`str`): System prompt for the model
-                - query (:obj:`str`): The mathematical query to be evaluated
-                - response (:obj:`List[str]`): List of reasoning steps
+                - system (:obj:`str`): System prompt for the model.
+                - query (:obj:`str`): The mathematical query to be evaluated.
+                - response (:obj:`List[str]`): List of reasoning steps.
         Returns:
             - reward (:obj:`List[Dict]`): List of dictionaries containing:
-                - reward (:obj:`float`): Final reward (last step reward)
+                - reward (:obj:`float`): Final reward (last step reward).
                 - metadata (:obj:`Dict`): Additional information including:
-                    - query (:obj:`str`): Original query
-                    - step_rewards (:obj:`List[float]`): Rewards for each reasoning step
-                    - num_steps (:obj:`int`): Number of reasoning steps
+                    - query (:obj:`str`): Original query.
+                    - step_rewards (:obj:`List[float]`): Rewards for each reasoning step.
+                    - num_steps (:obj:`int`): Number of reasoning steps.
         Shapes:
-            - input_ids (:obj:`torch.LongTensor`): :math:`(B, L)`, where B is batch size and L is sequence length
-            - outputs (:obj:`torch.FloatTensor`): :math:`(B, L, H)`, where H is hidden size
-            - token_masks (:obj:`torch.BoolTensor`): :math:`(B, L)`
-            - step_rewards (:obj:`List[List[float]]`): List of length B, each containing S rewards where S is num steps
+            - input_ids (:obj:`torch.LongTensor`): :math:`(B, L)`, where B is batch size and L is sequence length.
+            - outputs (:obj:`torch.FloatTensor`): :math:`(B, L, H)`, where H is hidden size.
+            - token_masks (:obj:`torch.BoolTensor`): :math:`(B, L)`.
+            - step_rewards (:obj:`List[List[float]]`): List of length B, each containing S rewards where S is num steps.
         Examples:
             >>> data = [{
             >>>     "system": "Please reason step by step...",
@@ -74,7 +74,6 @@ class MathRewardModel(BaseRewardModel):
             >>> print(results[0]["reward"])  # 1.0
             >>> print(results[0]["metadata"]["step_rewards"])  # [0.8, 0.9, 1.0]
         """
-        # 批量处理所有样本
         all_messages = []
         for item in data:
             messages = [
@@ -93,7 +92,6 @@ class MathRewardModel(BaseRewardModel):
             ]
             all_messages.append(messages)
 
-        # 批量转换为模型输入格式
         conversation_strs = [
             self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
             for messages in all_messages
@@ -104,24 +102,21 @@ class MathRewardModel(BaseRewardModel):
             conversation_strs, return_tensors="pt", padding=True, truncation=True
         )["input_ids"].to(self.model.device)
 
-        # 批量获取模型输出
         with torch.no_grad():
             outputs = self.model(input_ids=input_ids)
 
-        # 计算每个样本的步骤奖励
         step_sep_id = self.tokenizer.encode("<extra_0>")[0]
         token_masks = (input_ids == step_sep_id)
         batch_rewards = self.make_step_rewards(outputs[0], token_masks)
 
-        # 构建详细的结果字典
         results = []
         for item, step_rewards in zip(data, batch_rewards):
             results.append(
                 {
-                    "reward": step_rewards[-1] if step_rewards else 0.0,  # 最后一步的奖励作为总体奖励
+                    "reward": step_rewards[-1] if step_rewards else 0.0,
                     "metadata": {
                         "query": item['query'],
-                        "step_rewards": step_rewards,  # 每个步骤的奖励
+                        "step_rewards": step_rewards,
                         "num_steps": len(item['response']),
                     }
                 }

@@ -135,11 +135,11 @@ class MathRuleRewardModel(BaseRewardModel):
         """
         Extract the final answer from text.
         Supports various formats:
-        1. "The answer is X"
-        2. "Therefore, X is the answer"
-        3. "X" (if only one number)
-        4. "\\boxed{X}"
-        5. "= X" (expression after equals sign)
+        1. "The answer is X".
+        2. "Therefore, X is the answer".
+        3. "X" (if only one number).
+        4. "\\boxed{X}".
+        5. "= X" (expression after equals sign).
         6. Last LaTeX expression like \\frac{a}{b}, \\sqrt{x}, etc.
         """
         # Try to extract boxed content

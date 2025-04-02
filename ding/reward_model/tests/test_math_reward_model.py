@@ -21,7 +21,7 @@ def test_math_reward_model():
     # Initialize reward model
     model = MathRewardModel(cfg, "cuda" if torch.cuda.is_available() else "cpu", logger, tb_logger)
 
-    # Test case 1: Simple math problem
+    # Simple math problem
     data_simple = [
         {
             "system": "Please reason step by step...",
@@ -30,7 +30,7 @@ def test_math_reward_model():
         }
     ]
 
-    # Test case 2: Complex word problem
+    # Complex word problem
     data_complex = [
         {
             "system": "Please reason step by step, and put your final answer within \\boxed{}.",
