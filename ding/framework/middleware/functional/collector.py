@@ -86,6 +86,58 @@ def inferencer(seed: int, policy: Policy, env: BaseEnvManager) -> Callable:
     return _inference
 
 
+def inferencer_async(
+        seed: int,
+        policy: Policy,
+        env: BaseEnvManager,
+        obs_pool,
+        policy_output_pool,
+) -> Callable:
+    """
+    Overview:
+        The middleware that executes the inference process.
+    Arguments:
+        - seed (:obj:`int`): Random seed.
+        - policy (:obj:`Policy`): The policy to be inferred.
+        - env (:obj:`BaseEnvManager`): The env where the inference process is performed. \
+            The env.ready_obs (:obj:`tnp.array`) will be used as model input.
+    """
+
+    env.seed(seed)
+
+    def _inference(ctx: "OnlineRLContext"):
+        """
+        Output of ctx:
+            - obs (:obj:`Union[torch.Tensor, Dict[torch.Tensor]]`): The input observations collected \
+                from all collector environments.
+            - action: (:obj:`List[np.ndarray]`): The inferred actions listed by env_id.
+            - inference_output (:obj:`Dict[int, Dict]`): The dict of which the key is env_id (int), \
+                and the value is inference result (Dict).
+        """
+
+        if env.closed:
+            env.launch()
+
+        ready_obs = env.ready_obs
+        obs_pool.update(env._ready_obs)
+        inference_output = policy.forward(env._ready_obs, **ctx.collect_kwargs)
+
+        # obs_pool.update(env._ready_obs)
+        # obs = ttorch.as_tensor(env.ready_obs)
+        # ctx.obs = obs
+        # obs = obs.to(dtype=ttorch.float32)
+        # # TODO mask necessary rollout
+
+        # obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
+        # inference_output = policy.forward(obs, **ctx.collect_kwargs)
+
+        policy_output_pool.update(inference_output)
+        ctx.action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
+        ctx.inference_output = inference_output
+
+    return _inference
+
+
 def rolloutor(
         policy: Policy,
         env: BaseEnvManager,
@@ -161,6 +213,102 @@ def rolloutor(
                 }
                 # reset corresponding env info
                 env_info[timestep.env_id.item()] = {'time': 0., 'step': 0, 'train_sample': 0}
+
+                episode_info.append(info)
+                policy.reset([timestep.env_id.item()])
+                env_episode_id[timestep.env_id.item()] = current_id
+                collected_episode += 1
+                current_id += 1
+                ctx.env_episode += 1
+
+        total_envstep_count += collected_step
+        total_episode_count += collected_episode
+        total_train_sample_count += collected_sample
+
+        if (ctx.train_iter - last_train_iter) >= collect_print_freq and len(episode_info) > 0:
+            output_log(episode_info, total_episode_count, total_envstep_count, total_train_sample_count)
+            last_train_iter = ctx.train_iter
+
+    return _rollout
+
+
+def rolloutor_async(
+        policy: Policy,
+        env: BaseEnvManager,
+        transitions: TransitionList,
+        obs_pool,
+        policy_output_pool,
+        collect_print_freq=100,
+) -> Callable:
+    """
+    Overview:
+        The middleware that executes the transition process in the env.
+    Arguments:
+        - policy (:obj:`Policy`): The policy to be used during transition.
+        - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
+                its derivatives are supported.
+        - transitions (:obj:`TransitionList`): The transition information which will be filled \
+            in this process, including `obs`, `next_obs`, `action`, `logit`, `value`, `reward` \
+            and `done`.
+    """
+
+    env_episode_id = [_ for _ in range(env.env_num)]
+    current_id = env.env_num
+    timer = EasyTimer()
+    last_train_iter = 0
+    total_envstep_count = 0
+    total_episode_count = 0
+    total_train_sample_count = 0
+    env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(env.env_num)}
+    episode_info = []
+
+    def _rollout(ctx: "OnlineRLContext"):
+        """
+        Input of ctx:
+            - action: (:obj:`List[np.ndarray]`): The inferred actions from previous inference process.
+            - obs (:obj:`Dict[Tensor]`): The states fed into the transition dict.
+            - inference_output (:obj:`Dict[int, Dict]`): The inference results to be fed into the \
+                transition dict.
+            - train_iter (:obj:`int`): The train iteration count to be fed into the transition dict.
+            - env_step (:obj:`int`): The count of env step, which will increase by 1 for a single \
+                transition call.
+            - env_episode (:obj:`int`): The count of env episode, which will increase by 1 if the \
+                trajectory stops.
+        """
+
+        nonlocal current_id, env_info, episode_info, timer, \
+        total_episode_count, total_envstep_count, total_train_sample_count, last_train_iter
+        timesteps = env.step(ctx.action)
+        ctx.env_step += len(timesteps)
+        timesteps = [t.tensor() for t in timesteps]
+
+        collected_sample = 0
+        collected_step = 0
+        collected_episode = 0
+        interaction_duration = timer.value / len(timesteps)
+        for i, timestep in enumerate(timesteps):
+            with timer:
+                transition = policy.process_transition(
+                    obs_pool[timestep.info.env_id.item()], policy_output_pool[timestep.info.env_id.item()], timestep
+                )
+                transition = ttorch.as_tensor(transition)
+                transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
+                transition.env_data_id = ttorch.as_tensor([env_episode_id[timestep.info.env_id.item()]])
+                transitions.append(timestep.info.env_id.item(), transition)
+
+                collected_step += 1
+                collected_sample += len(transition.obs)
+                env_info[timestep.info.env_id.item()]['step'] += 1
+                env_info[timestep.info.env_id.item()]['train_sample'] += len(transition.obs)
+
+            env_info[timestep.info.env_id.item()]['time'] += timer.value + interaction_duration
+            if timestep.done:
+                info = {
+                    'reward': timestep.info['eval_episode_return'],
+                    'time': env_info[timestep.info.env_id.item()]['time'],
+                    'step': env_info[timestep.info.env_id.item()]['step'],
+                    'train_sample': env_info[timestep.info.env_id.item()]['train_sample'],
+                }
 
                 episode_info.append(info)
                 policy.reset([timestep.env_id.item()])

@@ -8,14 +8,16 @@ pong_dqn_envpool_config = dict(
         evaluator_env_num=8,
         evaluator_batch_size=8,
         n_evaluator_episode=8,
-        stop_value=20,
-        env_id='PongNoFrameskip-v4',
+        stop_value=21,
+        env_id='Pong-v5',
         #'ALE/Pong-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),
+    nstep = 3,
     policy=dict(
         cuda=True,
         priority=False,
+        random_collect_size=50000,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -24,10 +26,15 @@ pong_dqn_envpool_config = dict(
         nstep=3,
         discount_factor=0.99,
         learn=dict(
-            update_per_collect=10,
+            update_per_collect=2,
             batch_size=32,
             learning_rate=0.0001,
-            target_update_freq=500,
+            # If updating target network by replacement, \
+            # target_update_freq should be larger than 0. \
+            # If updating target network by changing several percentage of the origin weights, \
+            # target_update_freq should be 0 and target_theta should be set.
+            target_update_freq=None,
+            target_theta=0.04,
         ),
         collect=dict(n_sample=96, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
@@ -49,7 +56,7 @@ pong_dqn_envpool_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='env_pool'),
+    env_manager=dict(type='envpool'),
     policy=dict(type='dqn'),
     replay_buffer=dict(type='deque'),
 )

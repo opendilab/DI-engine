@@ -199,14 +199,16 @@ class DQNPolicy(Policy):
 
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
-        if 'target_update_freq' in self._cfg.learn:
+        if 'target_update_freq' in self._cfg.learn and self._cfg.learn.target_update_freq is not None \
+                and self._cfg.learn.target_update_freq > 0:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='target',
                 update_type='assign',
                 update_kwargs={'freq': self._cfg.learn.target_update_freq}
             )
-        elif 'target_theta' in self._cfg.learn:
+        elif 'target_theta' in self._cfg.learn and self._cfg.learn.target_theta is not None \
+                and self._cfg.learn.target_theta > 0.0:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='target',
@@ -248,6 +250,7 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
+
         # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(
             data,
@@ -256,6 +259,7 @@ class DQNPolicy(Policy):
             ignore_done=self._cfg.learn.ignore_done,
             use_nstep=True
         )
+
         if self._cuda:
             data = to_device(data, self._device)
         # Q-learning forward
@@ -284,6 +288,7 @@ class DQNPolicy(Policy):
 
         # Postprocessing operations, such as updating target model, return logged values and priority.
         self._target_model.update(self._learn_model.state_dict())
+
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
@@ -484,13 +489,15 @@ class DQNPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
+    def monitor_vars(self) -> List[str]:
+        return ['cur_lr', 'total_loss', 'q_value']
+
     def calculate_priority(self, data: Dict[int, Any], update_target_model: bool = False) -> Dict[str, Any]:
         """
         Overview:
             Calculate priority for replay buffer.
         Arguments:
             - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training.
-            - update_target_model (:obj:`bool`): Whether to update target model.
         Returns:
             - priority (:obj:`Dict[str, Any]`): Dict type priority data, values are python scalar or a list of scalars.
         ArgumentsKeys:
