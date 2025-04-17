@@ -1,10 +1,19 @@
 from typing import List, Any, Dict, Callable
 import torch
+import torch.nn as nn
 import numpy as np
 import treetensor.torch as ttorch
 from ding.utils.data import default_collate
 from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze
+from ding.torch_utils import NoiseLinearLayer
 
+def set_noise_mode(module: nn.Module, noise_enabled: bool):
+    """
+    Recursively set the 'force_noise' flag on all NoiseLinearLayer modules within the given module.
+    """
+    for m in module.modules():
+        if isinstance(m, NoiseLinearLayer):
+            m.force_noise = noise_enabled
 
 def default_preprocess_learn(
         data: List[Any],

@@ -10,7 +10,7 @@ from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 
 from .base_policy import Policy
-from .common_utils import default_preprocess_learn
+from .common_utils import default_preprocess_learn, set_noise_mode
 
 
 @POLICY_REGISTRY.register('dqn')
@@ -248,6 +248,8 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
+        set_noise_mode(self._learn_model, True)
+
         # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(
             data,
@@ -384,6 +386,12 @@ class DQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
+        # Use the new config parameter to decide noise mode.
+        # Default to True if the parameter is not provided.
+        if self._cfg.collect.get("add_noise", True):
+            set_noise_mode(self._collect_model, True)
+        else:
+            set_noise_mode(self._collect_model, False)
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, eps=eps)
@@ -476,6 +484,8 @@ class DQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
+        # Ensure that in evaluation mode noise is disabled.
+        set_noise_mode(self._eval_model, False)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data)

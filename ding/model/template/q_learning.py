@@ -37,6 +37,7 @@ class DQN(nn.Module):
         norm_type: Optional[str] = None,
         dropout: Optional[float] = None,
         init_bias: Optional[float] = None,
+        noise: bool = False, 
     ) -> None:
         """
         Overview:
@@ -90,7 +91,8 @@ class DQN(nn.Module):
                 layer_num=head_layer_num,
                 activation=activation,
                 norm_type=norm_type,
-                dropout=dropout
+                dropout=dropout,
+                noise=noise,
             )
         else:
             self.head = head_cls(
@@ -99,7 +101,8 @@ class DQN(nn.Module):
                 head_layer_num,
                 activation=activation,
                 norm_type=norm_type,
-                dropout=dropout
+                dropout=dropout,
+                noise=noise,
             )
             if init_bias is not None and head_cls == DuelingHead:
                 # Zero the last layer bias of advantage head
