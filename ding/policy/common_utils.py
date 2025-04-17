@@ -9,7 +9,8 @@ from ding.torch_utils import NoiseLinearLayer
 
 def set_noise_mode(module: nn.Module, noise_enabled: bool):
     """
-    Recursively set the 'force_noise' flag on all NoiseLinearLayer modules within the given module.
+    Overview:
+        Recursively set the 'force_noise' flag on all NoiseLinearLayer modules within the given module.
     """
     for m in module.modules():
         if isinstance(m, NoiseLinearLayer):

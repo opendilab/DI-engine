@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-pong_dqn_config = dict(
+demon_attack_dqn_config = dict(
     exp_name='DemonAttack_dqn_collect-not-noise_seed0',
     env=dict(
         collector_env_num=8,
@@ -41,9 +41,9 @@ pong_dqn_config = dict(
         ),
     ),
 )
-pong_dqn_config = EasyDict(pong_dqn_config)
-main_config = pong_dqn_config
-pong_dqn_create_config = dict(
+demon_attack_dqn_config = EasyDict(demon_attack_dqn_config)
+main_config = demon_attack_dqn_config
+demon_attack_dqn_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -51,10 +51,10 @@ pong_dqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
-pong_dqn_create_config = EasyDict(pong_dqn_create_config)
-create_config = pong_dqn_create_config
+demon_attack_dqn_create_config = EasyDict(demon_attack_dqn_create_config)
+create_config = demon_attack_dqn_create_config
 
 if __name__ == '__main__':
-    # or you can enter `ding -m serial -c pong_dqn_config.py -s 0`
+    # or you can enter `ding -m serial -c demon_attack_dqn_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0, max_env_step=int(10e6))

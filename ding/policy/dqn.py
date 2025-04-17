@@ -386,7 +386,7 @@ class DQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
-        # Use the new config parameter to decide noise mode.
+        # Use the add_noise parameter to decide noise mode.
         # Default to True if the parameter is not provided.
         if self._cfg.collect.get("add_noise", True):
             set_noise_mode(self._collect_model, True)
