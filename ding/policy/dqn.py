@@ -251,10 +251,18 @@ class DQNPolicy(Policy):
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
         # Set noise mode for NoisyNet for exploration in learning if enabled in config
+        # We need to reset set_noise_mode every time because the model is reused across different phases (learn/collect/eval).
         if self._cfg.noisy_net:
             set_noise_mode(self._learn_model, True)
+            set_noise_mode(self._target_model, True)
         else:
-            set_noise_mode(self._collect_model, False)
+            set_noise_mode(self._learn_model, False)
+            set_noise_mode(self._target_model, False)
+
+        # A noisy network agent samples a new set of parameters after every step of optimisation.
+        if self._cfg.noisy_net:
+            self._reset_noise(self._learn_model)
+            self._reset_noise(self._target_model)
 
         # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(
@@ -388,15 +396,18 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
         # Set noise mode for NoisyNet for exploration in collecting if enabled in config
+        # We need to reset set_noise_mode every time because the model is reused across different phases (learn/collect/eval).
         if self._cfg.noisy_net:
             set_noise_mode(self._collect_model, True)
         else:
             set_noise_mode(self._collect_model, False)
+
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, eps=eps)
@@ -485,12 +496,15 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
+        # We need to reset set_noise_mode every time because the model is reused across different phases (learn/collect/eval).
+        # Ensure that in evaluation mode noise is disabled.
+        set_noise_mode(self._eval_model, False)
+
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
-        # Ensure that in evaluation mode noise is disabled.
-        set_noise_mode(self._eval_model, False)
+
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data)
@@ -548,6 +562,17 @@ class DQNPolicy(Policy):
             )
         return {'priority': td_error_per_sample.abs().tolist()}
 
+    def _reset_noise(self, model: torch.nn.Module):
+        r"""
+        Overview:
+            Reset the noise of model
+
+        Arguments:
+            - model (:obj:`torch.nn.Module`): the model to reset, must contain reset_noise method
+        """
+        for m in model.modules():
+            if hasattr(m, 'reset_noise'):
+                m.reset_noise()
 
 @POLICY_REGISTRY.register('dqn_stdim')
 class DQNSTDIMPolicy(DQNPolicy):
