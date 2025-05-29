@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 demon_attack_dqn_config = dict(
-    exp_name='DemonAttack_dqn_collect-not-noise_seed0',
+    exp_name='DemonAttack_dqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -27,8 +27,8 @@ demon_attack_dqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
         ),
-        # collect=dict(n_sample=96, add_noise=True),
-        collect=dict(n_sample=96, add_noise=False),
+        noisy_net=True,
+        collect=dict(n_sample=96),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(

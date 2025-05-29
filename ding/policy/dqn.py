@@ -97,6 +97,8 @@ class DQNPolicy(Policy):
         discount_factor=0.97,
         # (int) The number of steps for calculating target q_value.
         nstep=1,
+        # (bool) Whether to use NoisyNet for exploration in both learning and collecting. Default is False.
+        noisy_net=False,
         model=dict(
             # (list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
             encoder_hidden_size_list=[128, 128, 64],
@@ -248,7 +250,11 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
-        set_noise_mode(self._learn_model, True)
+        # Set noise mode for NoisyNet for exploration in learning if enabled in config
+        if self._cfg.noisy_net:
+            set_noise_mode(self._learn_model, True)
+        else:
+            set_noise_mode(self._collect_model, False)
 
         # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(
@@ -386,9 +392,8 @@ class DQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
-        # Use the add_noise parameter to decide noise mode.
-        # Default to True if the parameter is not provided.
-        if self._cfg.collect.get("add_noise", True):
+        # Set noise mode for NoisyNet for exploration in collecting if enabled in config
+        if self._cfg.noisy_net:
             set_noise_mode(self._collect_model, True)
         else:
             set_noise_mode(self._collect_model, False)
@@ -620,6 +625,12 @@ class DQNSTDIMPolicy(DQNPolicy):
         nstep=1,
         # (float) The weight of auxiliary loss to main loss.
         aux_loss_weight=0.001,
+        # (bool) Whether to use NoisyNet for exploration in both learning and collecting. Default is False.
+        noisy_net=False,
+        model=dict(
+            # (list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
+            encoder_hidden_size_list=[128, 128, 64],
+        ),
         # learn_mode config
         learn=dict(
             # How many updates(iterations) to train after collector's one collection.
