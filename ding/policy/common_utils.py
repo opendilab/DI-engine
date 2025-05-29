@@ -10,11 +10,11 @@ from ding.torch_utils import NoiseLinearLayer
 def set_noise_mode(module: nn.Module, noise_enabled: bool):
     """
     Overview:
-        Recursively set the 'force_noise' flag on all NoiseLinearLayer modules within the given module.
+        Recursively set the 'enable_noise' flag on all NoiseLinearLayer modules within the given module.
     """
     for m in module.modules():
         if isinstance(m, NoiseLinearLayer):
-            m.force_noise = noise_enabled
+            m.enable_noise = noise_enabled
 
 def default_preprocess_learn(
         data: List[Any],

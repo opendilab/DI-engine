@@ -8,7 +8,7 @@ from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .dqn import DQNPolicy
-from .common_utils import default_preprocess_learn
+from .common_utils import default_preprocess_learn, set_noise_mode
 
 
 @POLICY_REGISTRY.register('rainbow')
@@ -86,6 +86,8 @@ class RainbowDQNPolicy(DQNPolicy):
         discount_factor=0.99,
         # (int) N-step reward for target q_value estimation
         nstep=3,
+        # (bool) Whether to use NoisyNet for exploration in both learning and collecting. Default is True.
+        noisy_net=True,
         learn=dict(
 
             # How many updates(iterations) to train after collector's one collection.
@@ -201,6 +203,11 @@ class RainbowDQNPolicy(DQNPolicy):
         # ====================
         self._learn_model.train()
         self._target_model.train()
+
+        # Set noise mode for NoisyNet for exploration in learning if enabled in config
+        set_noise_mode(self._learn_model, True)
+        set_noise_mode(self._target_model, True)
+        
         # reset noise of noisenet for both main model and target model
         self._reset_noise(self._learn_model)
         self._reset_noise(self._target_model)
@@ -262,12 +269,16 @@ class RainbowDQNPolicy(DQNPolicy):
         ReturnsKeys
             - necessary: ``action``
         """
+        # Set noise mode for NoisyNet for exploration in collecting if enabled in config
+        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different phases (learn/collect/eval).
+        if self._cfg.noisy_net:
+            set_noise_mode(self._collect_model, True)
+
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
-        self._reset_noise(self._collect_model)
         with torch.no_grad():
             output = self._collect_model.forward(data, eps=eps)
         if self._cuda:
