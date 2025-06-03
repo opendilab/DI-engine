@@ -256,9 +256,6 @@ class DQNPolicy(Policy):
         if self._cfg.noisy_net:
             set_noise_mode(self._learn_model, True)
             set_noise_mode(self._target_model, True)
-        else:
-            set_noise_mode(self._learn_model, False)
-            set_noise_mode(self._target_model, False)
 
         # A noisy network agent samples a new set of parameters after every step of optimisation.
         # Between optimisation steps, the agent acts according to a fixed set of parameters (weights and biases).
@@ -405,8 +402,6 @@ class DQNPolicy(Policy):
         # phases (learn/collect/eval).
         if self._cfg.noisy_net:
             set_noise_mode(self._collect_model, True)
-        else:
-            set_noise_mode(self._collect_model, False)
 
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
