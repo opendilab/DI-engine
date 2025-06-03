@@ -206,7 +206,7 @@ class RainbowDQNPolicy(DQNPolicy):
         # Set noise mode for NoisyNet for exploration in learning if enabled in config
         set_noise_mode(self._learn_model, True)
         set_noise_mode(self._target_model, True)
-        
+
         # reset noise of noisenet for both main model and target model
         self._reset_noise(self._learn_model)
         self._reset_noise(self._target_model)
