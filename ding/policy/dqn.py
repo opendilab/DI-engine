@@ -251,7 +251,8 @@ class DQNPolicy(Policy):
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
         # Set noise mode for NoisyNet for exploration in learning if enabled in config
-        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different phases (learn/collect/eval).
+        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different
+        # phases (learn/collect/eval).
         if self._cfg.noisy_net:
             set_noise_mode(self._learn_model, True)
             set_noise_mode(self._target_model, True)
@@ -261,7 +262,8 @@ class DQNPolicy(Policy):
 
         # A noisy network agent samples a new set of parameters after every step of optimisation.
         # Between optimisation steps, the agent acts according to a fixed set of parameters (weights and biases).
-        # This ensures that the agent always acts according to parameters that are drawn from the current noise distribution.
+        # This ensures that the agent always acts according to parameters that are drawn from 
+        # the current noise distribution.
         if self._cfg.noisy_net:
             self._reset_noise(self._learn_model)
             self._reset_noise(self._target_model)
@@ -398,8 +400,9 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
-        # Set noise mode for NoisyNet for exploration in collecting if enabled in config
-        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different phases (learn/collect/eval).
+        # Set noise mode for NoisyNet for exploration in collecting if enabled in config.
+        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different
+        # phases (learn/collect/eval).
         if self._cfg.noisy_net:
             set_noise_mode(self._collect_model, True)
         else:
@@ -498,7 +501,8 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
-        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different phases (learn/collect/eval).
+        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different
+        # phases (learn/collect/eval).
         # Ensure that in evaluation mode noise is disabled.
         set_noise_mode(self._eval_model, False)
 

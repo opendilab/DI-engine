@@ -269,7 +269,8 @@ class RainbowDQNPolicy(DQNPolicy):
             - necessary: ``action``
         """
         # Set noise mode for NoisyNet for exploration in collecting if enabled in config
-        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different phases (learn/collect/eval).
+        # We need to reset set_noise_mode every _forward_xxx because the model is reused across 
+        # different phases (learn/collect/eval).
         if self._cfg.noisy_net:
             set_noise_mode(self._collect_model, True)
 

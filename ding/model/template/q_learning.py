@@ -58,8 +58,8 @@ class DQN(nn.Module):
             - dropout (:obj:`Optional[float]`): The dropout rate of the dropout layer. \
                 if ``None`` then default disable dropout layer.
             - init_bias (:obj:`Optional[float]`): The initial value of the last layer bias in the head network. \
-            - noise (:obj:`bool`): Whether to use ``NoiseLinearLayer`` as ``layer_fn`` to boost exploration in Q networks' MLP. \
-                Default to ``False``.
+            - noise (:obj:`bool`): Whether to use ``NoiseLinearLayer`` as ``layer_fn`` to boost exploration in \
+                Q networks' MLP. Default to ``False``.
         """
         super(DQN, self).__init__()
         # Squeeze data from tuple, list or dict to single object. For example, from (4, ) to 4

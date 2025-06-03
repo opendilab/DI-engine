@@ -637,7 +637,8 @@ class NoiseLinearLayer(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, sigma0: int = 0.4) -> None:
         """
         Overview:
-            Initialize the NoiseLinearLayer class. The 'enable_noise' attribute enables external control over whether noise is applied.
+            Initialize the NoiseLinearLayer class. The 'enable_noise' attribute enables external control over whether \
+            noise is applied.
             - If enable_noise is True, the layer adds noise even if the module is in evaluation mode.
             - If enable_noise is False, no noise is added regardless of self.training.
         Arguments:
