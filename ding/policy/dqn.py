@@ -262,7 +262,7 @@ class DQNPolicy(Policy):
 
         # A noisy network agent samples a new set of parameters after every step of optimisation.
         # Between optimisation steps, the agent acts according to a fixed set of parameters (weights and biases).
-        # This ensures that the agent always acts according to parameters that are drawn from 
+        # This ensures that the agent always acts according to parameters that are drawn from
         # the current noise distribution.
         if self._cfg.noisy_net:
             self._reset_noise(self._learn_model)
