@@ -566,7 +566,7 @@ class DQNPolicy(Policy):
     def _reset_noise(self, model: torch.nn.Module):
         r"""
         Overview:
-            Reset the noise of model
+            Reset the noise of model.
 
         Arguments:
             - model (:obj:`torch.nn.Module`): the model to reset, must contain reset_noise method
