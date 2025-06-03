@@ -7,6 +7,7 @@ from ding.utils.data import default_collate
 from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze
 from ding.torch_utils import NoiseLinearLayer
 
+
 def set_noise_mode(module: nn.Module, noise_enabled: bool):
     """
     Overview:
@@ -15,6 +16,7 @@ def set_noise_mode(module: nn.Module, noise_enabled: bool):
     for m in module.modules():
         if isinstance(m, NoiseLinearLayer):
             m.enable_noise = noise_enabled
+
 
 def default_preprocess_learn(
         data: List[Any],

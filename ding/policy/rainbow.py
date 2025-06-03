@@ -89,7 +89,6 @@ class RainbowDQNPolicy(DQNPolicy):
         # (bool) Whether to use NoisyNet for exploration in both learning and collecting. Default is True.
         noisy_net=True,
         learn=dict(
-
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...

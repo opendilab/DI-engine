@@ -37,7 +37,7 @@ class DQN(nn.Module):
         norm_type: Optional[str] = None,
         dropout: Optional[float] = None,
         init_bias: Optional[float] = None,
-        noise: bool = False, 
+        noise: bool = False,
     ) -> None:
         """
         Overview:

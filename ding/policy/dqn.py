@@ -260,7 +260,7 @@ class DQNPolicy(Policy):
             set_noise_mode(self._target_model, False)
 
         # A noisy network agent samples a new set of parameters after every step of optimisation.
-        # Between optimisation steps, the agent acts according to a fixed set of parameters (weights and biases). 
+        # Between optimisation steps, the agent acts according to a fixed set of parameters (weights and biases).
         # This ensures that the agent always acts according to parameters that are drawn from the current noise distribution.
         if self._cfg.noisy_net:
             self._reset_noise(self._learn_model)
@@ -576,6 +576,7 @@ class DQNPolicy(Policy):
             if hasattr(m, 'reset_noise'):
                 m.reset_noise()
 
+
 @POLICY_REGISTRY.register('dqn_stdim')
 class DQNSTDIMPolicy(DQNPolicy):
     """
@@ -652,12 +653,6 @@ class DQNSTDIMPolicy(DQNPolicy):
         nstep=1,
         # (float) The weight of auxiliary loss to main loss.
         aux_loss_weight=0.001,
-        # (bool) Whether to use NoisyNet for exploration in both learning and collecting. Default is False.
-        noisy_net=False,
-        model=dict(
-            # (list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
-            encoder_hidden_size_list=[128, 128, 64],
-        ),
         # learn_mode config
         learn=dict(
             # How many updates(iterations) to train after collector's one collection.
