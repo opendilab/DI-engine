@@ -341,6 +341,7 @@
         <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">dropout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">init_bias</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">noise</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -361,6 +362,8 @@
 <span class="sd">            - dropout (:obj:`Optional[float]`): The dropout rate of the dropout layer. \</span>
 <span class="sd">                if ``None`` then default disable dropout layer.</span>
 <span class="sd">            - init_bias (:obj:`Optional[float]`): The initial value of the last layer bias in the head network. \</span>
+<span class="sd">            - noise (:obj:`bool`): Whether to use ``NoiseLinearLayer`` as ``layer_fn`` to boost exploration in \</span>
+<span class="sd">                Q networks&#39; MLP. Default to ``False``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DQN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># Squeeze data from tuple, list or dict to single object. For example, from (4, ) to 4</span>
@@ -394,7 +397,8 @@
                 <span class="n">layer_num</span><span class="o">=</span><span class="n">head_layer_num</span><span class="p">,</span>
                 <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
                 <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
-                <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span>
+                <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span><span class="p">,</span>
+                <span class="n">noise</span><span class="o">=</span><span class="n">noise</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head_cls</span><span class="p">(</span>
@@ -403,7 +407,8 @@
                 <span class="n">head_layer_num</span><span class="p">,</span>
                 <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
                 <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
-                <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span>
+                <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span><span class="p">,</span>
+                <span class="n">noise</span><span class="o">=</span><span class="n">noise</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">init_bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">head_cls</span> <span class="o">==</span> <span class="n">DuelingHead</span><span class="p">:</span>
                 <span class="c1"># Zero the last layer bias of advantage head</span>

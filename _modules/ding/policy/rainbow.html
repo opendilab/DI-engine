@@ -312,7 +312,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">POLICY_REGISTRY</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_collate</span><span class="p">,</span> <span class="n">default_decollate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.dqn</span><span class="w"> </span><span class="kn">import</span> <span class="n">DQNPolicy</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.common_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_preprocess_learn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.common_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_preprocess_learn</span><span class="p">,</span> <span class="n">set_noise_mode</span>
 
 
 <div class="viewcode-block" id="RainbowDQNPolicy"><a class="viewcode-back" href="../../../12_policies/rainbow_zh.html#ding.policy.rainbow.RainbowDQNPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;rainbow&#39;</span><span class="p">)</span>
@@ -390,8 +390,9 @@
         <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
         <span class="c1"># (int) N-step reward for target q_value estimation</span>
         <span class="n">nstep</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use NoisyNet for exploration in both learning and collecting. Default is True.</span>
+        <span class="n">noisy_net</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-
             <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
@@ -505,6 +506,11 @@
         <span class="c1"># ====================</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+
+        <span class="c1"># Set noise mode for NoisyNet for exploration in learning if enabled in config</span>
+        <span class="n">set_noise_mode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">set_noise_mode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
         <span class="c1"># reset noise of noisenet for both main model and target model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reset_noise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reset_noise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">)</span>
@@ -566,12 +572,16 @@
 <span class="sd">        ReturnsKeys</span>
 <span class="sd">            - necessary: ``action``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Set noise mode for NoisyNet for exploration in collecting if enabled in config</span>
+        <span class="c1"># We need to reset set_noise_mode every _forward_xxx because the model is reused across</span>
+        <span class="c1"># different phases (learn/collect/eval).</span>
+        <span class="n">set_noise_mode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
         <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_noise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>

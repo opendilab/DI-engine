@@ -304,10 +304,29 @@
   <h1>Source code for ding.policy.common_utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">treetensor.torch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ttorch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_collate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ding.torch_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_tensor</span><span class="p">,</span> <span class="n">to_ndarray</span><span class="p">,</span> <span class="n">unsqueeze</span><span class="p">,</span> <span class="n">squeeze</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.torch_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">NoiseLinearLayer</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">set_noise_mode</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">noise_enabled</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Recursively set the &#39;enable_noise&#39; attribute for all NoiseLinearLayer modules within the given module.</span>
+<span class="sd">        This function is typically used in algorithms such as NoisyNet and Rainbow. </span>
+<span class="sd">        During training, &#39;enable_noise&#39; should be set to True to enable noise for exploration. </span>
+<span class="sd">        During inference or evaluation, it should be set to False to disable noise for deterministic behavior.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        - module (:obj:`nn.Module`): The root module to search for NoiseLinearLayer instances.</span>
+<span class="sd">        - noise_enabled (:obj:`bool`): Whether to enable or disable noise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">module</span><span class="o">.</span><span class="n">modules</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">NoiseLinearLayer</span><span class="p">):</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">enable_noise</span> <span class="o">=</span> <span class="n">noise_enabled</span>
 
 
 <div class="viewcode-block" id="default_preprocess_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.default_preprocess_learn">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">default_preprocess_learn</span><span class="p">(</span>
