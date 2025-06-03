@@ -5,7 +5,7 @@ from torch.testing import assert_allclose
 from ding.torch_utils import build_activation
 from ding.torch_utils.network.nn_module import MLP, conv1d_block, conv2d_block, fc_block, deconv2d_block, \
     ChannelShuffle, one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_, NaiveFlatten, \
-    normed_linear, normed_conv2d
+    normed_linear, normed_conv2d, NoiseLinearLayer
 
 batch_size = 2
 in_channels = 2
@@ -238,3 +238,27 @@ class TestNnModule:
         model3 = NaiveFlatten(1, 3)
         output3 = model2(inputs)
         assert output1.shape == (4, 3 * 8 * 8)
+
+    def test_noise_linear_layer(self):
+        input = torch.rand(batch_size, in_channels).requires_grad_(True)
+        layer = NoiseLinearLayer(in_channels, out_channels, sigma0=0.5)
+        # No noise by default
+        output = self.run_model(input, layer)
+        assert output.shape == (batch_size, out_channels)
+        # Enable noise
+        layer.enable_noise = True
+        layer.reset_noise()
+        output_noise = self.run_model(input, layer)
+        assert output_noise.shape == (batch_size, out_channels)
+        # Check that outputs are different after resetting noise
+        with torch.no_grad():
+            layer.reset_noise()
+            out1 = layer(input)
+            layer.reset_noise()
+            out2 = layer(input)
+            # The outputs should be different (very likely)
+            assert not torch.allclose(out1, out2)
+        # Check reset_parameters
+        layer.reset_parameters()
+        assert layer.weight_mu.shape == (out_channels, in_channels)
+        assert layer.bias_mu.shape == (out_channels, )

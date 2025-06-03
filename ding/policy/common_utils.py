@@ -1,9 +1,28 @@
 from typing import List, Any, Dict, Callable
 import torch
+import torch.nn as nn
 import numpy as np
 import treetensor.torch as ttorch
 from ding.utils.data import default_collate
 from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze
+from ding.torch_utils import NoiseLinearLayer
+
+
+def set_noise_mode(module: nn.Module, noise_enabled: bool):
+    """
+    Overview:
+        Recursively set the 'enable_noise' attribute for all NoiseLinearLayer modules within the given module.
+        This function is typically used in algorithms such as NoisyNet and Rainbow. 
+        During training, 'enable_noise' should be set to True to enable noise for exploration. 
+        During inference or evaluation, it should be set to False to disable noise for deterministic behavior.
+
+    Arguments:
+        - module (:obj:`nn.Module`): The root module to search for NoiseLinearLayer instances.
+        - noise_enabled (:obj:`bool`): Whether to enable or disable noise.
+    """
+    for m in module.modules():
+        if isinstance(m, NoiseLinearLayer):
+            m.enable_noise = noise_enabled
 
 
 def default_preprocess_learn(

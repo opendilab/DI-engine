@@ -637,7 +637,10 @@ class NoiseLinearLayer(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, sigma0: int = 0.4) -> None:
         """
         Overview:
-            Initialize the NoiseLinearLayer class.
+            Initialize the NoiseLinearLayer class. The 'enable_noise' attribute enables external control over whether \
+            noise is applied.
+            - If enable_noise is True, the layer adds noise even if the module is in evaluation mode.
+            - If enable_noise is False, no noise is added regardless of self.training.
         Arguments:
             - in_channels (:obj:`int`): Number of channels in the input tensor.
             - out_channels (:obj:`int`): Number of channels in the output tensor.
@@ -654,6 +657,7 @@ class NoiseLinearLayer(nn.Module):
         self.register_buffer("weight_eps", torch.empty(out_channels, in_channels))
         self.register_buffer("bias_eps", torch.empty(out_channels))
         self.sigma0 = sigma0
+        self.enable_noise = False
         self.reset_parameters()
         self.reset_noise()
 
@@ -703,7 +707,8 @@ class NoiseLinearLayer(nn.Module):
         Returns:
             - output (:obj:`torch.Tensor`): The output tensor with noise.
         """
-        if self.training:
+        # Determine whether to add noise:
+        if self.enable_noise:
             return F.linear(
                 x,
                 self.weight_mu + self.weight_sigma * self.weight_eps,

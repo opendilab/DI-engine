@@ -10,7 +10,7 @@ from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 
 from .base_policy import Policy
-from .common_utils import default_preprocess_learn
+from .common_utils import default_preprocess_learn, set_noise_mode
 
 
 @POLICY_REGISTRY.register('dqn')
@@ -97,6 +97,8 @@ class DQNPolicy(Policy):
         discount_factor=0.97,
         # (int) The number of steps for calculating target q_value.
         nstep=1,
+        # (bool) Whether to use NoisyNet for exploration in both learning and collecting. Default is False.
+        noisy_net=False,
         model=dict(
             # (list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
             encoder_hidden_size_list=[128, 128, 64],
@@ -248,6 +250,21 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
+        # Set noise mode for NoisyNet for exploration in learning if enabled in config
+        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different
+        # phases (learn/collect/eval).
+        if self._cfg.noisy_net:
+            set_noise_mode(self._learn_model, True)
+            set_noise_mode(self._target_model, True)
+
+        # A noisy network agent samples a new set of parameters after every step of optimisation.
+        # Between optimisation steps, the agent acts according to a fixed set of parameters (weights and biases).
+        # This ensures that the agent always acts according to parameters that are drawn from
+        # the current noise distribution.
+        if self._cfg.noisy_net:
+            self._reset_noise(self._learn_model)
+            self._reset_noise(self._target_model)
+
         # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(
             data,
@@ -380,10 +397,17 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
+        # Set noise mode for NoisyNet for exploration in collecting if enabled in config.
+        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different
+        # phases (learn/collect/eval).
+        if self._cfg.noisy_net:
+            set_noise_mode(self._collect_model, True)
+
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
+
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, eps=eps)
@@ -472,10 +496,16 @@ class DQNPolicy(Policy):
         .. note::
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
+        # We need to reset set_noise_mode every _forward_xxx because the model is reused across different
+        # phases (learn/collect/eval).
+        # Ensure that in evaluation mode noise is disabled.
+        set_noise_mode(self._eval_model, False)
+
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
+
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data)
@@ -532,6 +562,18 @@ class DQNPolicy(Policy):
                 data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
             )
         return {'priority': td_error_per_sample.abs().tolist()}
+
+    def _reset_noise(self, model: torch.nn.Module):
+        r"""
+        Overview:
+            Reset the noise of model.
+
+        Arguments:
+            - model (:obj:`torch.nn.Module`): the model to reset, must contain reset_noise method
+        """
+        for m in model.modules():
+            if hasattr(m, 'reset_noise'):
+                m.reset_noise()
 
 
 @POLICY_REGISTRY.register('dqn_stdim')
