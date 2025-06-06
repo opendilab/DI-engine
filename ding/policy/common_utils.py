@@ -12,8 +12,8 @@ def set_noise_mode(module: nn.Module, noise_enabled: bool):
     """
     Overview:
         Recursively set the 'enable_noise' attribute for all NoiseLinearLayer modules within the given module.
-        This function is typically used in algorithms such as NoisyNet and Rainbow. 
-        During training, 'enable_noise' should be set to True to enable noise for exploration. 
+        This function is typically used in algorithms such as NoisyNet and Rainbow.
+        During training, 'enable_noise' should be set to True to enable noise for exploration.
         During inference or evaluation, it should be set to False to disable noise for deterministic behavior.
 
     Arguments:
