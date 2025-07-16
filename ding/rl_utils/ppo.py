@@ -19,7 +19,7 @@ ppo_policy_data_continuous = namedtuple(
 ppo_value_data = namedtuple('ppo_value_data', ['value_new', 'value_old', 'return_', 'weight'])
 ppo_loss = namedtuple('ppo_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
 ppo_policy_loss = namedtuple('ppo_policy_loss', ['policy_loss', 'entropy_loss'])
-ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac'])
+ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac', 'kl_div'])
 
 
 def shape_fn_ppo(args, kwargs):
@@ -46,7 +46,8 @@ def ppo_error(
         data: namedtuple,
         clip_ratio: float = 0.2,
         use_value_clip: bool = True,
-        dual_clip: Optional[float] = None
+        dual_clip: Optional[float] = None,
+        kl_type: str = 'k1'
 ) -> Tuple[namedtuple, namedtuple]:
     """
     Overview:
@@ -57,6 +58,7 @@ def ppo_error(
         - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
         - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
         defaults to 5.0, if you don't want to use it, set this parameter to None
+        - kl_type (:obj:`str`): which kl loss to use, default set to 'approx'
     Returns:
         - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
@@ -97,7 +99,7 @@ def ppo_error(
     )
     logit_new, logit_old, action, value_new, value_old, adv, return_, weight = data
     policy_data = ppo_policy_data(logit_new, logit_old, action, adv, weight)
-    policy_output, policy_info = ppo_policy_error(policy_data, clip_ratio, dual_clip)
+    policy_output, policy_info = ppo_policy_error(policy_data, clip_ratio, dual_clip, kl_type=kl_type)
     value_data = ppo_value_data(value_new, value_old, return_, weight)
     value_loss = ppo_value_error(value_data, clip_ratio, use_value_clip)
 
@@ -108,7 +110,8 @@ def ppo_policy_error(
         data: namedtuple,
         clip_ratio: float = 0.2,
         dual_clip: Optional[float] = None,
-        entropy_bonus: bool = True
+        entropy_bonus: bool = True,
+        kl_type: str = 'k1'
 ) -> Tuple[namedtuple, namedtuple]:
     """
     Overview:
@@ -119,6 +122,7 @@ def ppo_policy_error(
         - dual_clip (:obj:`float`): A parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf), \
             defaults to 5.0, if you don't want to use it, set this parameter to None
         - entropy_bonus (:obj:`bool`): Whether to use entropy bonus, defaults to True. LLM RLHF usually does not use it.
+        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'
     Returns:
         - ppo_policy_loss (:obj:`namedtuple`): the ppo policy loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
@@ -180,7 +184,18 @@ def ppo_policy_error(
         approx_kl = (logp_old - logp_new).mean().item()
         clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
         clipfrac = torch.as_tensor(clipped).float().mean().item()
-    return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
+
+    logr = logp_old - logp_new
+    if kl_type == 'k1':
+        kl_div = logr.mean()
+    elif kl_type == 'k2':
+        kl_div = (logr ** 2 / 2).mean()
+    elif kl_type == 'k3':
+        kl_div = (torch.exp(-logr) - 1 + logr).mean()
+    else:
+        raise ValueError(f"Unknown kl_type: {kl_type}")
+
+    return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac, kl_div)
 
 
 def ppo_value_error(
@@ -232,7 +247,8 @@ def ppo_error_continuous(
         data: namedtuple,
         clip_ratio: float = 0.2,
         use_value_clip: bool = True,
-        dual_clip: Optional[float] = None
+        dual_clip: Optional[float] = None,
+        kl_type: str = 'k1'
 ) -> Tuple[namedtuple, namedtuple]:
     """
     Overview:
@@ -243,6 +259,7 @@ def ppo_error_continuous(
         - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
         - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
         defaults to 5.0, if you don't want to use it, set this parameter to None
+        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'
     Returns:
         - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
@@ -314,12 +331,25 @@ def ppo_error_continuous(
     else:
         value_loss = 0.5 * ((return_ - value_new).pow(2) * weight).mean()
 
-    return ppo_loss(policy_loss, value_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
+    logr = logp_old - logp_new
+    if kl_type == 'k1':
+        kl_div = logr.mean()
+    elif kl_type == 'k2':
+        kl_div = (logr ** 2 / 2).mean()
+    elif kl_type == 'k3':
+        kl_div = (torch.exp(-logr) - 1 + logr).mean()
+    else:
+        raise ValueError(f"Unknown kl_type: {kl_type}")
+
+    return ppo_loss(policy_loss, value_loss, entropy_loss), ppo_info(approx_kl, clipfrac, kl_div)
 
 
-def ppo_policy_error_continuous(data: namedtuple,
-                                clip_ratio: float = 0.2,
-                                dual_clip: Optional[float] = None) -> Tuple[namedtuple, namedtuple]:
+def ppo_policy_error_continuous(
+        data: namedtuple,
+        clip_ratio: float = 0.2,
+        dual_clip: Optional[float] = None,
+        kl_type: str = 'k1'
+) -> Tuple[namedtuple, namedtuple]:
     """
     Overview:
         Implementation of Proximal Policy Optimization (arXiv:1707.06347) with dual_clip
@@ -328,6 +358,7 @@ def ppo_policy_error_continuous(data: namedtuple,
         - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2
         - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
         defaults to 5.0, if you don't want to use it, set this parameter to None
+        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'
     Returns:
         - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
@@ -377,4 +408,15 @@ def ppo_policy_error_continuous(data: namedtuple,
         approx_kl = (logp_old - logp_new).mean().item()
         clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
         clipfrac = torch.as_tensor(clipped).float().mean().item()
-    return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
+
+    logr = logp_old - logp_new
+    if kl_type == 'k1':
+        kl_div = logr.mean()
+    elif kl_type == 'k2':
+        kl_div = (logr ** 2 / 2).mean()
+    elif kl_type == 'k3':
+        kl_div = (torch.exp(-logr) - 1 + logr).mean()
+    else:
+        raise ValueError(f"Unknown kl_type: {kl_type}")
+
+    return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac, kl_div)

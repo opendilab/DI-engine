@@ -76,6 +76,10 @@ class PPOPolicy(Policy):
             grad_clip_value=0.5,
             # (bool) Whether ignore done (usually for max step termination env).
             ignore_done=False,
+            # (str) The type of KL divergence loss, ['k1', 'k2', 'k3']
+            kl_type='k1',
+            # (float) The weight of KL divergence loss.
+            kl_beta=0.0,
         ),
         # collect_mode config
         collect=dict(
@@ -192,6 +196,8 @@ class PPOPolicy(Policy):
         self._clip_ratio = self._cfg.learn.clip_ratio
         self._adv_norm = self._cfg.learn.adv_norm
         self._value_norm = self._cfg.learn.value_norm
+        self._kl_type = self._cfg.learn.kl_type
+        self._kl_beta = self._cfg.learn.kl_beta
         if self._value_norm:
             self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
         self._gamma = self._cfg.collect.discount_factor
@@ -291,27 +297,29 @@ class PPOPolicy(Policy):
                         output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
                         batch['return'], batch['weight']
                     )
-                    ppo_loss, ppo_info = ppo_error_continuous(ppo_batch, self._clip_ratio)
+                    ppo_loss, ppo_info = ppo_error_continuous(ppo_batch, self._clip_ratio, kl_type=self._kl_type)
                 elif self._action_space == 'discrete':
                     ppo_batch = ppo_data(
                         output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
                         batch['return'], batch['weight']
                     )
-                    ppo_loss, ppo_info = ppo_error(ppo_batch, self._clip_ratio)
+                    ppo_loss, ppo_info = ppo_error(ppo_batch, self._clip_ratio, kl_type=self._kl_type)
                 elif self._action_space == 'hybrid':
                     # discrete part (discrete policy loss and entropy loss)
                     ppo_discrete_batch = ppo_policy_data(
                         output['logit']['action_type'], batch['logit']['action_type'], batch['action']['action_type'],
                         adv, batch['weight']
                     )
-                    ppo_discrete_loss, ppo_discrete_info = ppo_policy_error(ppo_discrete_batch, self._clip_ratio)
+                    ppo_discrete_loss, ppo_discrete_info = ppo_policy_error(
+                        ppo_discrete_batch, self._clip_ratio, kl_type=self._kl_type
+                    )
                     # continuous part (continuous policy loss and entropy loss, value loss)
                     ppo_continuous_batch = ppo_data(
                         output['logit']['action_args'], batch['logit']['action_args'], batch['action']['action_args'],
                         output['value'], batch['value'], adv, batch['return'], batch['weight']
                     )
                     ppo_continuous_loss, ppo_continuous_info = ppo_error_continuous(
-                        ppo_continuous_batch, self._clip_ratio
+                        ppo_continuous_batch, self._clip_ratio, kl_type=self._kl_type
                     )
                     # sum discrete and continuous loss
                     ppo_loss = type(ppo_continuous_loss)(
@@ -320,10 +328,15 @@ class PPOPolicy(Policy):
                     )
                     ppo_info = type(ppo_continuous_info)(
                         max(ppo_continuous_info.approx_kl, ppo_discrete_info.approx_kl),
-                        max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac)
+                        max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac), ppo_continuous_info.kl_div
                     )
                 wv, we = self._value_weight, self._entropy_weight
-                total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
+                kl_div = ppo_info.kl_div
+                # 正确的、符合规范的修改
+                total_loss = (
+                    ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss +
+                    self._kl_beta * kl_div
+                )
 
                 self._optimizer.zero_grad()
                 total_loss.backward()
@@ -346,6 +359,7 @@ class PPOPolicy(Policy):
                     'value_max': output['value'].max().item(),
                     'approx_kl': ppo_info.approx_kl,
                     'clipfrac': ppo_info.clipfrac,
+                    'kl_div': kl_div.item(),
                 }
                 if self._action_space == 'continuous':
                     return_info.update(
@@ -593,6 +607,7 @@ class PPOPolicy(Policy):
             'clipfrac',
             'value_max',
             'value_mean',
+            'kl_div',
         ]
         if self._action_space == 'continuous':
             variables += ['mu_mean', 'sigma_mean', 'sigma_grad', 'act']

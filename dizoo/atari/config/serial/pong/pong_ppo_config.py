@@ -39,6 +39,8 @@ pong_ppo_config = dict(
             ignore_done=False,
             grad_clip_type='clip_norm',
             grad_clip_value=0.5,
+            kl_beta=0.01,
+            kl_type='k1',
         ),
         collect=dict(
             n_sample=3200,
