@@ -6,13 +6,16 @@ from torch.distributions import Independent, Normal
 from ding.hpc_rl import hpc_wrapper
 
 ppo_data = namedtuple(
-    'ppo_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']
+    'ppo_data',
+    ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight', 'logit_pretrained']
 )
 ppo_data_continuous = namedtuple(
     'ppo_data_continuous',
     ['mu_sigma_new', 'mu_sigma_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']
 )
-ppo_policy_data = namedtuple('ppo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight'])
+ppo_policy_data = namedtuple(
+    'ppo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight', 'logit_pretrained']
+)
 ppo_policy_data_continuous = namedtuple(
     'ppo_policy_data_continuous', ['mu_sigma_new', 'mu_sigma_old', 'action', 'adv', 'weight']
 )
@@ -20,6 +23,32 @@ ppo_value_data = namedtuple('ppo_value_data', ['value_new', 'value_old', 'return
 ppo_loss = namedtuple('ppo_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
 ppo_policy_loss = namedtuple('ppo_policy_loss', ['policy_loss', 'entropy_loss'])
 ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac', 'kl_div'])
+
+
+def calculate_kl_div(logr: torch.Tensor, kl_type: str) -> torch.Tensor:
+    """
+    Overview:
+        Calculate different Monte-Carlo estimators for KL-divergence KL(q, p) = E_q[log(q/p)],
+        where q is the current policy and p is the pretrained policy.
+        The implementation is based on John Schulman's blog post "Approximating KL Divergence".
+        Reference: http://joschu.net/blog/kl-approx.html
+    Arguments:
+        - logr (:obj:`torch.Tensor`): The log-ratio of probabilities, which should be log(q/p) = logp_new - logp_pretrained.
+        - kl_type (:obj:`str`): The type of KL divergence estimator to use.
+            - 'k1': The standard, unbiased but high-variance estimator: `E_q[log(q/p)]`.
+            - 'k2': A biased, low-variance estimator from a second-order approximation: `E_q[1/2 * (log(p/q))^2]`.
+            - 'k3': An unbiased, low-variance estimator: `E_q[(p/q - 1) - log(p/q)]`.
+    Returns:
+        - kl_div (:obj:`torch.Tensor`): The calculated KL divergence estimate.
+    """
+    if kl_type == 'k1':
+        return logr.mean()
+    elif kl_type == 'k2':
+        return (logr ** 2 / 2).mean()
+    elif kl_type == 'k3':
+        return (torch.exp(-logr) - 1 + logr).mean()
+    else:
+        raise ValueError(f"Unknown kl_type: {kl_type}")
 
 
 def shape_fn_ppo(args, kwargs):
@@ -97,8 +126,8 @@ def ppo_error(
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip
     )
-    logit_new, logit_old, action, value_new, value_old, adv, return_, weight = data
-    policy_data = ppo_policy_data(logit_new, logit_old, action, adv, weight)
+    logit_new, logit_old, action, value_new, value_old, adv, return_, weight, logit_pretrained = data
+    policy_data = ppo_policy_data(logit_new, logit_old, action, adv, weight, logit_pretrained)
     policy_output, policy_info = ppo_policy_error(policy_data, clip_ratio, dual_clip, kl_type=kl_type)
     value_data = ppo_value_data(value_new, value_old, return_, weight)
     value_loss = ppo_value_error(value_data, clip_ratio, use_value_clip)
@@ -152,7 +181,7 @@ def ppo_policy_error(
     .. note::
         For the action mask often used in LLM/VLM, users can set the `weight` to the action mask.
     """
-    logit_new, logit_old, action, adv, weight = data
+    logit_new, logit_old, action, adv, weight, logit_pretrained = data
     if weight is None:
         weight = torch.ones_like(adv)
     dist_new = torch.distributions.categorical.Categorical(logits=logit_new)
@@ -185,15 +214,13 @@ def ppo_policy_error(
         clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
         clipfrac = torch.as_tensor(clipped).float().mean().item()
 
-    logr = logp_old - logp_new
-    if kl_type == 'k1':
-        kl_div = logr.mean()
-    elif kl_type == 'k2':
-        kl_div = (logr ** 2 / 2).mean()
-    elif kl_type == 'k3':
-        kl_div = (torch.exp(-logr) - 1 + logr).mean()
+    if logit_pretrained is not None:
+        dist_pretrained = torch.distributions.categorical.Categorical(logits=logit_pretrained)
+        logp_pretrained = dist_pretrained.log_prob(action)
+        logr = logp_new - logp_pretrained
+        kl_div = calculate_kl_div(logr, kl_type)
     else:
-        raise ValueError(f"Unknown kl_type: {kl_type}")
+        kl_div = 0
 
     return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac, kl_div)
 
@@ -298,7 +325,7 @@ def ppo_error_continuous(
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip
     )
-    mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight = data
+    mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight, logit_pretrained = data
     if weight is None:
         weight = torch.ones_like(adv)
 
@@ -331,15 +358,13 @@ def ppo_error_continuous(
     else:
         value_loss = 0.5 * ((return_ - value_new).pow(2) * weight).mean()
 
-    logr = logp_old - logp_new
-    if kl_type == 'k1':
-        kl_div = logr.mean()
-    elif kl_type == 'k2':
-        kl_div = (logr ** 2 / 2).mean()
-    elif kl_type == 'k3':
-        kl_div = (torch.exp(-logr) - 1 + logr).mean()
+    if logit_pretrained is not None:
+        dist_pretrained = Independent(Normal(logit_pretrained['mu'], logit_pretrained['sigma']), 1)
+        logp_pretrained = dist_pretrained.log_prob(action)
+        logr = logp_new - logp_pretrained
+        kl_div = calculate_kl_div(logr, kl_type)
     else:
-        raise ValueError(f"Unknown kl_type: {kl_type}")
+        kl_div = 0
 
     return ppo_loss(policy_loss, value_loss, entropy_loss), ppo_info(approx_kl, clipfrac, kl_div)
 
@@ -384,7 +409,7 @@ def ppo_policy_error_continuous(
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip
     )
-    mu_sigma_new, mu_sigma_old, action, adv, weight = data
+    mu_sigma_new, mu_sigma_old, action, adv, weight, logit_pretrained = data
     if weight is None:
         weight = torch.ones_like(adv)
 
@@ -409,14 +434,12 @@ def ppo_policy_error_continuous(
         clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
         clipfrac = torch.as_tensor(clipped).float().mean().item()
 
-    logr = logp_old - logp_new
-    if kl_type == 'k1':
-        kl_div = logr.mean()
-    elif kl_type == 'k2':
-        kl_div = (logr ** 2 / 2).mean()
-    elif kl_type == 'k3':
-        kl_div = (torch.exp(-logr) - 1 + logr).mean()
+    if logit_pretrained is not None:
+        dist_pretrained = Independent(Normal(logit_pretrained['mu'], logit_pretrained['sigma']), 1)
+        logp_pretrained = dist_pretrained.log_prob(action)
+        logr = logp_new - logp_pretrained
+        kl_div = calculate_kl_div(logr, kl_type)
     else:
-        raise ValueError(f"Unknown kl_type: {kl_type}")
+        kl_div = 0
 
     return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac, kl_div)

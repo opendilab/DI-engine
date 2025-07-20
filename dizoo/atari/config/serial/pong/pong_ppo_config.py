@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 pong_ppo_config = dict(
+    exp_name='pong_ppo_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -41,6 +42,7 @@ pong_ppo_config = dict(
             grad_clip_value=0.5,
             kl_beta=0.01,
             kl_type='k1',
+            pretrained_model_path='The path of your pretrained model',
         ),
         collect=dict(
             n_sample=3200,

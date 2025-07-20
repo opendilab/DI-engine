@@ -77,9 +77,14 @@ class PPOPolicy(Policy):
             # (bool) Whether ignore done (usually for max step termination env).
             ignore_done=False,
             # (str) The type of KL divergence loss, ['k1', 'k2', 'k3']
+            # http://joschu.net/blog/kl-approx.html
             kl_type='k1',
             # (float) The weight of KL divergence loss.
             kl_beta=0.0,
+            # (str or None) The path of pretrained model checkpoint.
+            # If provided, KL regularizer will be calculated between current policy and pretrained policy.
+            # Default to None, which means KL is not calculated.
+            pretrained_model_path=None,
         ),
         # collect_mode config
         collect=dict(
@@ -190,6 +195,15 @@ class PPOPolicy(Policy):
 
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
+        # load pretrained model
+        if self._cfg.learn.pretrained_model_path is not None:
+            self._pretrained_model = copy.deepcopy(self._model)
+            state_dict = torch.load(self._cfg.learn.pretrained_model_path, map_location='cpu')
+            self._pretrained_model.load_state_dict(state_dict)
+            self._pretrained_model.eval()
+        else:
+            self._pretrained_model = None
+
         # Algorithm config
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
@@ -291,17 +305,23 @@ class PPOPolicy(Policy):
                     # Normalize advantage in a train_batch
                     adv = (adv - adv.mean()) / (adv.std() + 1e-8)
 
+                if self._pretrained_model is not None:
+                    with torch.no_grad():
+                        logit_pretrained = self._pretrained_model.forward(batch['obs'], mode='compute_actor')['logit']
+                else:
+                    logit_pretrained = None
+
                 # Calculate ppo error
                 if self._action_space == 'continuous':
                     ppo_batch = ppo_data(
                         output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
-                        batch['return'], batch['weight']
+                        batch['return'], batch['weight'], logit_pretrained
                     )
                     ppo_loss, ppo_info = ppo_error_continuous(ppo_batch, self._clip_ratio, kl_type=self._kl_type)
                 elif self._action_space == 'discrete':
                     ppo_batch = ppo_data(
                         output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
-                        batch['return'], batch['weight']
+                        batch['return'], batch['weight'], logit_pretrained
                     )
                     ppo_loss, ppo_info = ppo_error(ppo_batch, self._clip_ratio, kl_type=self._kl_type)
                 elif self._action_space == 'hybrid':
@@ -332,7 +352,6 @@ class PPOPolicy(Policy):
                     )
                 wv, we = self._value_weight, self._entropy_weight
                 kl_div = ppo_info.kl_div
-                # 正确的、符合规范的修改
                 total_loss = (
                     ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss +
                     self._kl_beta * kl_div
