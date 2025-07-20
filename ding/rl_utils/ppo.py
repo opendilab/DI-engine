@@ -87,7 +87,7 @@ def ppo_error(
         - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
         - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
         defaults to 5.0, if you don't want to use it, set this parameter to None
-        - kl_type (:obj:`str`): which kl loss to use, default set to 'approx'
+        - kl_type (:obj:`str`): which kl loss to use, default set to 'approx'.
     Returns:
         - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
@@ -151,7 +151,7 @@ def ppo_policy_error(
         - dual_clip (:obj:`float`): A parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf), \
             defaults to 5.0, if you don't want to use it, set this parameter to None
         - entropy_bonus (:obj:`bool`): Whether to use entropy bonus, defaults to True. LLM RLHF usually does not use it.
-        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'
+        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'.
     Returns:
         - ppo_policy_loss (:obj:`namedtuple`): the ppo policy loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
@@ -286,7 +286,7 @@ def ppo_error_continuous(
         - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
         - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
         defaults to 5.0, if you don't want to use it, set this parameter to None
-        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'
+        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'.
     Returns:
         - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
@@ -383,7 +383,7 @@ def ppo_policy_error_continuous(
         - clip_ratio (:obj:`float`): the ppo clip ratio for the constraint of policy update, defaults to 0.2
         - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
         defaults to 5.0, if you don't want to use it, set this parameter to None
-        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'
+        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'.
     Returns:
         - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar

@@ -76,8 +76,8 @@ class PPOPolicy(Policy):
             grad_clip_value=0.5,
             # (bool) Whether ignore done (usually for max step termination env).
             ignore_done=False,
-            # (str) The type of KL divergence loss, ['k1', 'k2', 'k3']
-            # http://joschu.net/blog/kl-approx.html
+            # (str) The type of KL divergence loss, ['k1', 'k2', 'k3'].
+            # Reference: http://joschu.net/blog/kl-approx.html
             kl_type='k1',
             # (float) The weight of KL divergence loss.
             kl_beta=0.0,
