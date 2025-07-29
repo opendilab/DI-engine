@@ -76,12 +76,12 @@ class PPOPolicy(Policy):
             grad_clip_value=0.5,
             # (bool) Whether ignore done (usually for max step termination env).
             ignore_done=False,
-            # (str) The type of KL divergence loss, ['k1', 'k2', 'k3'].
+            # (str) The type of KL divergence loss between current policy and pretrained policy, ['k1', 'k2', 'k3'].
             # Reference: http://joschu.net/blog/kl-approx.html
             kl_type='k1',
             # (float) The weight of KL divergence loss.
             kl_beta=0.0,
-            # (str or None) The path of pretrained model checkpoint.
+            # (Optional[str]) The path of pretrained model checkpoint.
             # If provided, KL regularizer will be calculated between current policy and pretrained policy.
             # Default to None, which means KL is not calculated.
             pretrained_model_path=None,
@@ -344,14 +344,14 @@ class PPOPolicy(Policy):
                     # sum discrete and continuous loss
                     ppo_loss = type(ppo_continuous_loss)(
                         ppo_continuous_loss.policy_loss + ppo_discrete_loss.policy_loss, ppo_continuous_loss.value_loss,
-                        ppo_continuous_loss.entropy_loss + ppo_discrete_loss.entropy_loss
+                        ppo_continuous_loss.entropy_loss + ppo_discrete_loss.entropy_loss, ppo_continuous_loss.kl_div
                     )
                     ppo_info = type(ppo_continuous_info)(
                         max(ppo_continuous_info.approx_kl, ppo_discrete_info.approx_kl),
-                        max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac), ppo_continuous_info.kl_div
+                        max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac)
                     )
                 wv, we = self._value_weight, self._entropy_weight
-                kl_div = ppo_info.kl_div
+                kl_div = ppo_loss.kl_div
                 total_loss = (
                     ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss +
                     self._kl_beta * kl_div
@@ -626,8 +626,9 @@ class PPOPolicy(Policy):
             'clipfrac',
             'value_max',
             'value_mean',
-            'kl_div',
         ]
+        if self._pretrained_model is not None:
+            variables += ['kl_div']
         if self._action_space == 'continuous':
             variables += ['mu_mean', 'sigma_mean', 'sigma_grad', 'act']
         return variables

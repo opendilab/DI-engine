@@ -18,7 +18,6 @@ main_config = dict(
         model=dict(
             obs_shape=11,
             action_shape=3,
-
         ),
         learn=dict(
             data_path=None,

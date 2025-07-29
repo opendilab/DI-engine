@@ -44,9 +44,12 @@ spaceinvaders_ppo_config = dict(
             ignore_done=False,
             grad_clip_type='clip_norm',
             grad_clip_value=0.5,
+            # KL divergence regularization between current policy and pretrained policy.
+            # Supported KL divergence estimators: ['k1', 'k2', 'k3'].
+            # KL divergence loss will be calculated only when pretrained_model_path is provided.
             kl_beta=0.05,
             kl_type='k1',
-            pretrained_model_path='The path of your pretrained model',
+            pretrained_model_path=None,
         ),
         collect=dict(
             n_sample=1024,

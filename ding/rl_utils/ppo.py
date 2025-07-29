@@ -10,22 +10,24 @@ ppo_data = namedtuple(
     ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight', 'logit_pretrained']
 )
 ppo_data_continuous = namedtuple(
-    'ppo_data_continuous',
-    ['mu_sigma_new', 'mu_sigma_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']
+    'ppo_data_continuous', [
+        'mu_sigma_new', 'mu_sigma_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight',
+        'logit_pretrained'
+    ]
 )
 ppo_policy_data = namedtuple(
     'ppo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight', 'logit_pretrained']
 )
 ppo_policy_data_continuous = namedtuple(
-    'ppo_policy_data_continuous', ['mu_sigma_new', 'mu_sigma_old', 'action', 'adv', 'weight']
+    'ppo_policy_data_continuous', ['mu_sigma_new', 'mu_sigma_old', 'action', 'adv', 'weight', 'logit_pretrained']
 )
 ppo_value_data = namedtuple('ppo_value_data', ['value_new', 'value_old', 'return_', 'weight'])
-ppo_loss = namedtuple('ppo_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
-ppo_policy_loss = namedtuple('ppo_policy_loss', ['policy_loss', 'entropy_loss'])
-ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac', 'kl_div'])
+ppo_loss = namedtuple('ppo_loss', ['policy_loss', 'value_loss', 'entropy_loss', 'kl_div'])
+ppo_policy_loss = namedtuple('ppo_policy_loss', ['policy_loss', 'entropy_loss', 'kl_div'])
+ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac'])
 
 
-def calculate_kl_div(logr: torch.Tensor, kl_type: str) -> torch.Tensor:
+def calculate_kl_div(log_ratio: torch.Tensor, kl_type: str) -> torch.Tensor:
     """
     Overview:
         Calculate different Monte-Carlo estimators for KL-divergence KL(q, p) = E_q[log(q/p)],
@@ -33,7 +35,7 @@ def calculate_kl_div(logr: torch.Tensor, kl_type: str) -> torch.Tensor:
         The implementation is based on John Schulman's blog post "Approximating KL Divergence".
         Reference: http://joschu.net/blog/kl-approx.html
     Arguments:
-        - logr (:obj:`torch.Tensor`): The log-ratio of probabilities, which should be log(q/p) = logp_new - logp_pretrained.
+        - log_ratio (:obj:`torch.Tensor`): The log-ratio of probabilities, which should be log(q/p) = logp_new - logp_pretrained.
         - kl_type (:obj:`str`): The type of KL divergence estimator to use.
             - 'k1': The standard, unbiased but high-variance estimator: `E_q[log(q/p)]`.
             - 'k2': A biased, low-variance estimator from a second-order approximation: `E_q[1/2 * (log(p/q))^2]`.
@@ -42,11 +44,11 @@ def calculate_kl_div(logr: torch.Tensor, kl_type: str) -> torch.Tensor:
         - kl_div (:obj:`torch.Tensor`): The calculated KL divergence estimate.
     """
     if kl_type == 'k1':
-        return logr.mean()
+        return log_ratio.mean()
     elif kl_type == 'k2':
-        return (logr ** 2 / 2).mean()
+        return (log_ratio ** 2 / 2).mean()
     elif kl_type == 'k3':
-        return (torch.exp(-logr) - 1 + logr).mean()
+        return (torch.exp(-log_ratio) - 1 + log_ratio).mean()
     else:
         raise ValueError(f"Unknown kl_type: {kl_type}")
 
@@ -87,7 +89,7 @@ def ppo_error(
         - use_value_clip (:obj:`bool`): whether to use clip in value loss with the same ratio as policy
         - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
         defaults to 5.0, if you don't want to use it, set this parameter to None
-        - kl_type (:obj:`str`): which kl loss to use, default set to 'approx'.
+        - kl_type (:obj:`str`): which kl loss to use, default set to 'k1'.
     Returns:
         - ppo_loss (:obj:`namedtuple`): the ppo loss item, all of them are the differentiable 0-dim tensor
         - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
@@ -132,7 +134,9 @@ def ppo_error(
     value_data = ppo_value_data(value_new, value_old, return_, weight)
     value_loss = ppo_value_error(value_data, clip_ratio, use_value_clip)
 
-    return ppo_loss(policy_output.policy_loss, value_loss, policy_output.entropy_loss), policy_info
+    return ppo_loss(
+        policy_output.policy_loss, value_loss, policy_output.entropy_loss, policy_output.kl_div
+    ), policy_info
 
 
 def ppo_policy_error(
@@ -217,12 +221,12 @@ def ppo_policy_error(
     if logit_pretrained is not None:
         dist_pretrained = torch.distributions.categorical.Categorical(logits=logit_pretrained)
         logp_pretrained = dist_pretrained.log_prob(action)
-        logr = logp_new - logp_pretrained
-        kl_div = calculate_kl_div(logr, kl_type)
+        log_ratio = logp_new - logp_pretrained
+        kl_div = calculate_kl_div(log_ratio, kl_type)
     else:
         kl_div = 0
 
-    return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac, kl_div)
+    return ppo_policy_loss(policy_loss, entropy_loss, kl_div), ppo_info(approx_kl, clipfrac)
 
 
 def ppo_value_error(
@@ -361,12 +365,12 @@ def ppo_error_continuous(
     if logit_pretrained is not None:
         dist_pretrained = Independent(Normal(logit_pretrained['mu'], logit_pretrained['sigma']), 1)
         logp_pretrained = dist_pretrained.log_prob(action)
-        logr = logp_new - logp_pretrained
-        kl_div = calculate_kl_div(logr, kl_type)
+        log_ratio = logp_new - logp_pretrained
+        kl_div = calculate_kl_div(log_ratio, kl_type)
     else:
         kl_div = 0
 
-    return ppo_loss(policy_loss, value_loss, entropy_loss), ppo_info(approx_kl, clipfrac, kl_div)
+    return ppo_loss(policy_loss, value_loss, entropy_loss, kl_div), ppo_info(approx_kl, clipfrac)
 
 
 def ppo_policy_error_continuous(
@@ -437,9 +441,9 @@ def ppo_policy_error_continuous(
     if logit_pretrained is not None:
         dist_pretrained = Independent(Normal(logit_pretrained['mu'], logit_pretrained['sigma']), 1)
         logp_pretrained = dist_pretrained.log_prob(action)
-        logr = logp_new - logp_pretrained
-        kl_div = calculate_kl_div(logr, kl_type)
+        log_ratio = logp_new - logp_pretrained
+        kl_div = calculate_kl_div(log_ratio, kl_type)
     else:
         kl_div = 0
 
-    return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac, kl_div)
+    return ppo_policy_loss(policy_loss, entropy_loss, kl_div), ppo_info(approx_kl, clipfrac)
