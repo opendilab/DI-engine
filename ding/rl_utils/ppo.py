@@ -35,7 +35,8 @@ def calculate_kl_div(log_ratio: torch.Tensor, kl_type: str) -> torch.Tensor:
         The implementation is based on John Schulman's blog post "Approximating KL Divergence".
         Reference: http://joschu.net/blog/kl-approx.html
     Arguments:
-        - log_ratio (:obj:`torch.Tensor`): The log-ratio of probabilities, which should be log(q/p) = logp_new - logp_pretrained.
+        - log_ratio (:obj:`torch.Tensor`): The log-ratio of probabilities, which should be 
+          log(q/p) = logp_new - logp_pretrained.
         - kl_type (:obj:`str`): The type of KL divergence estimator to use.
             - 'k1': The standard, unbiased but high-variance estimator: `E_q[log(q/p)]`.
             - 'k2': A biased, low-variance estimator from a second-order approximation: `E_q[1/2 * (log(p/q))^2]`.
