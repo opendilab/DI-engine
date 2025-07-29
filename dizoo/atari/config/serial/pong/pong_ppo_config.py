@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 pong_ppo_config = dict(
+    exp_name='pong_ppo_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -39,6 +40,12 @@ pong_ppo_config = dict(
             ignore_done=False,
             grad_clip_type='clip_norm',
             grad_clip_value=0.5,
+            # KL divergence regularization between current policy and pretrained policy.
+            # Supported KL divergence estimators: ['k1', 'k2', 'k3'].
+            # KL divergence loss will be calculated only when pretrained_model_path is provided.
+            kl_beta=0.01,
+            kl_type='k1',
+            pretrained_model_path=None,
         ),
         collect=dict(
             n_sample=3200,
