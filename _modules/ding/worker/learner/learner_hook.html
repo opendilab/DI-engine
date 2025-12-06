@@ -310,7 +310,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">easydict</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">ding</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">allreduce</span><span class="p">,</span> <span class="n">read_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">get_rank</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ding.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">allreduce</span><span class="p">,</span> <span class="n">read_file</span><span class="p">,</span> <span class="n">save_file</span>
 
 
 <div class="viewcode-block" id="Hook"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.Hook">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Hook</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
@@ -591,6 +591,7 @@
                 <span class="c1"># The &quot;noreduce_&quot; prefix is used in the unizero_multitask ddp pipeline</span>
                 <span class="c1"># to indicate data that should not be reduced.</span>
                 <span class="k">return</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;noreduce_&quot;</span><span class="p">)</span>
+            <span class="n">cuda_device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">current_device</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">new_data</span> <span class="o">=</span> <span class="p">{}</span>
@@ -607,7 +608,7 @@
                 <span class="k">if</span> <span class="n">ding</span><span class="o">.</span><span class="n">enable_linklink</span><span class="p">:</span>
                     <span class="n">allreduce</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_rank</span><span class="p">())</span>
+                    <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cuda_device</span><span class="p">)</span>
                     <span class="n">allreduce</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
                     <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Real</span><span class="p">):</span>
@@ -615,7 +616,7 @@
                 <span class="k">if</span> <span class="n">ding</span><span class="o">.</span><span class="n">enable_linklink</span><span class="p">:</span>
                     <span class="n">allreduce</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">get_rank</span><span class="p">())</span>
+                    <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cuda_device</span><span class="p">)</span>
                     <span class="n">allreduce</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
                     <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
                 <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
