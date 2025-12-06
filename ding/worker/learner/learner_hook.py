@@ -6,7 +6,7 @@ import torch
 from easydict import EasyDict
 
 import ding
-from ding.utils import allreduce, read_file, save_file, get_rank
+from ding.utils import allreduce, read_file, save_file
 
 
 class Hook(ABC):
@@ -287,6 +287,7 @@ class LogReduceHook(LearnerHook):
                 # The "noreduce_" prefix is used in the unizero_multitask ddp pipeline
                 # to indicate data that should not be reduced.
                 return not key.startswith("noreduce_")
+            cuda_device = torch.cuda.current_device()
 
             if isinstance(data, dict):
                 new_data = {}
@@ -303,7 +304,7 @@ class LogReduceHook(LearnerHook):
                 if ding.enable_linklink:
                     allreduce(new_data)
                 else:
-                    new_data = new_data.to(get_rank())
+                    new_data = new_data.to(cuda_device)
                     allreduce(new_data)
                     new_data = new_data.cpu()
             elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
@@ -311,7 +312,7 @@ class LogReduceHook(LearnerHook):
                 if ding.enable_linklink:
                     allreduce(new_data)
                 else:
-                    new_data = new_data.to(get_rank())
+                    new_data = new_data.to(cuda_device)
                     allreduce(new_data)
                     new_data = new_data.cpu()
                 new_data = new_data.item()
