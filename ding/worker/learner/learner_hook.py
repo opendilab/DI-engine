@@ -287,6 +287,7 @@ class LogReduceHook(LearnerHook):
                 # The "noreduce_" prefix is used in the unizero_multitask ddp pipeline
                 # to indicate data that should not be reduced.
                 return not key.startswith("noreduce_")
+
             cuda_device = torch.cuda.current_device()
 
             if isinstance(data, dict):

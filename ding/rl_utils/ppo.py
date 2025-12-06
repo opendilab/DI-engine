@@ -225,7 +225,7 @@ def ppo_policy_error(
         log_ratio = logp_new - logp_pretrained
         kl_div = calculate_kl_div(log_ratio, kl_type)
     else:
-        kl_div = 0
+        kl_div = torch.tensor(0., dtype=policy_loss.dtype, device=policy_loss.device)
 
     return ppo_policy_loss(policy_loss, entropy_loss, kl_div), ppo_info(approx_kl, clipfrac)
 
@@ -369,7 +369,7 @@ def ppo_error_continuous(
         log_ratio = logp_new - logp_pretrained
         kl_div = calculate_kl_div(log_ratio, kl_type)
     else:
-        kl_div = 0
+        kl_div = torch.tensor(0., dtype=policy_loss.dtype, device=policy_loss.device)
 
     return ppo_loss(policy_loss, value_loss, entropy_loss, kl_div), ppo_info(approx_kl, clipfrac)
 

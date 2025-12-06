@@ -328,7 +328,7 @@ class PPOPolicy(Policy):
                     # discrete part (discrete policy loss and entropy loss)
                     ppo_discrete_batch = ppo_policy_data(
                         output['logit']['action_type'], batch['logit']['action_type'], batch['action']['action_type'],
-                        adv, batch['weight']
+                        adv, batch['weight'], logit_pretrained
                     )
                     ppo_discrete_loss, ppo_discrete_info = ppo_policy_error(
                         ppo_discrete_batch, self._clip_ratio, kl_type=self._kl_type
@@ -336,7 +336,7 @@ class PPOPolicy(Policy):
                     # continuous part (continuous policy loss and entropy loss, value loss)
                     ppo_continuous_batch = ppo_data(
                         output['logit']['action_args'], batch['logit']['action_args'], batch['action']['action_args'],
-                        output['value'], batch['value'], adv, batch['return'], batch['weight']
+                        output['value'], batch['value'], adv, batch['return'], batch['weight'], None
                     )
                     ppo_continuous_loss, ppo_continuous_info = ppo_error_continuous(
                         ppo_continuous_batch, self._clip_ratio, kl_type=self._kl_type
@@ -794,7 +794,7 @@ class PPOPGPolicy(Policy):
                 output = self._learn_model.forward(batch['obs'])
 
                 ppo_batch = ppo_policy_data(
-                    output['logit'], batch['logit'], batch['action'], batch['return'], batch['weight']
+                    output['logit'], batch['logit'], batch['action'], batch['return'], batch['weight'], None
                 )
                 if self._action_space == 'continuous':
                     ppo_loss, ppo_info = ppo_policy_error_continuous(ppo_batch, self._clip_ratio)
@@ -1235,26 +1235,26 @@ class PPOOffPolicy(Policy):
             if self._action_space == 'continuous':
                 ppodata = ppo_data(
                     output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, data['return'],
-                    data['weight']
+                    data['weight'], None
                 )
                 ppo_loss, ppo_info = ppo_error_continuous(ppodata, self._clip_ratio)
             elif self._action_space == 'discrete':
                 ppodata = ppo_data(
                     output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, data['return'],
-                    data['weight']
+                    data['weight'], None
                 )
                 ppo_loss, ppo_info = ppo_error(ppodata, self._clip_ratio)
             elif self._action_space == 'hybrid':
                 # discrete part (discrete policy loss and entropy loss)
                 ppo_discrete_batch = ppo_policy_data(
                     output['logit']['action_type'], data['logit']['action_type'], data['action']['action_type'], adv,
-                    data['weight']
+                    data['weight'], None
                 )
                 ppo_discrete_loss, ppo_discrete_info = ppo_policy_error(ppo_discrete_batch, self._clip_ratio)
                 # continuous part (continuous policy loss and entropy loss, value loss)
                 ppo_continuous_batch = ppo_data(
                     output['logit']['action_args'], data['logit']['action_args'], data['action']['action_args'],
-                    output['value'], data['value'], adv, data['return'], data['weight']
+                    output['value'], data['value'], adv, data['return'], data['weight'], None
                 )
                 ppo_continuous_loss, ppo_continuous_info = ppo_error_continuous(ppo_continuous_batch, self._clip_ratio)
                 # sum discrete and continuous loss
@@ -1279,22 +1279,22 @@ class PPOOffPolicy(Policy):
 
             # Calculate ppo loss
             if self._action_space == 'continuous':
-                ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
+                ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'], None)
                 ppo_policy_loss, ppo_info = ppo_policy_error_continuous(ppodata, self._clip_ratio)
             elif self._action_space == 'discrete':
-                ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
+                ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'], None)
                 ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
             elif self._action_space == 'hybrid':
                 # discrete part (discrete policy loss and entropy loss)
                 ppo_discrete_data = ppo_policy_data(
                     output['logit']['action_type'], data['logit']['action_type'], data['action']['action_type'], adv,
-                    data['weight']
+                    data['weight'], None
                 )
                 ppo_discrete_loss, ppo_discrete_info = ppo_policy_error(ppo_discrete_data, self._clip_ratio)
                 # continuous part (continuous policy loss and entropy loss, value loss)
                 ppo_continuous_data = ppo_policy_data(
                     output['logit']['action_args'], data['logit']['action_args'], data['action']['action_args'], adv,
-                    data['weight']
+                    data['weight'], None
                 )
                 ppo_continuous_loss, ppo_continuous_info = ppo_policy_error_continuous(
                     ppo_continuous_data, self._clip_ratio
@@ -1804,13 +1804,13 @@ class PPOSTDIMPolicy(PPOPolicy):
                 if self._action_space == 'continuous':
                     ppo_batch = ppo_data(
                         output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
-                        batch['return'], batch['weight']
+                        batch['return'], batch['weight'], None
                     )
                     ppo_loss, ppo_info = ppo_error_continuous(ppo_batch, self._clip_ratio)
                 elif self._action_space == 'discrete':
                     ppo_batch = ppo_data(
                         output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
-                        batch['return'], batch['weight']
+                        batch['return'], batch['weight'], None
                     )
                     ppo_loss, ppo_info = ppo_error(ppo_batch, self._clip_ratio)
 
