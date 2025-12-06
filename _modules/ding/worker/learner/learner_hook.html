@@ -591,6 +591,7 @@
                 <span class="c1"># The &quot;noreduce_&quot; prefix is used in the unizero_multitask ddp pipeline</span>
                 <span class="c1"># to indicate data that should not be reduced.</span>
                 <span class="k">return</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;noreduce_&quot;</span><span class="p">)</span>
+
             <span class="n">cuda_device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">current_device</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
