@@ -277,7 +277,7 @@ class PPGPolicy(Policy):
                 policy_output = self._learn_model.forward(policy_data['obs'], mode='compute_actor')
                 policy_error_data = ppo_policy_data(
                     policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv,
-                    policy_data['weight']
+                    policy_data['weight'], None
                 )
                 ppo_policy_loss, ppo_info = ppo_policy_error(policy_error_data, self._clip_ratio)
                 policy_loss = ppo_policy_loss.policy_loss - self._entropy_weight * ppo_policy_loss.entropy_loss
@@ -932,7 +932,7 @@ class PPGOffPolicy(Policy):
         # Policy Phase(Policy)
         policy_output = self._learn_model.forward(policy_data['obs'], mode='compute_actor')
         policy_error_data = ppo_policy_data(
-            policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight']
+            policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight'], None
         )
         ppo_policy_loss, ppo_info = ppo_policy_error(policy_error_data, self._clip_ratio)
         policy_loss = ppo_policy_loss.policy_loss - self._entropy_weight * ppo_policy_loss.entropy_loss

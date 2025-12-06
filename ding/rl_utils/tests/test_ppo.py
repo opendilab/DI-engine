@@ -15,7 +15,7 @@ args = [item for item in product(*[use_value_clip_args, dual_clip_args, weight_a
 
 @pytest.mark.unittest
 def test_shape_fn_ppo():
-    data = ppo_data(torch.randn(3, 5, 8), None, None, None, None, None, None, None)
+    data = ppo_data(torch.randn(3, 5, 8), None, None, None, None, None, None, None, None)
     shape1 = shape_fn_ppo([data], {})
     shape2 = shape_fn_ppo([], {'data': data})
     assert shape1 == shape2 == (3, 5, 8)
@@ -32,7 +32,7 @@ def test_ppo(use_value_clip, dual_clip, weight):
     value_old = value_new + torch.rand_like(value_new) * 0.1
     adv = torch.rand(B)
     return_ = torch.randn(B) * 2
-    data = ppo_data(logit_new, logit_old, action, value_new, value_old, adv, return_, weight)
+    data = ppo_data(logit_new, logit_old, action, value_new, value_old, adv, return_, weight, None)
     loss, info = ppo_error(data, use_value_clip=use_value_clip, dual_clip=dual_clip)
     assert all([l.shape == tuple() for l in loss])
     assert all([np.isscalar(i) for i in info])
@@ -54,7 +54,7 @@ def test_mappo():
     value_old = value_new + torch.rand_like(value_new) * 0.1
     adv = torch.rand(B, A)
     return_ = torch.randn(B, A) * 2
-    data = ppo_data(logit_new, logit_old, action, value_new, value_old, adv, return_, None)
+    data = ppo_data(logit_new, logit_old, action, value_new, value_old, adv, return_, None, None)
     loss, info = ppo_error(data)
     assert all([l.shape == tuple() for l in loss])
     assert all([np.isscalar(i) for i in info])
@@ -80,7 +80,7 @@ def test_ppo_error_continous(use_value_clip, dual_clip, weight):
     value_old = value_new + torch.rand_like(value_new) * 0.1
     adv = torch.rand(B)
     return_ = torch.randn(B) * 2
-    data = ppo_data(mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight)
+    data = ppo_data(mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight, None)
     loss, info = ppo_error_continuous(data, use_value_clip=use_value_clip, dual_clip=dual_clip)
     assert all([l.shape == tuple() for l in loss])
     assert all([np.isscalar(i) for i in info])

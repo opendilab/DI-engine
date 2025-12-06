@@ -2,7 +2,7 @@ import pytest
 from itertools import product
 import torch
 from ding.model.template import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN, BDQ, GTrXLDQN
-from ding.torch_utils import is_differentiable
+from ding.torch_utils import is_differentiable, NoiseLinearLayer
 
 T, B = 3, 4
 obs_shape = [4, (8, ), (4, 64, 64)]
@@ -66,6 +66,9 @@ class TestQLearning:
         else:
             inputs = torch.randn(B, *obs_shape)
         model = RainbowDQN(obs_shape, act_shape, n_atom=41)
+        for k, v in model.named_modules():
+            if isinstance(v, NoiseLinearLayer):
+                v.enable_noise = True
         outputs = model(inputs)
         assert isinstance(outputs, dict)
         if isinstance(act_shape, int):
