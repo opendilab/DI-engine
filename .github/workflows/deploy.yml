@@ -79,11 +79,10 @@ jobs:
 
   docker_doc:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    if: "contains(github.event.head_commit.message, 'doc docker')"
     strategy:
       matrix:
         platform: [linux/amd64]
-        # python-version: [3.6, 3.7, 3.8]
     steps:
       - name: Checkout
         uses: actions/checkout@v2

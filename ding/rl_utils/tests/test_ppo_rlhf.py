@@ -24,11 +24,12 @@ def test_policy_loss_without_mask(batch_size: int, seq_length: int, dictionary_n
     # Create test data
     logit_new = torch.randn(batch_size, seq_length, dictionary_num).requires_grad_(True)
     logit_old = logit_new + torch.randn_like(logit_new) * 0.1
+    logit_pretrained = logit_new + torch.randn_like(logit_new) * 0.1
     action = torch.randint(0, 10, (batch_size, seq_length))
     advantages = torch.randn(batch_size, seq_length)
 
     # Compute loss
-    data = ppo_policy_data(logit_new, logit_old, action, advantages, weight=None)
+    data = ppo_policy_data(logit_new, logit_old, action, advantages, weight=None, logit_pretrained=logit_pretrained)
     loss, info = ppo_policy_error(data, clip_ratio=0.2, entropy_bonus=False)
 
     # Verify output
@@ -47,13 +48,16 @@ def test_policy_loss_with_mask(batch_size: int, seq_length: int, dictionary_num:
     # Create test data
     logit_new = torch.randn(batch_size, seq_length, dictionary_num).requires_grad_(True)
     logit_old = logit_new + torch.randn_like(logit_new) * 0.1
+    logit_pretrained = logit_new + torch.randn_like(logit_new) * 0.1
     action = torch.randint(0, 10, (batch_size, seq_length))
     advantages = torch.randn(batch_size, seq_length)
     action_mask = torch.ones(batch_size, seq_length)
     action_mask[:, -2:] = 0  # Set last two timesteps as padding
 
     # Compute loss
-    data = ppo_policy_data(logit_new, logit_old, action, advantages, weight=action_mask)
+    data = ppo_policy_data(
+        logit_new, logit_old, action, advantages, weight=action_mask, logit_pretrained=logit_pretrained
+    )
     loss, info = ppo_policy_error(data, clip_ratio=0.2, entropy_bonus=False)
 
     # Verify output
