@@ -9,7 +9,7 @@ cartpole_ppo_config = dict(
         stop_value=195,
     ),
     policy=dict(
-        cuda=False,
+        device='auto',  # Auto-detect NPU > GPU > CPU
         action_space='discrete',
         model=dict(
             obs_shape=4,

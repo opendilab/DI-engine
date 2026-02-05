@@ -7,6 +7,13 @@ import numpy as np
 import torch
 import treetensor.torch as ttorch
 
+# Try to import torch_npu for Huawei NPU support
+try:
+    import torch_npu
+    TORCH_NPU_AVAILABLE = True
+except ImportError:
+    TORCH_NPU_AVAILABLE = False
+
 
 def get_shape0(data: Union[List, Dict, torch.Tensor, ttorch.Tensor]) -> int:
     """
@@ -418,7 +425,7 @@ def set_pkg_seed(seed: int, use_cuda: bool = True) -> None:
         This is usaually used in entry scipt in the section of setting random seed for all package and instance
     Argument:
         - seed(:obj:`int`): Set seed
-        - use_cuda(:obj:`bool`) Whether use cude
+        - use_cuda(:obj:`bool`) Whether use cuda or other accelerators (NPU/GPU)
     Examples:
         >>> # ../entry/xxxenv_xxxpolicy_main.py
         >>> ...
@@ -431,11 +438,23 @@ def set_pkg_seed(seed: int, use_cuda: bool = True) -> None:
         >>> ...
 
     """
+    print(f"\n🌱 [DI-engine] Setting random seed: {seed}")
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    if use_cuda and torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
+    print(f"  ✓ Set seed for: random, numpy, torch")
+
+    # Set seed for accelerators (GPU or NPU)
+    if use_cuda:
+        # Set CUDA seed if available
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+            print(f"  ✓ Set CUDA seed: {seed}")
+        # Set NPU seed if available
+        if TORCH_NPU_AVAILABLE and torch.npu.is_available():
+            torch.npu.manual_seed(seed)
+            print(f"  ✓ Set NPU seed: {seed}")
+    print()
 
 
 @lru_cache()

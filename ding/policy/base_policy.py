@@ -9,6 +9,7 @@ import torch
 from ding.model import create_model
 from ding.utils import import_module, allreduce, allreduce_with_indicator, broadcast, get_rank, allreduce_async, \
     synchronize, deep_merge_dicts, POLICY_REGISTRY
+from ding.torch_utils import auto_device_init, move_to_device
 
 
 class Policy(ABC):
@@ -83,8 +84,12 @@ class Policy(ABC):
     config = dict(
         # (bool) Whether the learning policy is the same as the collecting data policy (on-policy).
         on_policy=False,
-        # (bool) Whether to use cuda in policy.
+        # (bool) Whether to use cuda in policy (deprecated, use 'device' instead).
         cuda=False,
+        # (str) Device to use for policy. Can be 'auto', 'cuda', 'npu', or 'cpu'.
+        # 'auto' will automatically detect NPU > GPU > CPU.
+        # If not specified, will use 'cuda' config for backward compatibility.
+        device='auto',
         # (bool) Whether to use data parallel multi-gpu mode in policy.
         multi_gpu=False,
         # (bool) Whether to synchronize update the model parameters after allreduce the gradients of model parameters.
@@ -136,25 +141,56 @@ class Policy(ABC):
 
         if len(set(self._enable_field).intersection(set(['learn', 'collect', 'eval']))) > 0:
             model = self._create_model(cfg, model)
-            self._cuda = cfg.cuda and torch.cuda.is_available()
+
+            # Device initialization with auto-detection support for NPU/GPU/CPU
+            # Backward compatibility: if 'device' not in cfg, use 'cuda' config
+            if hasattr(cfg, 'device') and cfg.device is not None:
+                # New way: use 'device' config for auto-detection or explicit setting
+                cfg_device = cfg.device
+            else:
+                # Legacy way: convert 'cuda' boolean to device string
+                cfg_device = 'cuda' if (hasattr(cfg, 'cuda') and cfg.cuda) else 'cpu'
+
             # now only support multi-gpu for only enable learn mode
             if len(set(self._enable_field).intersection(set(['learn']))) > 0:
                 multi_gpu = self._cfg.multi_gpu
                 self._rank = get_rank() if multi_gpu else 0
-                if self._cuda:
-                    # model.cuda() is an in-place operation.
-                    model.cuda()
+            else:
+                self._rank = 0
+
+            # Auto-detect or set device
+            self._device_type, self._use_accelerator, self._device = auto_device_init(cfg_device, self._rank)
+
+            # Keep backward compatibility with _cuda attribute
+            # Set _cuda=True for ANY accelerator (GPU or NPU) to ensure data transfer logic works
+            self._cuda = self._use_accelerator
+
+            # Move model to the detected/configured device
+            if self._use_accelerator:
+                move_to_device(model, self._device_type, self._rank)
+
+            # Print final device configuration summary
+            print(f"\n{'='*70}")
+            print(f"🎉 [DI-engine Policy] Device Setup Complete")
+            print(f"{'='*70}")
+            print(f"  Policy Type: {self.__class__.__name__}")
+            print(f"  Device Type: {self._device_type.upper()}")
+            print(f"  Device String: {self._device}")
+            print(f"  Using Accelerator: {self._use_accelerator}")
+            print(f"  Rank: {self._rank}")
+            print(f"  Multi-GPU: {self._cfg.multi_gpu if hasattr(self._cfg, 'multi_gpu') else False}")
+            print(f"  Legacy _cuda flag: {self._cuda}")
+            print(f"{'='*70}\n")
+
+            # Multi-GPU initialization
+            if len(set(self._enable_field).intersection(set(['learn']))) > 0:
+                multi_gpu = self._cfg.multi_gpu
                 if multi_gpu:
                     bp_update_sync = self._cfg.bp_update_sync
                     self._bp_update_sync = bp_update_sync
                     self._init_multi_gpu_setting(model, bp_update_sync)
-            else:
-                self._rank = 0
-                if self._cuda:
-                    # model.cuda() is an in-place operation.
-                    model.cuda()
+
             self._model = model
-            self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._cuda else 'cpu'
         else:
             self._cuda = False
             self._rank = 0

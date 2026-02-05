@@ -12,3 +12,5 @@ from .math_helper import cov
 from .dataparallel import DataParallel
 from .reshape_helper import fold_batch, unfold_batch, unsqueeze_repeat
 from .parameter import NonegativeParameter, TanhParameter
+from .device_helper import get_available_device, get_device_count, move_to_device, get_device_string, \
+    auto_device_init, is_npu_available, is_cuda_available
