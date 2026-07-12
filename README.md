@@ -496,3 +496,7 @@ We appreciate all the feedbacks and contributions to improve DI-engine, both alg
 ## License
 
 DI-engine released under the Apache 2.0 license.
+
+---
+
+*[Mukller](https://github.com/Mukller)*
