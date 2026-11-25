@@ -167,6 +167,7 @@ def train(cfg: TrainConfig, env_id: str, version: str, seed: int) -> dict:
             obs_dim=int(env.observation_space.shape[0]),
             action_dim=int(env.action_space.n),
             actor_lr=actor_lr,
+            critic_lr=cfg.critic_lr,
             # V2 的离散 Atari 配置也采用较低的 KL 权重。
             kl_scale=0.1 if env_id == "CartPole-v1" and version == "v2" else 1.0,
             v2_dynamics_mix=dynamics_mix,
@@ -349,6 +350,7 @@ def main() -> None:
     parser.add_argument("--seed-steps", type=int)
     parser.add_argument("--action-repeat", type=int)
     parser.add_argument("--actor-lr", type=float)
+    parser.add_argument("--critic-lr", type=float)
     parser.add_argument("--v2-dynamics-mix", type=float, help="V2 pathwise fraction (1 - rho in the paper).")
     parser.add_argument("--pretrain-steps", type=int)
     parser.add_argument("--train-every", type=int)

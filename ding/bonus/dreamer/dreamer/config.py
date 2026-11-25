@@ -57,6 +57,7 @@ class TrainConfig:
     action_repeat: Optional[int] = None
     v2_dynamics_mix: Optional[float] = None
     actor_lr: Optional[float] = None
+    critic_lr: float = DreamerConfig.critic_lr
     pretrain_steps: int = 100
     train_every: int = 4
     train_steps: int = 1
