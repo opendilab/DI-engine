@@ -1,104 +1,33 @@
 from contextlib import contextmanager
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
 
 import numpy as np
 import torch
 from torch import nn
-import torch.nn.functional as F
+from torch.nn import functional as F
 
-from config import DreamerConfig
-from .models import Actor, Critic, Decoder, DiscountModel, Encoder, RewardModel
+from .config import DreamerConfig
+from .models import Actor, MLP, SymexpTwoHot, symlog
 from .rssm import RSSM, RSSMState
 
 
-def symlog(x: torch.Tensor) -> torch.Tensor:
-    """对称对数变换，压缩数值范围。"""
-    return torch.sign(x) * torch.log1p(torch.abs(x))
-
-
-def symexp(x: torch.Tensor) -> torch.Tensor:
-    """symlog 的逆变换。"""
-    return torch.sign(x) * (torch.exp(torch.abs(x)) - 1.0)
-
-
-def two_hot(x: torch.Tensor, bins: int, min_value: float, max_value: float) -> torch.Tensor:
-    """将标量转成 two-hot 分布表示。"""
-    x = torch.clamp(x, min=min_value, max=max_value)
-    scale = (bins - 1) / (max_value - min_value)
-    pos = (x - min_value) * scale
-    idx_low = torch.floor(pos).long()
-    idx_high = torch.clamp(idx_low + 1, max=bins - 1)
-    weight_high = (pos - idx_low.float()).clamp(0.0, 1.0)
-    weight_low = 1.0 - weight_high
-    shape = x.shape + (bins,)
-    out = torch.zeros(shape, device=x.device, dtype=x.dtype)
-    out.scatter_(-1, idx_low.unsqueeze(-1), weight_low.unsqueeze(-1))
-    out.scatter_add_(-1, idx_high.unsqueeze(-1), weight_high.unsqueeze(-1))
-    return out
-
-
-def logits_to_mean(logits: torch.Tensor, min_value: float, max_value: float) -> torch.Tensor:
-    """将分布 logits 转成对应的期望值。"""
-    probs = torch.softmax(logits, dim=-1)
-    bins = torch.linspace(min_value, max_value, logits.shape[-1], device=logits.device, dtype=logits.dtype)
-    return torch.sum(probs * bins, dim=-1)
-
-
 @contextmanager
-def freeze_module_params(*modules: Optional[nn.Module]):
-    """临时冻结模块参数，但保留对输入的梯度传播。"""
-    params = []
-    requires_grad = []
-    for module in modules:
-        if module is None:
-            continue
-        for param in module.parameters():
-            params.append(param)
-            requires_grad.append(param.requires_grad)
-            param.requires_grad_(False)
+def freeze_module_params(*modules: nn.Module):
+    """冻结参数，保留对输入张量的梯度。用于 V1 的想象轨迹。"""
+    params = [p for module in modules for p in module.parameters() if p.requires_grad]
+    for param in params:
+        param.requires_grad_(False)
     try:
         yield
     finally:
-        for param, flag in zip(params, requires_grad):
-            param.requires_grad_(flag)
-
-
-class RunningMeanStd:
-    """在线估计均值与方差，用于归一化。"""
-
-    def __init__(self, epsilon: float = 1e-4, shape=()):
-        """初始化统计量。"""
-        self.mean = np.zeros(shape, "float64")
-        self.var = np.ones(shape, "float64")
-        self.count = epsilon
-
-    def update(self, x: np.ndarray) -> None:
-        """用新样本更新均值与方差。"""
-        x = np.asarray(x, dtype="float64")
-        batch_mean = np.mean(x, axis=0)
-        batch_var = np.var(x, axis=0)
-        batch_count = x.shape[0]
-        self._update_from_moments(batch_mean, batch_var, batch_count)
-
-    def _update_from_moments(self, batch_mean, batch_var, batch_count) -> None:
-        """从批次统计量更新。"""
-        delta = batch_mean - self.mean
-        total_count = self.count + batch_count
-        new_mean = self.mean + delta * batch_count / total_count
-        m_a = self.var * self.count
-        m_b = batch_var * batch_count
-        m2 = m_a + m_b + delta**2 * self.count * batch_count / total_count
-        new_var = m2 / total_count
-        self.mean = new_mean
-        self.var = new_var
-        self.count = total_count
+        for param in params:
+            param.requires_grad_(True)
 
 
 @dataclass
 class TrainingMetrics:
-    """记录一次训练更新中的关键指标。"""
-
     model_loss: float
     obs_loss: float
     reward_loss: float
@@ -106,415 +35,341 @@ class TrainingMetrics:
     kl_loss: float
     actor_loss: float
     critic_loss: float
+    replay_value_loss: float
 
 
 class WorldModel(nn.Module):
-    """世界模型：编码器 + RSSM + 重建/奖励/折扣预测。"""
-    def __init__(self, config: DreamerConfig,
-        kl_balance: Optional[float] = None, *,
-        discrete_latent: bool = False,
-    ):
-        """初始化世界模型的子模块与配置。"""
+    """编码器、RSSM、观测重建、奖励和 continuation 预测。"""
+
+    def __init__(self, config: DreamerConfig, version: str):
         super().__init__()
-        self.encoder = Encoder(config.obs_dim, config.embed_dim, config.hidden_dim)
-        self.rssm = RSSM(
-            action_dim=config.action_dim,
-            embed_dim=config.embed_dim,
-            deter_dim=config.deter_dim,
-            stoch_dim=config.stoch_dim,
-            hidden_dim=config.hidden_dim,
-            discrete=discrete_latent,
-            stoch_classes=config.stoch_classes,
-        )
-        stoch_feat_dim = config.stoch_dim * config.stoch_classes if discrete_latent else config.stoch_dim
-        feat_dim = config.deter_dim + stoch_feat_dim
-        self.decoder = Decoder(feat_dim, config.obs_dim, config.hidden_dim)
-        reward_out_dim = config.reward_bins if config.reward_bins and config.reward_bins > 1 else 1
-        self.reward_model = RewardModel(feat_dim, config.hidden_dim, out_dim=reward_out_dim)
-        self.discount_model = DiscountModel(feat_dim, config.hidden_dim)
         self.config = config
-        self.kl_balance = kl_balance
-        self.reward_bins = reward_out_dim
-        self.reward_min = config.reward_min
-        self.reward_max = config.reward_max
-        self.use_symlog = config.use_symlog
+        self.version = version
+        v3 = version == "v3"
+        self.free_nats = config.free_nats if config.free_nats is not None else {"v1": 3., "v2": 0., "v3": 1.}[version]
+        self.rssm = RSSM(
+            config.action_dim,
+            config.embed_dim,
+            config.deter_dim,
+            config.stoch_dim,
+            config.hidden_dim,
+            stoch_classes=config.stoch_classes if version != "v1" else 0,
+            unimix=config.unimix if v3 else 0.,
+        )
+        self.feat_dim = config.deter_dim + self.rssm.stoch_feat_dim
+        width = config.hidden_dim
+        self.encoder = MLP(config.obs_dim, (width, width), config.embed_dim, v3=v3)
+        self.decoder = MLP(self.feat_dim, (width, width), config.obs_dim, v3=v3)
+        self.reward_model = MLP(
+            self.feat_dim, (width, width), config.bins if v3 else 1, v3=v3, output_scale=0. if v3 else 1.
+        )
+        self.discount_model = MLP(self.feat_dim, (width, width), 1, v3=v3)
+        if v3:
+            self.distribution = SymexpTwoHot(config.bins)
 
-    def loss(self, obs: torch.Tensor, actions: torch.Tensor, rewards: torch.Tensor, dones: torch.Tensor, init_state: RSSMState) -> Tuple[torch.Tensor, Dict[str, float], RSSMState]:
-        """计算世界模型损失，并返回后验状态序列。"""
-        embeds = self.encoder(obs)
-        priors, posts = self.rssm.observe(embeds, actions, init_state)
+    def encode(self, obs: torch.Tensor) -> torch.Tensor:
+        # V3 的向量输入与重建目标使用相同的 symlog 坐标，不依赖运行中的均值/方差。
+        return self.encoder(symlog(obs) if self.version == "v3" else obs)
+
+    def kl_loss(self, post: torch.Tensor, prior: torch.Tensor) -> torch.Tensor:
+        kl = self.rssm.kl_divergence
+        if self.version == "v1":
+            return kl(post, prior).mean().clamp_min(self.free_nats)
+        # 两项都是 KL(q || p)。动力学项拟合后验样本，表示项约束后验可预测。
+        dynamics = kl(post.detach(), prior)
+        representation = kl(post, prior.detach())
+        if self.version == "v2":
+            balance = self.config.kl_balance
+            return (
+                balance * dynamics.mean().clamp_min(self.free_nats) +
+                (1 - balance) * representation.mean().clamp_min(self.free_nats)
+            )
+        # V3 对每个位置应用 free bits，再独立加权（Nature 版 β_dyn=1、β_rep=0.1）。
+        return (
+            self.config.dynamics_scale * dynamics.clamp_min(self.free_nats).mean() +
+            self.config.representation_scale * representation.clamp_min(self.free_nats).mean()
+        )
+
+    def loss(
+            self, obs: torch.Tensor, actions: torch.Tensor, rewards: torch.Tensor, terminals: torch.Tensor,
+            init_state: RSSMState
+    ) -> Tuple[torch.Tensor, Tuple[torch.Tensor, ...], RSSMState]:
+        target_obs = symlog(obs) if self.version == "v3" else obs
+        prior, posts = self.rssm.observe(self.encoder(target_obs), actions, init_state)
         feat = self.rssm.get_feat(posts)
-        obs_pred = self.decoder(feat)
-        reward_pred = self.reward_model(feat)
-        discount_logits = self.discount_model(feat).squeeze(-1)
-
-        obs_loss = F.mse_loss(obs_pred, obs)
-        reward_loss = self.reward_loss(reward_pred, rewards)
-        discount_target = 1.0 - dones
-        discount_loss = F.binary_cross_entropy_with_logits(discount_logits, discount_target)
-
-        kl_post = self.rssm.kl_divergence(posts, priors)
-        if self.kl_balance is None:
-            kl = kl_post
+        obs_loss = 0.5 * (self.decoder(feat) - target_obs).square().sum(-1).mean()
+        pred_reward = self.reward_model(feat)
+        if self.version == "v3":
+            reward_loss = self.distribution.loss(pred_reward, rewards).mean()
         else:
-            # DreamerV2/V3 的 balanced KL 使用同方向 KL，并分别停止 posterior / prior 的梯度。
-            post_sg = self.rssm.detach_state(posts)
-            prior_sg = self.rssm.detach_state(priors)
-            kl_prior = self.rssm.kl_divergence(post_sg, priors)
-            kl_post = self.rssm.kl_divergence(posts, prior_sg)
-            kl = self.kl_balance * kl_prior + (1.0 - self.kl_balance) * kl_post
-        kl_loss = torch.mean(torch.clamp(kl, min=self.config.free_nats))
-
-        model_loss = obs_loss + reward_loss + self.config.discount_scale * discount_loss + self.config.kl_scale * kl_loss
-        metrics = {
-            "model_loss": model_loss.item(),
-            "obs_loss": obs_loss.item(),
-            "reward_loss": reward_loss.item(),
-            "discount_loss": discount_loss.item(),
-            "kl_loss": kl_loss.item(),
-        }
-        return model_loss, metrics, posts
-
-    def reward_loss(self, reward_pred: torch.Tensor, rewards: torch.Tensor) -> torch.Tensor:
-        """奖励预测损失（可选 two-hot + symlog）。"""
-        if self.reward_bins == 1:
-            return F.mse_loss(reward_pred.squeeze(-1), rewards)
-        target = symlog(rewards) if self.use_symlog else rewards
-        target = two_hot(target, self.reward_bins, self.reward_min, self.reward_max)
-        log_probs = F.log_softmax(reward_pred, dim=-1)
-        return -(target * log_probs).sum(-1).mean()
+            # 固定单位方差高斯的负对数似然，略去与参数无关的常数。
+            reward_loss = 0.5 * F.mse_loss(pred_reward.squeeze(-1), rewards)
+        discount_loss = F.binary_cross_entropy_with_logits(self.discount_model(feat).squeeze(-1), 1 - terminals)
+        kl_loss = self.kl_loss(posts.stats, prior)
+        loss = obs_loss + reward_loss + self.config.discount_scale * discount_loss + self.config.kl_scale * kl_loss
+        return loss, (obs_loss, reward_loss, discount_loss, kl_loss), posts
 
     def predict_reward(self, feat: torch.Tensor) -> torch.Tensor:
-        """将奖励头输出转为标量奖励。"""
-        pred = self.reward_model(feat)
-        if self.reward_bins == 1:
-            return pred.squeeze(-1)
-        mean = logits_to_mean(pred, self.reward_min, self.reward_max)
-        return symexp(mean) if self.use_symlog else mean
+        raw = self.reward_model(feat)
+        return self.distribution.mean(raw) if self.version == "v3" else raw.squeeze(-1)
+
+    def predict_discount(self, feat: torch.Tensor) -> torch.Tensor:
+        return self.config.discount * self.discount_model(feat).squeeze(-1).sigmoid()
 
 
-def lambda_return(rewards: torch.Tensor, values: torch.Tensor, discounts: torch.Tensor, bootstrap: torch.Tensor, lambda_: float) -> torch.Tensor:
-    """计算 lambda-return。"""
-    horizon = rewards.shape[0]
+def lambda_return(
+        rewards: torch.Tensor, next_values: torch.Tensor, discounts: torch.Tensor, lambda_: float
+) -> torch.Tensor:
+    """沿时间轴逆推 G_t = r_{t+1} + d_{t+1}[(1-λ)V(s_{t+1}) + λG_{t+1}]。"""
+    last = next_values[-1]
     returns = []
-    last = bootstrap
-    for t in reversed(range(horizon)):
-        next_value = values[t + 1] if t + 1 < horizon else bootstrap
-        last = rewards[t] + discounts[t] * ((1 - lambda_) * next_value + lambda_ * last)
+    for reward, value, discount in reversed(list(zip(rewards.unbind(), next_values.unbind(), discounts.unbind()))):
+        last = reward + discount * torch.lerp(value, last, lambda_)
         returns.append(last)
-    returns.reverse()
-    return torch.stack(returns, dim=0)
+    return torch.stack(returns[::-1])
 
 
 def discount_cumprod(discounts: torch.Tensor) -> torch.Tensor:
-    """计算折扣累计乘积，用于重要性权重。"""
-    horizon = discounts.shape[0]
-    weights = []
-    acc = torch.ones_like(discounts[0])
-    for t in range(horizon):
-        weights.append(acc)
-        acc = acc * discounts[t]
-    return torch.stack(weights, dim=0)
+    """动作 a_t 的训练权重是到达 s_t 的概率。当前动作的折扣从下一项开始乘。"""
+    return torch.cat([torch.ones_like(discounts[:1]), discounts[:-1]]).cumprod(0)
 
 
 class DreamerV1Agent:
-    """Simplified DreamerV1 baseline."""
+    """V1 使用高斯潜变量，并通过世界模型反传策略梯度。"""
+
+    version = "v1"
+    default_entropy = 0.0
 
     def __init__(self, config: DreamerConfig, device: torch.device):
-        """初始化 DreamerV1 的模型与优化器。"""
         self.config = config
-        self.device = device
-        self.world_model = self._build_world_model().to(device)
-        stoch_feat_dim = config.stoch_dim * config.stoch_classes if self._discrete_latent() else config.stoch_dim
-        feat_dim = config.deter_dim + stoch_feat_dim
-        self.actor = Actor(feat_dim, config.action_dim, config.hidden_dim).to(device)
-        self.critic = Critic(feat_dim, config.hidden_dim, out_dim=self._critic_out_dim()).to(device)
-        self.critic_target = self._build_target_critic(feat_dim, self._critic_out_dim())
-
+        self.device = torch.device(device)
+        self.entropy_scale = self.default_entropy if config.entropy_scale is None else config.entropy_scale
+        self.world_model = WorldModel(config, self.version).to(device)
+        feat_dim, width = self.world_model.feat_dim, config.hidden_dim
+        v3 = self.version == "v3"
+        self.actor = Actor(feat_dim, config.action_dim, width, unimix=config.unimix if v3 else 0.).to(device)
+        self.critic = MLP(
+            feat_dim, (width, width), config.bins if v3 else 1, v3=v3, output_scale=0. if v3 else 1.
+        ).to(device)
+        self.critic_target = deepcopy(self.critic).requires_grad_(False) if self.version != "v1" else None
         self.model_opt = torch.optim.Adam(self.world_model.parameters(), lr=config.model_lr)
         self.actor_opt = torch.optim.Adam(self.actor.parameters(), lr=config.actor_lr)
         self.critic_opt = torch.optim.Adam(self.critic.parameters(), lr=config.critic_lr)
+        self._updates = 0
 
     def init_state(self, batch_size: int) -> RSSMState:
-        """初始化 RSSM 隐状态。"""
         return self.world_model.rssm.init_state(batch_size, self.device)
 
+    @torch.no_grad()
     def observe(self, obs: np.ndarray, state: RSSMState, prev_action: torch.Tensor) -> RSSMState:
-        """使用观测更新后验状态。"""
-        obs_t = torch.as_tensor(obs, device=self.device, dtype=torch.float32).unsqueeze(0)
-        with torch.no_grad():
-            embed = self.world_model.encoder(obs_t)
-            prior = self.world_model.rssm.img_step(state, prev_action)
-            post = self.world_model.rssm.obs_step(prior.deter, embed)
-        return post
+        obs_t = torch.as_tensor(obs, device=self.device, dtype=torch.float32).reshape(-1, self.config.obs_dim)
+        embed = self.world_model.encode(obs_t)
+        rssm = self.world_model.rssm
+        return rssm.obs_step(rssm.recurrent(state, prev_action), embed)
+
+    @torch.no_grad()
+    def policy_actions(self, state: RSSMState, eval_mode: bool = False) -> torch.Tensor:
+        dist = self.actor(self.world_model.rssm.get_feat(state))
+        return dist.logits.argmax(-1) if eval_mode else dist.sample()
 
     def policy(self, state: RSSMState, eval_mode: bool = False) -> int:
-        """根据当前状态采样/选择动作。"""
-        feat = self.world_model.rssm.get_feat(state)
-        dist = self.actor(feat)
-        if eval_mode:
-            action = torch.argmax(dist.probs, dim=-1)
-        else:
-            action = dist.sample()
-        return int(action.item())
+        return int(self.policy_actions(state, eval_mode).item())
 
     def action_to_onehot(self, action: int) -> torch.Tensor:
-        """将离散动作转换为 one-hot。"""
-        return F.one_hot(torch.tensor([action], device=self.device), num_classes=self.config.action_dim).float()
+        return F.one_hot(torch.tensor([action], device=self.device), self.config.action_dim).float()
 
-    def train_step(self, batch: Dict[str, np.ndarray]) -> TrainingMetrics:
-        """执行一次训练更新（世界模型 + actor/critic）。"""
+    def train_step(self,
+                   batch: Dict[str, np.ndarray],
+                   *,
+                   behavior: bool = True,
+                   report: bool = True) -> Optional[TrainingMetrics]:
         obs = torch.as_tensor(batch["obs"], device=self.device, dtype=torch.float32)
         actions = torch.as_tensor(batch["actions"], device=self.device, dtype=torch.int64)
         rewards = torch.as_tensor(batch["rewards"], device=self.device, dtype=torch.float32)
-        dones = torch.as_tensor(batch["dones"], device=self.device, dtype=torch.float32)
-
-        actions_oh = F.one_hot(actions, num_classes=self.config.action_dim).float()
-
-        init_state = self.init_state(obs.shape[0])
-        model_loss, model_metrics, posts = self.world_model.loss(obs, actions_oh, rewards, dones, init_state)
-
-        self.model_opt.zero_grad()
-        model_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.world_model.parameters(), self.config.grad_clip)
-        self.model_opt.step()
-
-        actor_loss, critic_loss = self._actor_critic_update(posts, dones)
-
-        return TrainingMetrics(
-            model_loss=model_metrics["model_loss"],
-            obs_loss=model_metrics["obs_loss"],
-            reward_loss=model_metrics["reward_loss"],
-            discount_loss=model_metrics["discount_loss"],
-            kl_loss=model_metrics["kl_loss"],
-            actor_loss=actor_loss,
-            critic_loss=critic_loss,
+        terminals = torch.as_tensor(batch["dones"], device=self.device, dtype=torch.float32)
+        # reset 观测的动作编号是 -1，进入 RSSM 时转换为全零向量。
+        actions_oh = (actions.unsqueeze(-1) == torch.arange(self.config.action_dim, device=self.device)).float()
+        model_loss, model_metrics, posts = self.world_model.loss(
+            obs, actions_oh, rewards, terminals, self.init_state(obs.shape[0])
         )
+        modules_and_opts = [(self.world_model, self.model_opt)]
+        actor_loss = critic_loss = replay_loss = model_loss.new_zeros(())
+        if behavior and obs.shape[1] > 1:
+            actor_loss, critic_loss, replay_loss = self._behavior_loss(posts, rewards, terminals)
+            modules_and_opts.extend([(self.actor, self.actor_opt), (self.critic, self.critic_opt)])
 
-    def _actor_critic_update(self, posts: RSSMState, dones: torch.Tensor) -> Tuple[float, float]:
-        """在想象轨迹上更新策略与价值网络。"""
-        start = self.world_model.rssm.detach_state(posts)
-        if start.deter.shape[1] <= 1:
-            return 0.0, 0.0
-        # chunk 的第一个 posterior 缺少前文上下文，跳过它能减轻 RSSM 冷启动偏差。
-        start = RSSMState(
-            deter=start.deter[:, 1:],
-            stoch=start.stoch[:, 1:],
-            stats=start.stats[:, 1:],
-        )
-        dones = dones[:, 1:]
-        # flatten batch and time
-        b, t, _ = start.deter.shape
-        nonterminal = (dones.reshape(b * t) < 0.5)
-        if not torch.any(nonterminal):
-            return 0.0, 0.0
-        start = RSSMState(
-            deter=start.deter.reshape(b * t, -1)[nonterminal],
-            stoch=start.stoch.reshape(b * t, -1)[nonterminal],
-            stats=start.stats.reshape(b * t, *start.stats.shape[2:])[nonterminal],
-        )
+        for _, opt in modules_and_opts:
+            opt.zero_grad(set_to_none=True)
+        (model_loss + actor_loss + critic_loss + self.config.replay_value_scale * replay_loss).backward()
+        for module, opt in modules_and_opts:
+            torch.nn.utils.clip_grad_norm_(module.parameters(), self.config.grad_clip)
+            opt.step()
+        if len(modules_and_opts) > 1:
+            self._updates += 1
+            self._update_target()
 
-        with freeze_module_params(self.world_model, self.critic, self.critic_target):
-            feats, entropies, rewards, discounts, last_state = self._imagine(start)
-            values_raw = self._critic_raw(feats)
-            values = self._critic_value(values_raw)
-            bootstrap_raw = self._critic_raw(self.world_model.rssm.get_feat(last_state))
-            bootstrap = self._critic_value(bootstrap_raw)
-            returns = lambda_return(rewards, values, discounts, bootstrap, self.config.lambda_)
-            weights = discount_cumprod(discounts).detach()
-            actor_loss = -(weights * returns).mean() - self.config.entropy_scale * (weights * entropies).mean()
+        if report:
+            # 一次传回所有标量，避免每项日志分别等待 GPU 同步。
+            vals = torch.stack((model_loss, *model_metrics, actor_loss, critic_loss, replay_loss))
+            return TrainingMetrics(*vals.detach().cpu().tolist())
+        return None
 
-        self.actor_opt.zero_grad()
-        actor_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.config.grad_clip)
-        self.actor_opt.step()
+    def _behavior_loss(self, posts: RSSMState, rewards: torch.Tensor,
+                       terminals: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        # 随机切片的首帧用来恢复时序上下文。其后的后验状态均可作为想象起点。
+        start = RSSMState(*(x[:, 1:].detach().flatten(0, 1) for x in (posts.deter, posts.stoch, posts.stats)))
+        alive = 1 - terminals[:, 1:].reshape(-1)
+        return self._actor_critic_loss(start, alive, posts, rewards, terminals)
 
-        feats_detached = feats.detach()
-        with torch.no_grad():
-            target_raw = self._target_critic_raw(feats_detached)
-            target_values = self._critic_value(target_raw)
-            last_feat = self.world_model.rssm.get_feat(last_state).detach()
-            bootstrap_raw = self._target_critic_raw(last_feat)
-            bootstrap = self._critic_value(bootstrap_raw)
-            returns = lambda_return(rewards.detach(), target_values, discounts.detach(), bootstrap, self.config.lambda_)
-            weights = discount_cumprod(discounts.detach())
-
-        values_raw = self._critic_raw(feats_detached)
-        critic_loss = self._critic_loss(values_raw, returns, weights)
-        self.critic_opt.zero_grad()
-        critic_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), self.config.grad_clip)
-        self.critic_opt.step()
-        self._update_target()
-
-        return actor_loss.item(), critic_loss.item()
-
-    def _imagine(self, start: RSSMState):
-        """在世界模型中进行想象 rollout。"""
-        feats = []
-        entropies = []
-        rewards = []
-        discounts = []
-        state = start
+    def _imagine(self, state: RSSMState, *, pathwise: bool = False) -> Tuple[torch.Tensor, ...]:
+        """返回 H+1 个状态特征和 H 个动作。从 s_t 采取 a_t 后预测 r_{t+1}、c_{t+1}。"""
+        rssm = self.world_model.rssm
+        features, actions, entropies = [rssm.get_feat(state)], [], []
+        action_ids = torch.arange(self.config.action_dim, device=self.device)
         for _ in range(self.config.horizon):
-            feat = self.world_model.rssm.get_feat(state)
-            dist = self.actor(feat)
+            dist = self.actor(features[-1].detach())
             action = dist.sample()
-            entropy = dist.entropy()
-            action_oh = F.one_hot(action, num_classes=self.config.action_dim).float()
-            action_oh = action_oh + dist.probs - dist.probs.detach()
+            one_hot = (action.unsqueeze(-1) == action_ids).float()
+            if pathwise:
+                # 原 V1 针对连续控制。离散环境以直通 one-hot 保留同一条路径梯度。
+                probs = dist.probs
+                one_hot = one_hot + (probs - probs.detach())
+                if self.entropy_scale:
+                    entropies.append(dist.entropy())
+            state = rssm.img_step(state, one_hot)
+            features.append(rssm.get_feat(state))
+            actions.append(action)
+        return torch.stack(features), torch.stack(actions), entropies
 
-            state = self.world_model.rssm.img_step(state, action_oh)
-            next_feat = self.world_model.rssm.get_feat(state)
-            reward = self.world_model.predict_reward(next_feat)
-            discount = torch.sigmoid(self.world_model.discount_model(next_feat).squeeze(-1)) * self.config.discount
-
-            feats.append(feat)
-            entropies.append(entropy)
-            rewards.append(reward)
-            discounts.append(discount)
-
-        feats = torch.stack(feats, dim=0)
-        entropies = torch.stack(entropies, dim=0)
-        rewards = torch.stack(rewards, dim=0)
-        discounts = torch.stack(discounts, dim=0)
-
-        return feats, entropies, rewards, discounts, state
+    def _actor_critic_loss(
+            self, start: RSSMState, alive: torch.Tensor, posts: RSSMState, rewards: torch.Tensor,
+            terminals: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        # 参数冻结期间，价值与奖励头仍能把梯度经由状态传回动作。
+        with freeze_module_params(self.world_model, self.critic):
+            feat, _, entropies = self._imagine(start, pathwise=True)
+            reward = self.world_model.predict_reward(feat[1:])
+            discount = self.world_model.predict_discount(feat[1:])
+            values = self.critic(feat[1:]).squeeze(-1)
+            returns = lambda_return(reward, values, discount, self.config.lambda_)
+            weight = discount_cumprod(discount.detach()) * alive
+            objective = returns
+            if entropies:
+                objective = objective + self.entropy_scale * torch.stack(entropies)
+            actor_loss = -(weight * objective).mean()
+        raw = self.critic(feat[:-1].detach()).squeeze(-1)
+        critic_loss = 0.5 * (weight * (raw - returns.detach()).square()).mean()
+        return actor_loss, critic_loss, critic_loss.new_zeros(())
 
     def _update_target(self) -> None:
-        """Polyak 平滑更新目标 critic。"""
-        if self.critic_target is None:
-            return
-        tau = self.config.target_tau
-        if tau <= 0.0:
-            return
-        with torch.no_grad():
-            for p, tp in zip(self.critic.parameters(), self.critic_target.parameters()):
-                tp.data.mul_(1.0 - tau)
-                tp.data.add_(tau * p.data)
+        # V1 的 lambda-return 使用在线 critic。
+        pass
 
-    def _build_world_model(self) -> WorldModel:
-        """构建世界模型（V1 为连续潜在）。"""
-        return WorldModel(self.config, kl_balance=None, discrete_latent=self._discrete_latent())
 
-    def _build_target_critic(self, feat_dim: int, out_dim: int):
-        """构建目标 critic，用于稳定 bootstrap。"""
-        critic_target = Critic(feat_dim, self.config.hidden_dim, out_dim=out_dim).to(self.device)
-        critic_target.load_state_dict(self.critic.state_dict())
-        return critic_target
+class DreamerV2Agent(DreamerV1Agent):
+    """V2 使用分类潜变量、KL balancing 和离散策略的 REINFORCE 目标。"""
 
-    def _critic_out_dim(self) -> int:
-        """critic 输出维度（V1 为标量）。"""
-        return 1
-
-    def _critic_raw(self, feats: torch.Tensor) -> torch.Tensor:
-        """critic 原始输出。"""
-        return self.critic(feats)
+    version = "v2"
+    default_entropy = 2e-3
 
     def _critic_value(self, raw: torch.Tensor) -> torch.Tensor:
-        """将 critic 输出转换为标量价值。"""
         return raw.squeeze(-1)
 
-    def _target_critic_raw(self, feats: torch.Tensor) -> torch.Tensor:
-        """目标 critic 的原始输出。"""
-        if self.critic_target is None:
-            return self._critic_raw(feats)
-        return self.critic_target(feats)
+    def _bootstrap_values(self, feat: torch.Tensor, online: torch.Tensor) -> torch.Tensor:
+        return self._critic_value(self.critic_target(feat))
 
-    def _compute_advantages(self, returns: torch.Tensor, values: torch.Tensor) -> torch.Tensor:
-        """计算优势函数。"""
-        return returns - values
+    def _advantage(self, returns: torch.Tensor, baseline: torch.Tensor) -> torch.Tensor:
+        return returns - baseline
 
-    def _critic_loss(self, raw_values: torch.Tensor, returns: torch.Tensor, weights: torch.Tensor) -> torch.Tensor:
-        """critic 的回归损失。"""
-        values = self._critic_value(raw_values)
-        return ((values - returns.detach()) ** 2 * weights).mean()
+    def _value_loss(self, raw: torch.Tensor, target: torch.Tensor, feat: torch.Tensor) -> torch.Tensor:
+        return 0.5 * (self._critic_value(raw) - target).square()
 
-    def _discrete_latent(self) -> bool:
-        """是否使用离散潜在（V1 为 False）。"""
-        return False
-    
-    
-class DreamerV2Agent(DreamerV1Agent):
-    """Simplified DreamerV2: KL balancing."""
+    def _replay_loss(
+            self, posts: RSSMState, rewards: torch.Tensor, terminals: torch.Tensor, starts_return: torch.Tensor
+    ) -> torch.Tensor:
+        return rewards.new_zeros(())
 
-    def _build_world_model(self) -> WorldModel:
-        """V2 使用 KL 平衡的世界模型。"""
-        return WorldModel(self.config, kl_balance=self.config.kl_balance, discrete_latent=self._discrete_latent())
+    def _actor_critic_loss(
+            self, start: RSSMState, alive: torch.Tensor, posts: RSSMState, rewards: torch.Tensor,
+            terminals: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        # V2（离散动作）和 V3 将想象轨迹当作数据，只对 log π(a_t|s_t) 和熵求策略梯度。
+        with torch.no_grad():
+            feat, action, _ = self._imagine(start)
+            reward = self.world_model.predict_reward(feat[1:])
+            discount = self.world_model.predict_discount(feat[1:])
+            weight = discount_cumprod(discount) * alive
+        online = self.critic(feat)
+        with torch.no_grad():
+            values = self._bootstrap_values(feat, online)
+            returns = lambda_return(reward, values[1:], discount, self.config.lambda_)
+            advantage = self._advantage(returns, values[:-1])
+        dist = self.actor(feat[:-1])
+        actor_loss = -(weight * (dist.log_prob(action) * advantage + self.entropy_scale * dist.entropy())).mean()
+        critic_loss = (weight * self._value_loss(online[:-1], returns, feat[:-1])).mean()
+        replay_loss = self._replay_loss(posts, rewards, terminals, returns[0])
+        return actor_loss, critic_loss, replay_loss
 
-    def _discrete_latent(self) -> bool:
-        """V2 使用离散潜在表示。"""
-        return True
+    def _update_target(self) -> None:
+        if self._updates % self.config.target_interval == 0:
+            self.critic_target.load_state_dict(self.critic.state_dict())
 
 
 class DreamerV3Agent(DreamerV2Agent):
-    """Simplified DreamerV3: symlog + two-hot value/reward + target critic."""
+    """V3 使用 symlog、symexp two-hot、回报分位数及慢速 critic 正则。"""
+
+    version = "v3"
+    default_entropy = 3e-4
 
     def __init__(self, config: DreamerConfig, device: torch.device):
-        """启用 symlog、two-hot 回归与目标 critic。"""
-        if config.reward_bins <= 1:
-            config.reward_bins = 255
-        if config.value_bins <= 1:
-            config.value_bins = 255
-        config.use_symlog = True
         super().__init__(config, device)
-        self.return_rms = RunningMeanStd(shape=())
-
-    def _critic_out_dim(self) -> int:
-        """V3 critic 输出为分布 logits。"""
-        return self.config.value_bins
-
-    def _build_world_model(self) -> WorldModel:
-        """V3 仍使用离散潜在 + KL 平衡。"""
-        return WorldModel(self.config, kl_balance=self.config.kl_balance, discrete_latent=self._discrete_latent())
-
-    def _build_target_critic(self, feat_dim: int, out_dim: int):
-        """构建目标 critic，用于稳定训练。"""
-        critic_target = Critic(feat_dim, self.config.hidden_dim, out_dim=out_dim).to(self.device)
-        critic_target.load_state_dict(self.critic.state_dict())
-        return critic_target
+        self.return_bounds = torch.zeros(2, device=device)
+        self.return_quantiles = torch.tensor([0.05, 0.95], device=device)
 
     def _critic_value(self, raw: torch.Tensor) -> torch.Tensor:
-        """将 two-hot logits 转为标量价值。"""
-        symlog_value = logits_to_mean(raw, self.config.value_min, self.config.value_max)
-        return symexp(symlog_value)
+        return self.world_model.distribution.mean(raw)
 
-    def _target_critic_raw(self, feats: torch.Tensor) -> torch.Tensor:
-        """目标 critic 原始输出。"""
-        return self.critic_target(feats)
+    def _bootstrap_values(self, feat: torch.Tensor, online: torch.Tensor) -> torch.Tensor:
+        # V3 用在线 critic 做 bootstrap。慢速 critic 只提供正则目标。
+        return self._critic_value(online)
 
-    def _compute_advantages(self, returns: torch.Tensor, values: torch.Tensor) -> torch.Tensor:
-        """对回报做归一化后计算优势。"""
-        if not self.config.normalize_advantage:
-            return returns - values
-        returns_np = returns.detach().cpu().numpy().reshape(-1)
-        self.return_rms.update(returns_np)
-        mean = torch.tensor(self.return_rms.mean, device=returns.device, dtype=returns.dtype)
-        std = torch.tensor(np.sqrt(self.return_rms.var) + 1e-8, device=returns.device, dtype=returns.dtype)
-        returns_norm = (returns - mean) / std
-        values_norm = (values - mean) / std
-        return returns_norm - values_norm
+    def _advantage(self, returns: torch.Tensor, baseline: torch.Tensor) -> torch.Tensor:
+        percentiles = torch.quantile(returns.reshape(-1), self.return_quantiles)
+        self.return_bounds.lerp_(percentiles, self.config.return_ema)
+        scale = (self.return_bounds[1] - self.return_bounds[0]).clamp_min(1.)
+        return (returns - baseline) / scale
 
-    def _critic_loss(self, raw_values: torch.Tensor, returns: torch.Tensor, weights: torch.Tensor) -> torch.Tensor:
-        """V3 的 two-hot 价值回归损失。"""
-        target = symlog(returns)
-        target = two_hot(target, self.config.value_bins, self.config.value_min, self.config.value_max)
-        log_probs = F.log_softmax(raw_values, dim=-1)
-        loss = -(target * log_probs).sum(-1)
-        return (loss * weights).mean()
+    def _value_loss(self, raw: torch.Tensor, target: torch.Tensor, feat: torch.Tensor) -> torch.Tensor:
+        dist = self.world_model.distribution
+        with torch.no_grad():
+            slow_value = self._critic_value(self.critic_target(feat))
+        return dist.loss(raw, target) + self.config.slow_value_scale * dist.loss(raw, slow_value)
 
+    def _replay_loss(
+            self, posts: RSSMState, rewards: torch.Tensor, terminals: torch.Tensor, starts_return: torch.Tensor
+    ) -> torch.Tensor:
+        if rewards.shape[1] <= 2 or not self.config.replay_value_scale:
+            return rewards.new_zeros(())
+        # 真实后验序列的下一步奖励来自回放，bootstrap 来自该下一状态的想象回报。
+        # 序列不会跨回合。真实终止置零折扣，时间上限和序列末端可 bootstrap。
+        feat = self.world_model.rssm.get_feat(posts)[:, 1:-1]
+        bootstrap = starts_return.reshape(rewards.shape[0], -1)[:, 1:].transpose(0, 1)
+        target = lambda_return(
+            rewards[:, 2:].transpose(0, 1), bootstrap, (1 - terminals[:, 2:].transpose(0, 1)) * self.config.discount,
+            self.config.lambda_
+        )
+        # 该辅助损失也更新表示，使后验保留价值预测所需的信息。
+        return self._value_loss(self.critic(feat), target.transpose(0, 1), feat).mean()
+
+    @torch.no_grad()
     def _update_target(self) -> None:
-        """Polyak 平滑更新目标 critic。"""
-        super()._update_target()
+        for param, slow_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+            slow_param.lerp_(param, self.config.target_tau)
 
 
-def make_agent(version: str, config: DreamerConfig, device: torch.device):
-    """根据版本字符串构造对应的 Agent。"""
+def make_agent(version: str, config: DreamerConfig, device: torch.device) -> DreamerV1Agent:
     version = version.lower()
-    if version == "v1":
-        return DreamerV1Agent(config, device)
-    if version == "v2":
-        return DreamerV2Agent(config, device)
-    if version == "v3":
-        return DreamerV3Agent(config, device)
-    raise ValueError(f"Unknown agent version: {version}")
+    classes = {"v1": DreamerV1Agent, "v2": DreamerV2Agent, "v3": DreamerV3Agent}
+    if version not in classes:
+        raise ValueError(f"Unknown agent version: {version}")
+    return classes[version](config, device)

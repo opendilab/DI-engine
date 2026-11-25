@@ -1,3 +1,4 @@
+import argparse
 import csv
 import os
 from collections import defaultdict
@@ -6,7 +7,10 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 
-from config import TrainConfig
+if __package__:
+    from .config import SOLVED_RETURN, TrainConfig
+else:
+    from config import SOLVED_RETURN, TrainConfig
 
 
 def load_csv(path: str) -> Tuple[np.ndarray, np.ndarray]:
@@ -46,7 +50,8 @@ def aggregate_group(series: List[Tuple[np.ndarray, np.ndarray]]) -> Tuple[np.nda
     for steps, returns in series:
         for s, r in zip(steps, returns):
             step_to_values[int(s)].append(float(r))
-    all_steps = np.array(sorted(step_to_values.keys()), dtype=np.float32)
+    # 早停造成种子曲线长度各异，只在所有种子都有记录的位置画聚合曲线。
+    all_steps = np.array(sorted(s for s, vals in step_to_values.items() if len(vals) == len(series)), dtype=np.float32)
     means = []
     stds = []
     for s in all_steps:
@@ -66,14 +71,14 @@ def env_plot_path(base_path: str, env_id: str) -> str:
 
 
 def plot_returns(
-    workdir: Optional[str] = None,
-    plot_path: Optional[str] = None,
-    agent_versions: Optional[Sequence[str]] = None,
+        workdir: Optional[str] = None,
+        plot_path: Optional[str] = None,
+        agent_versions: Optional[Sequence[str]] = None,
 ) -> None:
     """按环境分别绘制学习曲线。"""
     cfg = TrainConfig()
     resolved_workdir = workdir if workdir is not None else cfg.workdir
-    resolved_plot_path = plot_path if plot_path is not None else cfg.plot_path
+    resolved_plot_path = plot_path if plot_path is not None else os.path.join(resolved_workdir, "return_curve.png")
     resolved_versions = list(agent_versions) if agent_versions is not None else list(cfg.agent_versions)
 
     runs = collect_runs(resolved_workdir)
@@ -97,13 +102,18 @@ def plot_returns(
             found = True
             x = steps / 1000.0
             label = version.upper()
-            plt.plot(x, mean, label=label)
+            line, = plt.plot(x, mean, label=label)
+            if len(series) > 1:
+                for seed_steps, seed_returns in series:
+                    plt.plot(seed_steps / 1000.0, seed_returns, color=line.get_color(), alpha=0.18, linewidth=0.8)
             if len(series) > 1:
                 plt.fill_between(x, mean - std, mean + std, alpha=0.2)
         if not found:
             plt.close()
             continue
-        plt.xlabel("Env Steps (k)")
+        if env_id in SOLVED_RETURN:
+            plt.axhline(SOLVED_RETURN[env_id], color="gray", linestyle="--", linewidth=0.9, label="Solved threshold")
+        plt.xlabel("Environment steps (k)")
         plt.ylabel("Return")
         plt.title(f"Dreamer V1/V2/V3 on {env_id}")
         plt.grid(True, alpha=0.3)
@@ -116,4 +126,8 @@ def plot_returns(
 
 
 if __name__ == "__main__":
-    plot_returns()
+    parser = argparse.ArgumentParser(description="Plot Dreamer evaluation returns.")
+    parser.add_argument("--workdir", default=TrainConfig().workdir)
+    parser.add_argument("--plot-path")
+    args = parser.parse_args()
+    plot_returns(workdir=args.workdir, plot_path=args.plot_path)

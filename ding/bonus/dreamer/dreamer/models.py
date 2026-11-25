@@ -1,99 +1,85 @@
-from typing import Iterable, Optional
+from typing import Iterable
 
 import torch
 from torch import nn
 from torch.distributions import Categorical
+from torch.nn import functional as F
 
 
-class MLP(nn.Module):
-    """多层感知机模块。"""
-    def __init__(self, in_dim: int, hidden_dims: Iterable[int], out_dim: int, act=nn.ELU, out_act: Optional[nn.Module] = None):
-        """构建 MLP。"""
-        super().__init__()
-        dims = [in_dim] + list(hidden_dims)
+def symlog(x: torch.Tensor) -> torch.Tensor:
+    return x.sign() * x.abs().log1p()
+
+
+def symexp(x: torch.Tensor) -> torch.Tensor:
+    return x.sign() * x.abs().expm1()
+
+
+def categorical_log_probs(logits: torch.Tensor, unimix: float) -> torch.Tensor:
+    log_probs = F.log_softmax(logits, dim=-1)
+    if unimix:
+        # V3 为每个类别保留 1% 均匀概率质量，避免 log-prob 和 KL 数值发散。
+        return ((1 - unimix) * log_probs.exp() + unimix / logits.shape[-1]).log()
+    return log_probs
+
+
+class MLP(nn.Sequential):
+    """向量观测版的编码器、解码器与标量预测头共用这个 MLP。"""
+
+    def __init__(
+        self, in_dim: int, hidden_dims: Iterable[int], out_dim: int, *, v3: bool = False, output_scale: float = 1.0
+    ):
         layers = []
-        for i in range(len(dims) - 1):
-            layers.append(nn.Linear(dims[i], dims[i + 1]))
-            layers.append(act())
-        layers.append(nn.Linear(dims[-1], out_dim))
-        if out_act is not None:
-            layers.append(out_act)
-        self.net = nn.Sequential(*layers)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """前向传播。"""
-        return self.net(x)
-
-
-class Encoder(nn.Module):
-    """观测编码器。"""
-    def __init__(self, obs_dim: int, embed_dim: int, hidden: int):
-        """构建编码器。"""
-        super().__init__()
-        self.net = MLP(obs_dim, [hidden, hidden], embed_dim)
-
-    def forward(self, obs: torch.Tensor) -> torch.Tensor:
-        """将观测编码为嵌入向量。"""
-        return self.net(obs)
+        for hidden in hidden_dims:
+            layers.append(nn.Linear(in_dim, hidden))
+            if v3:
+                layers.extend([nn.LayerNorm(hidden), nn.SiLU()])
+            else:
+                layers.append(nn.ELU())
+            in_dim = hidden
+        output = nn.Linear(in_dim, out_dim)
+        if output_scale != 1:
+            with torch.no_grad():
+                output.weight.mul_(output_scale)
+                output.bias.mul_(output_scale)
+        super().__init__(*layers, output)
 
 
-class Decoder(nn.Module):
-    """观测解码器。"""
-    def __init__(self, feat_dim: int, obs_dim: int, hidden: int):
-        """构建解码器。"""
-        super().__init__()
-        self.net = MLP(feat_dim, [hidden, hidden], obs_dim)
+class Actor(MLP):
+    """离散策略 `π(a | h, z)`，计算策略梯度时保留采样所用的分布。"""
 
-    def forward(self, feat: torch.Tensor) -> torch.Tensor:
-        """从特征重建观测。"""
-        return self.net(feat)
-
-
-class RewardModel(nn.Module):
-    """奖励预测模型。"""
-    def __init__(self, feat_dim: int, hidden: int, out_dim: int = 1):
-        """构建奖励模型。"""
-        super().__init__()
-        self.net = MLP(feat_dim, [hidden, hidden], out_dim)
-
-    def forward(self, feat: torch.Tensor) -> torch.Tensor:
-        """预测奖励（或分布 logits）。"""
-        return self.net(feat)
-
-
-class DiscountModel(nn.Module):
-    """折扣（终止）预测模型。"""
-    def __init__(self, feat_dim: int, hidden: int):
-        """构建折扣模型。"""
-        super().__init__()
-        self.net = MLP(feat_dim, [hidden, hidden], 1)
-
-    def forward(self, feat: torch.Tensor) -> torch.Tensor:
-        """预测折扣 logits。"""
-        return self.net(feat)
-
-
-class Actor(nn.Module):
-    """策略网络，输出动作分布。"""
-    def __init__(self, feat_dim: int, num_actions: int, hidden: int):
-        """构建策略网络。"""
-        super().__init__()
-        self.net = MLP(feat_dim, [hidden, hidden], num_actions)
-        self.num_actions = num_actions
+    def __init__(self, feat_dim: int, num_actions: int, hidden: int, *, unimix: float = 0.0):
+        super().__init__(feat_dim, (hidden, hidden), num_actions, v3=bool(unimix), output_scale=0.01 if unimix else 1.0)
+        self.unimix = unimix
 
     def forward(self, feat: torch.Tensor) -> Categorical:
-        """输出动作分布。"""
-        logits = self.net(feat)
-        return Categorical(logits=logits)
+        logits = super().forward(feat)
+        if self.unimix:
+            logits = categorical_log_probs(logits, self.unimix)
+        return Categorical(logits=logits, validate_args=False)
 
 
-class Critic(nn.Module):
-    """价值网络。"""
-    def __init__(self, feat_dim: int, hidden: int, out_dim: int = 1):
-        """构建价值网络。"""
+class SymexpTwoHot(nn.Module):
+    """在原始尺度上插值，在指数间隔的支撑点上拟合标量分布（V3）。"""
+
+    def __init__(self, num_bins: int):
         super().__init__()
-        self.net = MLP(feat_dim, [hidden, hidden], out_dim)
+        if num_bins < 3 or num_bins % 2 == 0:
+            raise ValueError("SymexpTwoHot requires an odd number of bins >= 3.")
+        positive = symexp(torch.linspace(0, 20, num_bins // 2 + 1)[1:])
+        self.register_buffer("bins", torch.cat([-positive.flip(0), torch.zeros(1), positive]))
 
-    def forward(self, feat: torch.Tensor) -> torch.Tensor:
-        """输出价值（或分布 logits）。"""
-        return self.net(feat)
+    def mean(self, logits: torch.Tensor) -> torch.Tensor:
+        probs = logits.softmax(-1)
+        mid = self.bins.numel() // 2
+        # 对称桶先配对。在均匀分布下，大幅值正负项能精确抵消，初始预测为零。
+        return ((probs[..., mid + 1:] - probs[..., :mid].flip(-1)) * self.bins[mid + 1:]).sum(-1)
+
+    def loss(self, logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        target = target.detach().clamp(self.bins[0], self.bins[-1]).contiguous()
+        upper = torch.searchsorted(self.bins, target).clamp(1, self.bins.numel() - 1)
+        lower = upper - 1
+        fraction = (target - self.bins[lower]) / (self.bins[upper] - self.bins[lower])
+        log_probs = logits.log_softmax(-1)
+        lo = log_probs.gather(-1, lower.unsqueeze(-1)).squeeze(-1)
+        hi = log_probs.gather(-1, upper.unsqueeze(-1)).squeeze(-1)
+        return -torch.lerp(lo, hi, fraction)

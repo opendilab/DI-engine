@@ -1,151 +1,116 @@
 from dataclasses import dataclass
-from typing import List
+from typing import Tuple
 
 import torch
 from torch import nn
-from torch.distributions import Normal, OneHotCategorical
-import torch.nn.functional as F
+from torch.nn import functional as F
+
+from .models import MLP, categorical_log_probs
 
 
 @dataclass
 class RSSMState:
-    """RSSM 隐状态容器：同时包含确定性部分(h)与随机部分(z)。"""
-    deter: torch.Tensor       # h_t (GRU state)
-    stoch: torch.Tensor       # z_t (Sampled latent)
-    stats: torch.Tensor       # Mean/Std (V1) 或 Logits (V2/V3)
+    """确定性记忆 h、随机潜变量 z，以及构造 z 的分布参数。"""
+
+    deter: torch.Tensor
+    stoch: torch.Tensor
+    stats: torch.Tensor
+
 
 class RSSM(nn.Module):
-    """Recurrent State Space Model，支持连续/离散潜在。"""
-    def __init__(self, action_dim: int, embed_dim: int, deter_dim: int, 
-    stoch_dim: int, hidden_dim: int, min_std: float = 0.1,
-    discrete: bool = False, stoch_classes: int = 0,
+    """递归状态空间模型。采集时用后验，想象时只用先验。"""
+
+    def __init__(
+        self,
+        action_dim: int,
+        embed_dim: int,
+        deter_dim: int,
+        stoch_dim: int,
+        hidden_dim: int,
+        *,
+        stoch_classes: int = 0,
+        unimix: float = 0.0
     ):
-        """初始化 RSSM 结构与参数。"""
         super().__init__()
-        self.action_dim = action_dim
-        self.embed_dim = embed_dim
         self.deter_dim = deter_dim
         self.stoch_dim = stoch_dim
-        self.hidden_dim = hidden_dim
-        self.min_std = min_std
-        self.discrete = discrete
         self.stoch_classes = stoch_classes
-        if self.discrete and self.stoch_classes <= 1:
-            raise ValueError("Discrete RSSM requires stoch_classes > 1.")
-
-        stoch_input = stoch_dim * stoch_classes if self.discrete else stoch_dim
-        self.input_layer = nn.Linear(stoch_input + action_dim, hidden_dim)
+        self.unimix = unimix
+        self.stoch_feat_dim = stoch_dim * (stoch_classes or 1)
+        v3 = bool(unimix)
+        self.input_layer = MLP(self.stoch_feat_dim + action_dim, (), hidden_dim)
+        self.input_norm = nn.LayerNorm(hidden_dim) if v3 else nn.Identity()
+        self.activation = nn.SiLU() if v3 else nn.ELU()
         self.rnn = nn.GRUCell(hidden_dim, deter_dim)
-        if self.discrete:
-            self.prior_layer = nn.Linear(deter_dim, stoch_dim * stoch_classes)
-            self.post_layer = nn.Linear(deter_dim + embed_dim, stoch_dim * stoch_classes)
-        else:
-            self.prior_layer = nn.Linear(deter_dim, 2 * stoch_dim)
-            self.post_layer = nn.Linear(deter_dim + embed_dim, 2 * stoch_dim)
+        out_dim = self.stoch_feat_dim if stoch_classes else 2 * stoch_dim
+        self.prior_layer = MLP(deter_dim, (hidden_dim, ), out_dim, v3=v3)
+        self.post_layer = MLP(deter_dim + embed_dim, (hidden_dim, ), out_dim, v3=v3)
 
     def init_state(self, batch_size: int, device: torch.device) -> RSSMState:
-        """创建初始隐状态。"""
         deter = torch.zeros(batch_size, self.deter_dim, device=device)
-        if self.discrete:
-            stoch = torch.zeros(batch_size, self.stoch_dim * self.stoch_classes, device=device)
+        stoch = torch.zeros(batch_size, self.stoch_feat_dim, device=device)
+        if self.stoch_classes:
             stats = torch.zeros(batch_size, self.stoch_dim, self.stoch_classes, device=device)
         else:
-            stoch = torch.zeros(batch_size, self.stoch_dim, device=device)
-            mean = torch.zeros(batch_size, self.stoch_dim, device=device)
-            std = torch.ones(batch_size, self.stoch_dim, device=device)
-            stats = torch.cat([mean, std], dim=-1)
-        return RSSMState(deter=deter, stoch=stoch, stats=stats)
+            stats = torch.cat([stoch, torch.ones_like(stoch)], dim=-1)
+        return RSSMState(deter, stoch, stats)
 
-    def get_feat(self, state: RSSMState) -> torch.Tensor:
-        """拼接确定性与随机性状态作为特征。"""
+    @staticmethod
+    def get_feat(state: RSSMState) -> torch.Tensor:
         return torch.cat([state.deter, state.stoch], dim=-1)
 
-    def _stats(self, x: torch.Tensor) -> (torch.Tensor, torch.Tensor):
-        """将线性输出拆分为 mean/std。"""
-        mean, std = torch.chunk(x, 2, dim=-1)
-        std = F.softplus(std) + self.min_std
-        return mean, std
+    def recurrent(self, prev: RSSMState, action: torch.Tensor) -> torch.Tensor:
+        """h_t = f(h_{t-1}, z_{t-1}, a_{t-1})。先验和后验共用 h_t。"""
+        x = self.input_layer(torch.cat([prev.stoch, action], dim=-1))
+        return self.rnn(self.activation(self.input_norm(x)), prev.deter)
 
-    def _sample(self, mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:
-        """连续潜在采样。"""
+    def _stats(self, raw: torch.Tensor) -> torch.Tensor:
+        if self.stoch_classes:
+            logits = raw.unflatten(-1, (self.stoch_dim, self.stoch_classes))
+            return categorical_log_probs(logits, self.unimix)
+        mean, raw_std = raw.chunk(2, dim=-1)
+        return torch.cat([mean, F.softplus(raw_std) + 0.1], dim=-1)
+
+    def _sample(self, stats: torch.Tensor) -> torch.Tensor:
+        if self.stoch_classes:
+            probs = stats.exp()
+            # 指数竞赛等价于从每个类别分布独立采样，向量化处理各个随机因子。
+            with torch.no_grad():
+                index = (probs / torch.empty_like(probs).exponential_()).argmax(-1, keepdim=True)
+                one_hot = torch.zeros_like(probs).scatter_(-1, index, 1)
+            # 前向是硬 one-hot，反向通过 softmax 的概率。
+            return (one_hot + (probs - probs.detach())).flatten(-2)
+        mean, std = stats.chunk(2, dim=-1)
         return mean + std * torch.randn_like(mean)
 
-    def _sample_discrete(self, logits: torch.Tensor) -> torch.Tensor:
-        """离散潜在采样（straight-through）。"""
-        dist = OneHotCategorical(logits=logits)
-        sample = dist.sample()
-        probs = dist.probs
-        return sample + probs - probs.detach()
-
-    def img_step(self, prev_state: RSSMState, action: torch.Tensor) -> RSSMState:
-        """先验步：仅依赖前一状态与动作。"""
-        x = torch.cat([prev_state.stoch, action], dim=-1)
-        x = F.elu(self.input_layer(x))
-        deter = self.rnn(x, prev_state.deter)
-        if self.discrete:
-            logits = self.prior_layer(deter).view(-1, self.stoch_dim, self.stoch_classes)
-            stoch = self._sample_discrete(logits).reshape(-1, self.stoch_dim * self.stoch_classes)
-            return RSSMState(deter=deter, stoch=stoch, stats=logits)
-        mean, std = self._stats(self.prior_layer(deter))
-        stoch = self._sample(mean, std)
-        stats = torch.cat([mean, std], dim=-1)
-        return RSSMState(deter=deter, stoch=stoch, stats=stats)
+    def img_step(self, prev: RSSMState, action: torch.Tensor) -> RSSMState:
+        deter = self.recurrent(prev, action)
+        stats = self._stats(self.prior_layer(deter))
+        return RSSMState(deter, self._sample(stats), stats)
 
     def obs_step(self, deter: torch.Tensor, embed: torch.Tensor) -> RSSMState:
-        """后验步：融合观测嵌入。"""
-        x = torch.cat([deter, embed], dim=-1)
-        if self.discrete:
-            logits = self.post_layer(x).view(-1, self.stoch_dim, self.stoch_classes)
-            stoch = self._sample_discrete(logits).reshape(-1, self.stoch_dim * self.stoch_classes)
-            return RSSMState(deter=deter, stoch=stoch, stats=logits)
-        mean, std = self._stats(self.post_layer(x))
-        stoch = self._sample(mean, std)
-        stats = torch.cat([mean, std], dim=-1)
-        return RSSMState(deter=deter, stoch=stoch, stats=stats)
+        stats = self._stats(self.post_layer(torch.cat([deter, embed], dim=-1)))
+        return RSSMState(deter, self._sample(stats), stats)
 
-    def observe(self, embeds: torch.Tensor, actions: torch.Tensor, init_state: RSSMState) -> (RSSMState, RSSMState):
-        """按时间序列滚动，返回 prior 与 posterior 序列。"""
-        priors: List[RSSMState] = []
-        posts: List[RSSMState] = []
-        state = init_state
-        time_steps = embeds.shape[1]
-        for t in range(time_steps):
-            prior = self.img_step(state, actions[:, t])
-            post = self.obs_step(prior.deter, embeds[:, t])
-            state = post
-            priors.append(prior)
-            posts.append(post)
-        return stack_states(priors), stack_states(posts)
-
-    def detach_state(self, state: RSSMState) -> RSSMState:
-        """从计算图中分离隐状态。"""
-        return RSSMState(
-            deter=state.deter.detach(),
-            stoch=state.stoch.detach(),
-            stats=state.stats.detach(),
+    def observe(self, embeds: torch.Tensor, actions: torch.Tensor, state: RSSMState) -> Tuple[torch.Tensor, RSSMState]:
+        """输入 [B,T,...]。actions[:, t] 是进入 obs[:, t] 的动作 a_{t-1}。"""
+        posts = []
+        for embed, action in zip(embeds.unbind(1), actions.unbind(1)):
+            state = self.obs_step(self.recurrent(state, action), embed)
+            posts.append(state)
+        deter = torch.stack([s.deter for s in posts], dim=1)
+        posterior = RSSMState(
+            deter, torch.stack([s.stoch for s in posts], dim=1), torch.stack([s.stats for s in posts], dim=1)
         )
+        # 观测序列只沿后验推进。先验这时只需分布参数，可以批量计算，省去无用的采样。
+        return self._stats(self.prior_layer(deter)), posterior
 
-    def kl_divergence(self, post: RSSMState, prior: RSSMState) -> torch.Tensor:
-        """计算 posterior 与 prior 的 KL。"""
-        if self.discrete:
-            post_logits = post.stats
-            prior_logits = prior.stats
-            post_dist = OneHotCategorical(logits=post_logits)
-            prior_dist = OneHotCategorical(logits=prior_logits)
-            kl = torch.distributions.kl.kl_divergence(post_dist, prior_dist)
-            return torch.sum(kl, dim=-1)
-        post_mean, post_std = torch.chunk(post.stats, 2, dim=-1)
-        prior_mean, prior_std = torch.chunk(prior.stats, 2, dim=-1)
-        post_dist = Normal(post_mean, post_std)
-        prior_dist = Normal(prior_mean, prior_std)
-        kl = torch.distributions.kl.kl_divergence(post_dist, prior_dist)
-        return torch.sum(kl, dim=-1)
-
-
-def stack_states(states: List[RSSMState], dim: int = 1) -> RSSMState:
-    """按时间维堆叠状态列表。"""
-    return RSSMState(
-        deter=torch.stack([s.deter for s in states], dim=dim),
-        stoch=torch.stack([s.stoch for s in states], dim=dim),
-        stats=torch.stack([s.stats for s in states], dim=dim),
-    )
+    def kl_divergence(self, post: torch.Tensor, prior: torch.Tensor) -> torch.Tensor:
+        """KL(q || p) 在潜变量维度求和，保留各样本和时间步。"""
+        if self.stoch_classes:
+            return (post.exp() * (post - prior)).sum((-1, -2))
+        q_mean, q_std = post.chunk(2, dim=-1)
+        p_mean, p_std = prior.chunk(2, dim=-1)
+        return (
+            (p_std.log() - q_std.log()) + 0.5 * ((q_std / p_std).square() + ((q_mean - p_mean) / p_std).square() - 1)
+        ).sum(-1)
