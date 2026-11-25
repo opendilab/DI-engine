@@ -12,6 +12,18 @@ from ding.bonus.dreamer.dreamer.replay import ReplayBuffer
 from ding.bonus.dreamer.plot_returns import aggregate_group
 from ding.bonus.dreamer.train import evaluate, step_env, train
 
+pytestmark = pytest.mark.unittest
+
+
+@pytest.fixture(scope="module", autouse=True)
+def single_torch_thread():
+    threads = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        yield
+    finally:
+        torch.set_num_threads(threads)
+
 
 def small_agent(version, **overrides):
     config = DreamerConfig(
@@ -199,6 +211,8 @@ def test_evaluation_keeps_training_rng_state():
     [("CartPole-v1", "v3", 1), ("LunarLander-v3", "v2", 3), ("LunarLander-v3", "v3", 2)],
 )
 def test_training_emits_config_checkpoint_and_raw_returns(tmp_path, env_id, version, repeat):
+    if env_id == "LunarLander-v3":
+        pytest.importorskip("Box2D")
     cfg = TrainConfig(
         total_steps=128,
         seed_steps=64,
