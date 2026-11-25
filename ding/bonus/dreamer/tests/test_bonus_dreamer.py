@@ -194,8 +194,11 @@ def test_evaluation_keeps_training_rng_state():
     torch.testing.assert_close(torch.random.get_rng_state(), rng_state)
 
 
-@pytest.mark.parametrize("env_id", ["CartPole-v1", "LunarLander-v3"])
-def test_training_emits_config_checkpoint_and_raw_returns(tmp_path, env_id):
+@pytest.mark.parametrize(
+    ("env_id", "version", "repeat"),
+    [("CartPole-v1", "v3", 1), ("LunarLander-v3", "v2", 3), ("LunarLander-v3", "v3", 2)],
+)
+def test_training_emits_config_checkpoint_and_raw_returns(tmp_path, env_id, version, repeat):
     cfg = TrainConfig(
         total_steps=128,
         seed_steps=64,
@@ -208,11 +211,15 @@ def test_training_emits_config_checkpoint_and_raw_returns(tmp_path, env_id):
         workdir=str(tmp_path),
         plot=False
     )
-    result = train(cfg, env_id, "v3", 42)
-    run = tmp_path / env_id / "v3" / "seed_42"
+    result = train(cfg, env_id, version, 42)
+    run = tmp_path / env_id / version / "seed_42"
     assert result["updates"] > 0
-    assert result["env_steps"] == 128
+    assert result["decision_steps"] == 128
+    assert (repeat - 1) * 128 < result["env_steps"] <= repeat * 128
     assert len(result["holdouts"][-1]["returns"]) == 3
     assert (run / "config.json").exists() and (run / "result.json").exists()
     policy = torch.load(run / "policy.pt", weights_only=True)
-    assert policy["env_steps"] == result["env_steps"] and policy["version"] == "v3"
+    assert policy["env_steps"] == result["env_steps"] and policy["version"] == version
+    assert policy["action_repeat"] == repeat
+    if version == "v2":
+        assert policy["agent_config"]["v2_dynamics_mix"] == 0.9

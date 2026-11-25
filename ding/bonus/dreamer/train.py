@@ -28,7 +28,7 @@ else:
     from dreamer.replay import ReplayBuffer
 
 # 预算与评估频率按策略决策次数计。输出另记录原始环境步数。
-TASK_BUDGETS = {"CartPole-v1": (60_000, 1000, 2000), "LunarLander-v3": (220_000, 4000, 5000)}
+TASK_BUDGETS = {"CartPole-v1": (60_000, 1000, 2000), "LunarLander-v3": (260_000, 4000, 5000)}
 
 
 class ObsNormalizer:
@@ -144,7 +144,7 @@ def train(cfg: TrainConfig, env_id: str, version: str, seed: int) -> dict:
     lunar = env_id == "LunarLander-v3"
     lunar_v2 = lunar and version == "v2"
     if cfg.action_repeat is None:
-        repeat = 3 if lunar and version in ("v1", "v2") else 1
+        repeat = (2 if version == "v3" else 3) if lunar else 1
         cfg = replace(cfg, action_repeat=repeat)
     total_steps, seed_steps, eval_every = (
         value if value is not None else default for value, default in

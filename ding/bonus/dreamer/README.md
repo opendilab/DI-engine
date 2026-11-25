@@ -29,9 +29,9 @@ python ding/bonus/dreamer/train.py --workdir runs/dreamer-matrix
 python ding/bonus/dreamer/plot_returns.py --workdir runs/dreamer-matrix
 ```
 
-`train.py --help` 列出步数、采样和评估设置。CartPole 默认预算为 60,000 次策略决策，每 2,000 次评估。LunarLander 默认预算为 220,000 次，每 5,000 次评估。`--full-budget` 可保留到预算结束的完整曲线。
+`train.py --help` 列出步数、采样和评估设置。CartPole 默认预算为 60,000 次策略决策，每 2,000 次评估。LunarLander 默认预算为 260,000 次，每 5,000 次评估。`--full-budget` 可保留到预算结束的完整曲线。
 
-LunarLander 的 V1、V2 每次决策最多重复同一动作 3 个环境步，回合结束即停止。累计奖励和原始环境步数均按实际调用统计。该环境的 V2 使用 90% 路径梯度、10% REINFORCE，actor 学习率为 0.00008。CartPole 的 V2 使用 REINFORCE，KL 权重为 0.1。
+LunarLander 的 V1、V2 每次决策最多重复同一动作 3 个环境步，V3 最多重复 2 步。回合结束即停止，累计奖励和原始环境步数均按实际调用统计。该环境的 V2 使用 90% 路径梯度、10% REINFORCE，actor 学习率为 0.00008。CartPole 的 V2 使用 REINFORCE，KL 权重为 0.1。
 
 ## 如何判断收敛
 
