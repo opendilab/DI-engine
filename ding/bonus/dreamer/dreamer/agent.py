@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Dict, Optional, Tuple
 
 import numpy as np
@@ -139,8 +139,11 @@ class DreamerV1Agent:
 
     version = "v1"
     default_entropy = 0.0
+    default_actor_lr = 8e-5
 
     def __init__(self, config: DreamerConfig, device: torch.device):
+        if config.actor_lr is None:
+            config = replace(config, actor_lr=self.default_actor_lr)
         self.config = config
         self.device = torch.device(device)
         self.entropy_scale = self.default_entropy if config.entropy_scale is None else config.entropy_scale
@@ -231,7 +234,7 @@ class DreamerV1Agent:
             action = dist.sample()
             one_hot = (action.unsqueeze(-1) == action_ids).float()
             if pathwise:
-                # 原 V1 针对连续控制。离散环境以直通 one-hot 保留同一条路径梯度。
+                # V1 的离散实验以直通 one-hot 保留路径梯度，连续实验使用可重参数化的高斯动作。
                 probs = dist.probs
                 one_hot = one_hot + (probs - probs.detach())
                 if self.entropy_scale:
@@ -271,6 +274,7 @@ class DreamerV2Agent(DreamerV1Agent):
 
     version = "v2"
     default_entropy = 2e-3
+    default_actor_lr = 3e-4
 
     def _critic_value(self, raw: torch.Tensor) -> torch.Tensor:
         return raw.squeeze(-1)

@@ -8,7 +8,7 @@
 | V2 | 多因子分类潜变量和直通采样。KL 的两项均为 `KL(q ∥ p)`，更新先验和后验的权重分别为 0.8、0.2。 | 离散策略用 REINFORCE 和 critic baseline，目标 critic 每 100 次行为更新同步。 |
 | V3 | 向量观测使用 symlog。每个位置的动力学和表示 KL 分别应用 1 nat 的下限，按 Nature 版本以 1、0.1 加权。分类潜变量和策略均混合 1% 的均匀分布。 | 奖励与价值采用 symexp two-hot。优势除以至少为 1 的回报分位数 EMA 范围。在线 critic bootstrap，慢速 critic 提供正则。真实回放上的辅助价值损失也训练表示。 |
 
-这里采用小型 MLP 和单层 GRU，V1/V2 可以用随机预采样的观测统计量做固定归一化。V1 的原始连续策略在此处对应直通离散动作。V3 保留论文中的关键损失和数值变换，GRU、层宽与优化器采用适合向量环境的 PyTorch 配置。
+这里采用小型 MLP 和单层 GRU，V1/V2 可以用随机预采样的观测统计量做固定归一化。V1 的动作梯度沿用论文中离散实验的直通估计器。V3 保留论文中的关键损失和数值变换，GRU、层宽与优化器采用适合向量环境的 PyTorch 配置。
 
 参考 [Dreamer V1 论文](https://arxiv.org/abs/1912.01603)、[V1 官方实现](https://github.com/google-research/dreamer)、[Dreamer V2 论文](https://arxiv.org/abs/2010.02193)、[V2 官方实现](https://github.com/danijar/dreamerv2/tree/07d906e9c4322c6fc2cd6ed23e247ccd6b7c8c41)、[Dreamer V3 Nature 论文](https://www.nature.com/articles/s41586-025-08744-2)、[V3 官方实现](https://github.com/danijar/dreamerv3/tree/e01491fad6434b2245a3b8ca201dd7faedcc458c) 和 [DI-engine PR #879](https://github.com/opendilab/DI-engine/pull/879/changes)。
 

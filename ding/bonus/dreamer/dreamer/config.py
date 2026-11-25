@@ -23,7 +23,7 @@ class DreamerConfig:
     lambda_: float = 0.95
 
     model_lr: float = 3e-4
-    actor_lr: float = 3e-4
+    actor_lr: Optional[float] = None
     critic_lr: float = 3e-4
     grad_clip: float = 100.0
     entropy_scale: Optional[float] = None
