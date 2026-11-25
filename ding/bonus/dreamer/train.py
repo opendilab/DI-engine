@@ -141,8 +141,10 @@ def train(cfg: TrainConfig, env_id: str, version: str, seed: int) -> dict:
     torch.set_num_threads(cfg.threads)
     seed_everything(seed)
     version = version.lower()
+    lunar = env_id == "LunarLander-v3"
+    lunar_v2 = lunar and version == "v2"
     if cfg.action_repeat is None:
-        repeat = 3 if env_id == "LunarLander-v3" and version == "v1" else 1
+        repeat = 3 if lunar and version in ("v1", "v2") else 1
         cfg = replace(cfg, action_repeat=repeat)
     total_steps, seed_steps, eval_every = (
         value if value is not None else default for value, default in
@@ -159,13 +161,15 @@ def train(cfg: TrainConfig, env_id: str, version: str, seed: int) -> dict:
             raise ValueError(f"{env_id} must use a zero-based Discrete action space.")
         if len(env.observation_space.shape) != 1:
             raise ValueError(f"{env_id} must provide vector observations.")
+        actor_lr = cfg.actor_lr if cfg.actor_lr is not None else (8e-5 if lunar_v2 else None)
+        dynamics_mix = cfg.v2_dynamics_mix if cfg.v2_dynamics_mix is not None else (0.9 if lunar_v2 else 0.0)
         agent_config = DreamerConfig(
             obs_dim=int(env.observation_space.shape[0]),
             action_dim=int(env.action_space.n),
-            actor_lr=cfg.actor_lr,
+            actor_lr=actor_lr,
             # V2 的离散 Atari 配置也采用较低的 KL 权重。
             kl_scale=0.1 if env_id == "CartPole-v1" and version == "v2" else 1.0,
-            v2_dynamics_mix=cfg.v2_dynamics_mix,
+            v2_dynamics_mix=dynamics_mix,
         )
         agent = make_agent(version, agent_config, torch.device(cfg.device))
         env.action_space.seed(seed)
@@ -304,7 +308,7 @@ def _train_loop(
                     updates += 1
                     if metrics is not None:
                         if not np.isfinite(list(asdict(metrics).values())).all():
-                            raise FloatingPointError(f"Non-finite loss at env step {step}: {metrics}")
+                            raise FloatingPointError(f"Non-finite loss at decision step {step}: {metrics}")
                         print(
                             f"train step={step} updates={updates} model={metrics.model_loss:.3f} "
                             f"actor={metrics.actor_loss:.3f} critic={metrics.critic_loss:.3f}",

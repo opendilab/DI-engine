@@ -55,7 +55,7 @@ class TrainConfig:
     seed_steps: Optional[int] = None
     eval_every: Optional[int] = None
     action_repeat: Optional[int] = None
-    v2_dynamics_mix: float = 0.0
+    v2_dynamics_mix: Optional[float] = None
     actor_lr: Optional[float] = None
     pretrain_steps: int = 100
     train_every: int = 4
