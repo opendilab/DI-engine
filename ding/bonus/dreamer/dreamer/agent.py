@@ -237,7 +237,7 @@ class DreamerV1Agent:
                 # V1 的离散实验以直通 one-hot 保留路径梯度，连续实验使用可重参数化的高斯动作。
                 probs = dist.probs
                 one_hot = one_hot + (probs - probs.detach())
-                if self.entropy_scale:
+                if self.version == "v1" and self.entropy_scale:
                     entropies.append(dist.entropy())
             state = rssm.img_step(state, one_hot)
             features.append(rssm.get_feat(state))
@@ -270,7 +270,7 @@ class DreamerV1Agent:
 
 
 class DreamerV2Agent(DreamerV1Agent):
-    """V2 使用分类潜变量、KL balancing 和离散策略的 REINFORCE 目标。"""
+    """V2 使用分类潜变量、KL balancing，并可混合两种策略梯度。"""
 
     version = "v2"
     default_entropy = 2e-3
@@ -297,21 +297,29 @@ class DreamerV2Agent(DreamerV1Agent):
             self, start: RSSMState, alive: torch.Tensor, posts: RSSMState, rewards: torch.Tensor,
             terminals: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        # V2（离散动作）和 V3 将想象轨迹当作数据，只对 log π(a_t|s_t) 和熵求策略梯度。
-        with torch.no_grad():
-            feat, action, _ = self._imagine(start)
+        mix = self.config.v2_dynamics_mix if self.version == "v2" else 0.
+        # REINFORCE 将想象轨迹当作数据。V2 的混合目标另保留回报经由世界模型的路径梯度。
+        rollout_context = freeze_module_params(self.world_model) if mix else torch.no_grad()
+        with rollout_context:
+            feat, action, _ = self._imagine(start, pathwise=bool(mix))
             reward = self.world_model.predict_reward(feat[1:])
             discount = self.world_model.predict_discount(feat[1:])
-            weight = discount_cumprod(discount) * alive
-        online = self.critic(feat)
-        with torch.no_grad():
+            weight = discount_cumprod(discount.detach()) * alive
+        feat_detached = feat.detach()
+        online = self.critic(feat_detached)
+        with torch.set_grad_enabled(bool(mix)):
             values = self._bootstrap_values(feat, online)
             returns = lambda_return(reward, values[1:], discount, self.config.lambda_)
-            advantage = self._advantage(returns, values[:-1])
-        dist = self.actor(feat[:-1])
-        actor_loss = -(weight * (dist.log_prob(action) * advantage + self.entropy_scale * dist.entropy())).mean()
-        critic_loss = (weight * self._value_loss(online[:-1], returns, feat[:-1])).mean()
-        replay_loss = self._replay_loss(posts, rewards, terminals, returns[0])
+        target = returns.detach()
+        with torch.no_grad():
+            advantage = self._advantage(target, values[:-1])
+        dist = self.actor(feat_detached[:-1])
+        objective = dist.log_prob(action) * advantage
+        if mix:
+            objective = torch.lerp(objective, returns, mix)
+        actor_loss = -(weight * (objective + self.entropy_scale * dist.entropy())).mean()
+        critic_loss = (weight * self._value_loss(online[:-1], target, feat_detached[:-1])).mean()
+        replay_loss = self._replay_loss(posts, rewards, terminals, target[0])
         return actor_loss, critic_loss, replay_loss
 
     def _update_target(self) -> None:
@@ -373,6 +381,8 @@ class DreamerV3Agent(DreamerV2Agent):
 
 def make_agent(version: str, config: DreamerConfig, device: torch.device) -> DreamerV1Agent:
     version = version.lower()
+    if not 0.0 <= config.v2_dynamics_mix <= 1.0:
+        raise ValueError("v2_dynamics_mix must be in [0, 1].")
     classes = {"v1": DreamerV1Agent, "v2": DreamerV2Agent, "v3": DreamerV3Agent}
     if version not in classes:
         raise ValueError(f"Unknown agent version: {version}")

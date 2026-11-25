@@ -5,7 +5,7 @@ import os
 import random
 import time
 from contextlib import ExitStack, closing
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Optional
 
@@ -27,7 +27,7 @@ else:
     from dreamer.agent import make_agent
     from dreamer.replay import ReplayBuffer
 
-# CartPole 和 LunarLander 的预算按环境步数计。每次 step 只有一个真实动作。
+# 预算与评估频率按策略决策次数计。输出另记录原始环境步数。
 TASK_BUDGETS = {"CartPole-v1": (60_000, 1000, 2000), "LunarLander-v3": (220_000, 4000, 5000)}
 
 
@@ -53,13 +53,22 @@ def reset_env(env, seed=None):
     return out[0] if isinstance(out, tuple) else out
 
 
-def step_env(env, action):
-    out = env.step(action)
-    if len(out) == 5:
-        obs, reward, terminated, truncated, info = out
-        return obs, reward, terminated or truncated, terminated, info
-    obs, reward, done, info = out
-    return obs, reward, done, done and not info.get("TimeLimit.truncated", False), info
+def step_env(env, action, repeat: int = 1):
+    if repeat < 1:
+        raise ValueError("action_repeat must be positive.")
+    total_reward = 0.0
+    for elapsed in range(1, repeat + 1):
+        out = env.step(action)
+        if len(out) == 5:
+            obs, reward, terminal, truncated, info = out
+            done = terminal or truncated
+        else:
+            obs, reward, done, info = out
+            terminal = done and not info.get("TimeLimit.truncated", False)
+        total_reward += reward
+        if done:
+            break
+    return obs, total_reward, done, terminal, {**info, "repeat_steps": elapsed}
 
 
 def evaluate(
@@ -69,7 +78,8 @@ def evaluate(
         seed: int,
         normalizer: Optional[ObsNormalizer] = None,
         env_kwargs=None,
-        workers: int = 16
+        workers: int = 16,
+        action_repeat: int = 1,
 ) -> np.ndarray:
     """对固定种子的真实环境做贪心动作评估，并保留每局的原始回报。"""
     cuda_devices = []
@@ -99,12 +109,14 @@ def evaluate(
                 prev_action = F.one_hot(actions, agent.config.action_dim).float()
                 actions = actions.cpu().numpy()
                 for i in np.flatnonzero(~done):
-                    obs[i], reward, done[i], _, _ = step_env(group[i], int(actions[i]))
+                    obs[i], reward, done[i], _, _ = step_env(group[i], int(actions[i]), action_repeat)
                     returns[first + i] += reward
     return returns
 
 
-def _save_checkpoint(path: Path, agent, normalizer: Optional[ObsNormalizer], step: int) -> None:
+def _save_checkpoint(
+        path: Path, agent, normalizer: Optional[ObsNormalizer], step: int, env_steps: int, action_repeat: int
+) -> None:
     normalizer_state = None
     if normalizer is not None:
         normalizer_state = {"mean": torch.from_numpy(normalizer.mean), "std": torch.from_numpy(normalizer.std)}
@@ -113,7 +125,9 @@ def _save_checkpoint(path: Path, agent, normalizer: Optional[ObsNormalizer], ste
         {
             "version": agent.version,
             "agent_config": asdict(agent.config),
-            "env_steps": step,
+            "env_steps": env_steps,
+            "decision_steps": step,
+            "action_repeat": action_repeat,
             "world_model": agent.world_model.state_dict(),
             "actor": agent.actor.state_dict(),
             "normalizer": normalizer_state,
@@ -126,12 +140,16 @@ def train(cfg: TrainConfig, env_id: str, version: str, seed: int) -> dict:
     """训练一个环境、版本、种子的组合，写出逐次评估和最终独立评估。"""
     torch.set_num_threads(cfg.threads)
     seed_everything(seed)
+    version = version.lower()
+    if cfg.action_repeat is None:
+        repeat = 3 if env_id == "LunarLander-v3" and version == "v1" else 1
+        cfg = replace(cfg, action_repeat=repeat)
     total_steps, seed_steps, eval_every = (
         value if value is not None else default for value, default in
         zip((cfg.total_steps, cfg.seed_steps, cfg.eval_every), TASK_BUDGETS.get(env_id, TASK_BUDGETS["CartPole-v1"]))
     )
     if min(total_steps, eval_every, cfg.train_every, cfg.train_steps, cfg.batch_size, cfg.eval_episodes,
-           cfg.holdout_episodes, cfg.eval_workers, cfg.log_every) <= 0 or cfg.seq_len < 2:
+           cfg.holdout_episodes, cfg.eval_workers, cfg.log_every, cfg.action_repeat) <= 0 or cfg.seq_len < 2:
         raise ValueError("Step counts and batch sizes must be positive, and seq_len must be at least 2.")
     if min(seed_steps, cfg.pretrain_steps) < 0:
         raise ValueError("seed_steps and pretrain_steps must be non-negative.")
@@ -141,7 +159,14 @@ def train(cfg: TrainConfig, env_id: str, version: str, seed: int) -> dict:
             raise ValueError(f"{env_id} must use a zero-based Discrete action space.")
         if len(env.observation_space.shape) != 1:
             raise ValueError(f"{env_id} must provide vector observations.")
-        agent_config = DreamerConfig(obs_dim=int(env.observation_space.shape[0]), action_dim=int(env.action_space.n))
+        agent_config = DreamerConfig(
+            obs_dim=int(env.observation_space.shape[0]),
+            action_dim=int(env.action_space.n),
+            actor_lr=cfg.actor_lr,
+            # V2 的离散 Atari 配置也采用较低的 KL 权重。
+            kl_scale=0.1 if env_id == "CartPole-v1" and version == "v2" else 1.0,
+            v2_dynamics_mix=cfg.v2_dynamics_mix,
+        )
         agent = make_agent(version, agent_config, torch.device(cfg.device))
         env.action_space.seed(seed)
         return _train_loop(cfg, env, env_id, agent, seed, total_steps, seed_steps, eval_every)
@@ -179,32 +204,46 @@ def _train_loop(
     action_ids = torch.arange(agent.config.action_dim, device=agent.device)
     pretrain = cfg.pretrain_steps
     updates = 0
+    env_steps = 0
     stable = 0
     holdouts = []
     threshold = SOLVED_RETURN.get(env_id)
     started = time.monotonic()
     metrics_path = metrics_dir / "eval_returns.csv"
     with metrics_path.open("w", newline="") as out:
-        csv.writer(out).writerow(["env_steps", "avg_return", "seed", "std_return", "episodes", "updates", "elapsed_s"])
+        csv.writer(out).writerow(
+            ["env_steps", "decision_steps", "avg_return", "seed", "std_return", "episodes", "updates", "elapsed_s"]
+        )
 
     def evaluate_policy(step: int) -> float:
-        scores = evaluate(agent, env_id, cfg.eval_episodes, 100_000, normalizer, cfg.env_kwargs, cfg.eval_workers)
+        scores = evaluate(
+            agent, env_id, cfg.eval_episodes, 100_000, normalizer, cfg.env_kwargs, cfg.eval_workers, cfg.action_repeat
+        )
         with metrics_path.open("a", newline="") as out:
             csv.writer(out).writerow(
-                [step, scores.mean(), seed,
+                [env_steps, step,
+                 scores.mean(), seed,
                  scores.std(),
                  len(scores), updates,
                  time.monotonic() - started]
             )
-        print(f"eval step={step} updates={updates} return={scores.mean():.2f} std={scores.std():.2f}", flush=True)
+        print(
+            f"eval step={step} env_steps={env_steps} updates={updates} "
+            f"return={scores.mean():.2f} std={scores.std():.2f}",
+            flush=True
+        )
         return float(scores.mean())
 
     def confirm(step: int) -> dict:
         # 每次确认使用一批新初始种子。与训练和用于触发早停的评估种子分开。
         eval_seed = 200_000 + len(holdouts) * cfg.holdout_episodes
-        scores = evaluate(agent, env_id, cfg.holdout_episodes, eval_seed, normalizer, cfg.env_kwargs, cfg.eval_workers)
+        scores = evaluate(
+            agent, env_id, cfg.holdout_episodes, eval_seed, normalizer, cfg.env_kwargs, cfg.eval_workers,
+            cfg.action_repeat
+        )
         result = {
             "step": step,
+            "env_steps": env_steps,
             "seed_start": eval_seed,
             "episodes": len(scores),
             "threshold": threshold,
@@ -232,7 +271,9 @@ def _train_loop(
         else:
             state = agent.observe(normalizer(obs) if normalizer else obs, state, prev_action)
             action = agent.policy(state)
-        obs, reward, done, terminated, _ = step_env(env, action)
+        # 动作重复以环境返回的奖励求和，回合结束立即停止重复。指标另计原始环境步数。
+        obs, reward, done, terminated, info = step_env(env, action, cfg.action_repeat)
+        env_steps += info["repeat_steps"]
         for column, value in zip(episode, (obs.copy(), action, reward, terminated)):
             column.append(value)
         if done:
@@ -277,12 +318,13 @@ def _train_loop(
                 if confirm(step)["solved"]:
                     break
 
-    _save_checkpoint(seed_dir / "policy.pt", agent, normalizer, step)
+    _save_checkpoint(seed_dir / "policy.pt", agent, normalizer, step, env_steps, cfg.action_repeat)
     result = {
         "env_id": env_id,
         "version": agent.version,
         "seed": seed,
-        "env_steps": step,
+        "env_steps": env_steps,
+        "decision_steps": step,
         "updates": updates,
         "elapsed_s": time.monotonic() - started,
         "solved": holdouts[-1]["solved"],
@@ -301,6 +343,9 @@ def main() -> None:
     parser.add_argument("--seeds", nargs="+", type=int)
     parser.add_argument("--steps", dest="total_steps", type=int)
     parser.add_argument("--seed-steps", type=int)
+    parser.add_argument("--action-repeat", type=int)
+    parser.add_argument("--actor-lr", type=float)
+    parser.add_argument("--v2-dynamics-mix", type=float, help="V2 pathwise fraction (1 - rho in the paper).")
     parser.add_argument("--pretrain-steps", type=int)
     parser.add_argument("--train-every", type=int)
     parser.add_argument("--train-steps", type=int)

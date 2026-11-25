@@ -31,6 +31,7 @@ class DreamerConfig:
     kl_scale: float = 1.0
     discount_scale: float = 1.0
     kl_balance: float = 0.8
+    v2_dynamics_mix: float = 0.0  # V2 论文中的 1 - ρ，默认使用离散动作的 REINFORCE 配置
     target_interval: int = 100  # V2 周期性复制 critic 参数
     target_tau: float = 0.02  # V3 用慢速 critic 做正则
     dynamics_scale: float = 1.0  # V3 Nature 版
@@ -53,6 +54,9 @@ class TrainConfig:
     total_steps: Optional[int] = None
     seed_steps: Optional[int] = None
     eval_every: Optional[int] = None
+    action_repeat: Optional[int] = None
+    v2_dynamics_mix: float = 0.0
+    actor_lr: Optional[float] = None
     pretrain_steps: int = 100
     train_every: int = 4
     train_steps: int = 1

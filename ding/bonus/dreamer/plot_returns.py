@@ -45,20 +45,12 @@ def collect_runs(workdir: str) -> Dict[Tuple[str, str], List[Tuple[np.ndarray, n
 
 
 def aggregate_group(series: List[Tuple[np.ndarray, np.ndarray]]) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """对同一组实验按步数聚合均值与方差。"""
-    step_to_values: Dict[int, List[float]] = defaultdict(list)
-    for steps, returns in series:
-        for s, r in zip(steps, returns):
-            step_to_values[int(s)].append(float(r))
-    # 早停造成种子曲线长度各异，只在所有种子都有记录的位置画聚合曲线。
-    all_steps = np.array(sorted(s for s, vals in step_to_values.items() if len(vals) == len(series)), dtype=np.float32)
-    means = []
-    stds = []
-    for s in all_steps:
-        vals = np.asarray(step_to_values[int(s)], dtype=np.float32)
-        means.append(np.mean(vals))
-        stds.append(np.std(vals))
-    return all_steps, np.asarray(means), np.asarray(stds)
+    """在所有种子的共有区间内插值，再计算均值和标准差。"""
+    start = max(steps[0] for steps, _ in series)
+    end = min(steps[-1] for steps, _ in series)
+    all_steps = np.unique(np.concatenate([steps[(steps >= start) & (steps <= end)] for steps, _ in series]))
+    returns = np.stack([np.interp(all_steps, steps, rewards) for steps, rewards in series])
+    return all_steps, returns.mean(0), returns.std(0)
 
 
 def env_plot_path(base_path: str, env_id: str) -> str:

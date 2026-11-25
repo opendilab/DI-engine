@@ -9,11 +9,14 @@ from ding.bonus.dreamer.config import DreamerConfig, TrainConfig
 from ding.bonus.dreamer.dreamer.agent import discount_cumprod, lambda_return, make_agent
 from ding.bonus.dreamer.dreamer.models import SymexpTwoHot, categorical_log_probs, symlog, symexp
 from ding.bonus.dreamer.dreamer.replay import ReplayBuffer
+from ding.bonus.dreamer.plot_returns import aggregate_group
 from ding.bonus.dreamer.train import evaluate, step_env, train
 
 
-def small_agent(version):
-    config = DreamerConfig(4, 2, embed_dim=8, deter_dim=8, stoch_dim=4, stoch_classes=4, hidden_dim=8, horizon=3)
+def small_agent(version, **overrides):
+    config = DreamerConfig(
+        4, 2, embed_dim=8, deter_dim=8, stoch_dim=4, stoch_classes=4, hidden_dim=8, horizon=3, **overrides
+    )
     return make_agent(version, config, torch.device("cpu"))
 
 
@@ -42,6 +45,35 @@ def test_time_limit_ends_episode_with_continuation(outputs):
 
     _, _, done, terminal, _ = step_env(TimeLimitEnv(), 0)
     assert done and not terminal
+
+
+def test_repeated_action_sums_rewards_and_stops_at_time_limit():
+
+    class TwoStepEnv:
+
+        def __init__(self):
+            self.actions = []
+
+        def step(self, action):
+            self.actions.append(action)
+            count = len(self.actions)
+            assert count <= 2
+            return np.array([count]), count, False, count == 2, {}
+
+    env = TwoStepEnv()
+    obs, reward, done, terminal, info = step_env(env, 1, repeat=3)
+    np.testing.assert_array_equal(obs, [2])
+    assert env.actions == [1, 1]
+    assert reward == 3 and done and not terminal
+    assert info["repeat_steps"] == 2
+
+
+def test_aggregate_uses_shared_physical_step_range():
+    series = [(np.array([0, 8, 14]), np.array([0, 8, 14])), (np.array([0, 10]), np.array([0, 20]))]
+    steps, avg, std = aggregate_group(series)
+    np.testing.assert_array_equal(steps, [0, 8, 10])
+    np.testing.assert_allclose(avg, [0, 12, 15])
+    np.testing.assert_allclose(std, [0, 4, 5])
 
 
 def test_replay_windows_keep_actions_and_rewards_aligned():
@@ -112,10 +144,10 @@ def test_symexp_twohot_interpolates_in_reward_units():
     torch.testing.assert_close(symexp(symlog(torch.tensor([-500., 0., 250.]))), torch.tensor([-500., 0., 250.]))
 
 
-@pytest.mark.parametrize("version", ["v1", "v2", "v3"])
-def test_actor_gradient_is_isolated_and_update_is_finite(version, monkeypatch):
+@pytest.mark.parametrize(("version", "mix"), [("v1", 0.), ("v2", 0.), ("v2", 0.5), ("v3", 0.)])
+def test_actor_gradient_is_isolated_and_update_is_finite(version, mix, monkeypatch):
     torch.manual_seed(0)
-    agent = small_agent(version)
+    agent = small_agent(version, v2_dynamics_mix=mix)
     if version == "v3":
         # V3 初始输出层为零。模拟一次更新后，才能检查 critic 对状态特征的梯度。
         with torch.no_grad():
@@ -131,7 +163,7 @@ def test_actor_gradient_is_isolated_and_update_is_finite(version, monkeypatch):
 
     def check_imagine(start, *, pathwise=False):
         features, acts, entropy = imagine(start, pathwise=pathwise)
-        assert pathwise == (version == "v1")
+        assert pathwise == (version == "v1" or mix > 0)
         assert features.requires_grad == pathwise
         return features, acts, entropy
 
