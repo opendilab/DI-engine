@@ -50,12 +50,13 @@ setup(
     },
     python_requires=">=3.7",
     install_requires=[
-        'setuptools<=66.1.1',
+        'setuptools>=65.5,<81',
         'yapf==0.29.0',
         'gym==0.25.1',  # pypy incompatible; some environments only support gym==0.22.0
         'gymnasium',
-        'torch>=1.1.0',
-        'numpy>=1.18.0,<2',
+        'torch>=1.1.0; python_version < "3.9"',
+        'torch>=2.4; python_version >= "3.9"',
+        'numpy>=1.18.0,<3',
         'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.1.0',
         'trueskill',
